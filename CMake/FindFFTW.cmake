@@ -746,9 +746,9 @@ if( (NOT PKG_CONFIG_EXECUTABLE) OR
     unset(FFTW_WORKS CACHE)
     include(CheckFunctionExists)
     if (FFTW_LOOK_FOR_ESSL)
-      check_function_exists(${FFTW_PREC_TESTFUNC}fftw_execute FFTW_WORKS)
+        check_function_exists(${FFTW_PREC_TESTFUNC}fftw_execute FFTW_WORKS)
     else()
-      check_function_exists(${FFTW_PREC_TESTFUNC}fftw_execute_ FFTW_WORKS)
+        check_function_exists(${FFTW_PREC_TESTFUNC}fftw_execute_ FFTW_WORKS)
     endif()
     mark_as_advanced(FFTW_WORKS)
 
