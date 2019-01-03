@@ -1,7 +1,7 @@
 #include "core_diagnostics.h"
 #include <cmath>
 #include <stdexcept>
-#include "synergia/utils/simple_timer.h"
+#include "simple_timer.h"
 
 MArray1d
 Core_diagnostics::calculate_mean(Bunch const& bunch)

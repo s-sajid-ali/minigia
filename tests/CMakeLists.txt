@@ -1,7 +1,7 @@
 if(SC)
 add_executable(test_distributed_rectangular_grid_eigen
     test_distributed_rectangular_grid_eigen.cc
-    ../distributed_rectangular_grid_eigen.cc
+    #../distributed_rectangular_grid_eigen.cc
     ../rectangular_grid_domain_eigen.cc
     ../commxx.cc
     )

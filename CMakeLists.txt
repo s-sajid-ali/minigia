@@ -95,8 +95,8 @@ add_executable(space_charge_3d
                distributed_fft3d.h
                distributed_rectangular_grid.cc
                distributed_rectangular_grid.h
-               distributed_rectangular_grid_eigen.cc
-               distributed_rectangular_grid_eigen.h
+               #distributed_rectangular_grid_eigen.cc
+               #distributed_rectangular_grid_eigen.h
                interpolate_rectangular_zyx.h
                math_constants.h
                multi_array_offsets.h
@@ -124,4 +124,4 @@ target_link_libraries(space_charge_3d PRIVATE MPI::MPI_CXX)
 target_link_libraries(space_charge_3d PRIVATE ${FFTW_LIBRARIES})
 endif()
 
-add_subdirectory(tests)
+#add_subdirectory(tests)
