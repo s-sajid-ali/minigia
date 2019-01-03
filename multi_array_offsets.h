@@ -1,6 +1,6 @@
 #ifndef MULTI_ARRAY_OFFSETS_H_
 #define MULTI_ARRAY_OFFSETS_H_
-#include "synergia/utils/multi_array_typedefs.h"
+#include "multi_array_typedefs.h"
 
 inline
 double *
