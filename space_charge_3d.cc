@@ -55,9 +55,16 @@ void
 run_check(Collective_operator& space_charge, Collective_operator& reference,
           double time_step, int verbosity, const char* name)
 {
+    int error, rank, size;
+    error = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    error = MPI_Comm_size(MPI_COMM_WORLD, &size);
+
     const double tolerance = 1.0e-14;
-    Bunch b1(bunch_in_0_path);
+
+    //Bunch b1(bunch_in_0_path);
+    Bunch b1(1024, 1e10, size, rank);
     Bunch b2(b1);
+
     reference.apply(b1, time_step, verbosity);
     space_charge.apply(b2, time_step, verbosity);
     if (!check_equal(b1, b2, tolerance)) {
@@ -76,20 +83,22 @@ run()
         exit(error);
     }
 
-    Bunch bunch(bunch_in_0_path);
+    //Bunch bunch(bunch_in_0_path);
+    Bunch bunch(1024, 1e10, size, rank);
+
     std::vector<int> grid_shape({ 32, 32, 128 });
     double time_step = 0.01;
     int verbosity = 99;
     Commxx_divider_sptr commxx_divider_sptr(new Commxx_divider);
-    Space_charge_3d_open_hockney orig(commxx_divider_sptr, grid_shape);
 
-    auto reference_timing =
-        do_timing(orig, bunch, time_step, verbosity, "orig", 0.0);
+    Space_charge_3d_open_hockney orig(commxx_divider_sptr, grid_shape);
+    Space_charge_3d_open_hockney_eigen eigen(commxx_divider_sptr, grid_shape);
+
+    auto reference_timing = do_timing(orig, bunch, time_step, verbosity, "orig", 0.0);
 
     run_check(orig, orig, time_step, verbosity, "orig");
     do_timing(orig, bunch, time_step, verbosity, "orig", reference_timing);
 
-    Space_charge_3d_open_hockney_eigen eigen(commxx_divider_sptr, grid_shape);
     run_check(eigen, eigen, time_step, verbosity, "eigen");
     do_timing(eigen, bunch, time_step, verbosity, "eigen", reference_timing);
 }
