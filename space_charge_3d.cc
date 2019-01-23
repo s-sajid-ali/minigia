@@ -87,12 +87,13 @@ run()
     Bunch bunch(1024, 1e10, size, rank);
 
     std::vector<int> grid_shape({ 32, 32, 128 });
+    std::array<int, 3> grid_shape_a{ 32, 32, 128 };
     double time_step = 0.01;
     int verbosity = 99;
     Commxx_divider_sptr commxx_divider_sptr(new Commxx_divider);
 
     Space_charge_3d_open_hockney orig(commxx_divider_sptr, grid_shape);
-    Space_charge_3d_open_hockney_eigen eigen(commxx_divider_sptr, grid_shape);
+    Space_charge_3d_open_hockney_eigen eigen(commxx_divider_sptr, grid_shape_a);
 
     auto reference_timing = do_timing(orig, bunch, time_step, verbosity, "orig", 0.0);
 

@@ -81,43 +81,46 @@ if(SC)
 add_executable(space_charge_3d
                space_charge_3d.cc
                space_charge_3d_open_hockney.cc
-               space_charge_3d_open_hockney.h
+               #space_charge_3d_open_hockney.h
                space_charge_3d_open_hockney_eigen.cc
-               space_charge_3d_open_hockney_eigen.h
+               #space_charge_3d_open_hockney_eigen.h
                commxx.cc
-               commxx.h
+               #commxx.h
                commxx_divider.cc
-               commxx_divider.h
+               #commxx_divider.h
                core_diagnostics.cc
-               core_diagnostics.h
+               #core_diagnostics.h
                deposit.cc
-               deposit.h
+               #deposit.h
                distributed_fft3d.cc
-               distributed_fft3d.h
+               #distributed_fft3d.h
+               distributed_fft3d_eigen.cc
+               #distributed_fft3d_eigen.h
                distributed_rectangular_grid.cc
-               distributed_rectangular_grid.h
+               #distributed_rectangular_grid.h
                #distributed_rectangular_grid_eigen.cc
                #distributed_rectangular_grid_eigen.h
-               interpolate_rectangular_zyx.h
-               math_constants.h
-               multi_array_offsets.h
+               #interpolate_rectangular_zyx.h
+               #math_constants.h
+               #multi_array_offsets.h
                rectangular_grid.cc
-               rectangular_grid.h
-               rectangular_grid_eigen.h
+               #rectangular_grid.h
+               #rectangular_grid_eigen.h
                rectangular_grid_domain.cc
-               rectangular_grid_domain.h
-               rectangular_grid_domain_eigen.cc
-               rectangular_grid_domain_eigen.h
-               simple_timer.h
+               #rectangular_grid_domain.h
+               #rectangular_grid_domain_eigen.cc
+               #rectangular_grid_domain_eigen.h
+               #simple_timer.h
                space_charge_3d.cc
                space_charge_3d_open_hockney.cc
-               bunch.h
-               four_momentum.h
-               gsvector.h
-               multi_array_typedefs.h
-               physical_constants.h
-               reference_particle.h
-               restrict_extension.h)
+               #bunch.h
+               #four_momentum.h
+               #gsvector.h
+               #multi_array_typedefs.h
+               #physical_constants.h
+               #reference_particle.h
+               #restrict_extension.h
+               )
 target_include_directories(space_charge_3d PRIVATE ${MINIGIA_BINARY_DIR})
 target_include_directories(space_charge_3d PRIVATE vectorclass)
 target_include_directories(space_charge_3d PRIVATE eigen)

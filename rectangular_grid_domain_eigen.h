@@ -2,46 +2,71 @@
 #define RECTANGULAR_GRID_DOMAIN_EIGEN_H_
 
 #include "fast_int_floor.h"
+#include "rectangular_grid_eigen.h"
 #include <array>
 #include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
 
 class Rectangular_grid_domain_eigen
 {
+
 private:
+
+    std::array<int,    3> grid_shape;
     std::array<double, 3> physical_size;
     std::array<double, 3> physical_offset;
-    std::array<int, 3> grid_shape;
-    bool periodic_z;
-
     std::array<double, 3> left;
     std::array<double, 3> cell_size;
 
-    void init_left_cell_size();
+    bool periodic_z;
 
 public:
-    Rectangular_grid_domain_eigen(std::array<double, 3> const& physical_size,
-                                  std::array<double, 3> const& physical_offset,
-                                  std::array<int, 3> const& grid_shape,
-                                  bool periodic_z);
-    Rectangular_grid_domain_eigen(std::array<double, 3> const& physical_size,
-                                  std::array<double, 3> const& physical_offset,
-                                  std::array<int, 3> const& grid_shape);
 
-    Rectangular_grid_domain_eigen(std::array<double, 3> const& physical_size,
-                                  std::array<int, 3> const& grid_shape,
-                                  bool periodic_z);
+    Rectangular_grid_domain_eigen(
+            std::array<int, 3>    const & grid_shape,
+            std::array<double, 3> const & physical_size,
+            std::array<double, 3> const & physical_offset = {0, 0, 0},
+            bool periodic_z = false )
+    : grid_shape(grid_shape)
+    , physical_size(physical_size)
+    , physical_offset(physical_offset)
+    , left { 
+        physical_offset[0] - physical_size[0]/2.0,
+        physical_offset[1] - physical_size[1]/2.0,
+        physical_offset[2] - physical_size[2]/2.0 }
+    , cell_size {
+        physical_size[0] / (1.0 * grid_shape[0]),
+        physical_size[1] / (1.0 * grid_shape[1]),
+        physical_size[2] / (1.0 * grid_shape[2]) }
+    , periodic_z(periodic_z)
+    { }
 
-    std::array<double, 3> const& get_physical_size() const;
-    std::array<double, 3> const& get_physical_offset() const;
-    std::array<int, 3> const& get_grid_shape() const;
-    std::array<double, 3> const& get_cell_size() const;
-    bool is_periodic() const;
-    std::array<double, 3> const& get_left() const;
+    bool is_periodic() const
+    { return periodic_z; }
+
+    std::array<double, 3> const & get_physical_size() const
+    { return physical_size; }
+
+    std::array<double, 3> const & get_physical_offset() const
+    { return physical_offset; }
+
+    std::array<int, 3>    const & get_grid_shape() const
+    { return grid_shape; }
+
+    std::array<double, 3> const & get_cell_size() const
+    { return cell_size; }
+
+    std::array<double, 3> const & get_left() const
+    { return left; }
+
+    Rectangular_grid_eigen_sptr make_grid() const
+    { return boost::make_shared<Rectangular_grid_eigen>(grid_shape); }
+
     // returns cell location and fractional offset
-    inline bool get_leftmost_indices_offsets(double x, double y, double z,
-                                             int& ix, int& iy, int& iz,
-                                             double& offx, double& offy,
-                                             double& offz) const
+    inline bool get_leftmost_indices_offsets(
+            double x, double y, double z,
+            int & ix, int & iy, int & iz,
+            double & offx, double & offy, double & offz) const
     {
         bool retval;
         double scaled_location;
@@ -58,20 +83,22 @@ public:
         iz = fast_int_floor(scaled_location);
         offz = scaled_location - iz;
 
-        if (grid_shape[2] == 1) {
+        if (grid_shape[2] == 1) 
+        {
             // csp: For grid_shape = 1, iz and offz are not used in deposit
             //      and interpolation. These are just for the reference.
             //      iz is 0 or 1, so that all particles are in domain, i.e.,
             //      no cutting edge.
             iz += 1;
-            if (iz == 0)
-                offz = -0.5 + offz;
-            if (iz == 1)
-                offz = 0.5 - offz;
+            if (iz == 0) offz = -0.5 + offz;
+            if (iz == 1) offz = 0.5 - offz;
+
             retval = ((ix >= 0) && (ix < grid_shape[0] - 1) && (iy >= 0) &&
                       (iy < grid_shape[1] - 1)) &&
                      (periodic_z || ((iz >= 0) && (iz <= grid_shape[2])));
-        } else {
+        } 
+        else 
+        {
             retval = ((ix >= 0) && (ix < grid_shape[0] - 1) && (iy >= 0) &&
                       (iy < grid_shape[1] - 1)) &&
                      (periodic_z || ((iz >= 0) && (iz < grid_shape[2] - 1)));
@@ -80,8 +107,14 @@ public:
         return retval;
     }
 
-    void get_cell_coordinates(int ix, int iy, int iz, double& x, double& y,
-                              double& z) const;
+    void get_cell_coordinates(
+            int ix, int iy, int iz, 
+            double & x, double & y, double & z) const
+    {
+        x = left[0] + cell_size[0] * (0.5 + ix);
+        y = left[1] + cell_size[1] * (0.5 + iy);
+        z = left[2] + cell_size[2] * (0.5 + iz);
+    }
 };
 
 typedef boost::shared_ptr<Rectangular_grid_domain_eigen>

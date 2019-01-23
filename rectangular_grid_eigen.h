@@ -1,7 +1,7 @@
 #ifndef RECTANGULAR_GRID_EIGEN_H_
 #define RECTANGULAR_GRID_EIGEN_H_
 
-#include "rectangular_grid_domain_eigen.h"
+//#include "rectangular_grid_domain_eigen.h"
 #include <unsupported/Eigen/CXX11/Tensor>
 
 
@@ -14,24 +14,31 @@ class Rectangular_grid_eigen
 
 private:
 
+#if 0
     Rectangular_grid_domain_eigen domain;
+#endif
 
     EArray3d  grid_points;
+
+#if 0
     EArray2dc grid_points_2dc;
     EArray1d  grid_points_1d;
+#endif
 
     double normalization;
 
 public:
+
+#if 0
     Rectangular_grid_eigen(
             std::array<double, 3> const & physical_size, 
             std::array<double, 3> const & physical_offset,
             std::array<int, 3>    const & grid_shape, 
             bool periodic_z )
-        : domain(physical_size, physical_offset, grid_shape, periodic_z)
+        : domain(grid_shape, physical_size, physical_offset, periodic_z)
         , grid_points(grid_shape[0], grid_shape[1], grid_shape[2])
-        , grid_points_2dc(grid_shape[0], grid_shape[1])
-        , grid_points_1d(grid_shape[2])
+        //, grid_points_2dc(grid_shape[0], grid_shape[1])
+        //, grid_points_1d(grid_shape[2])
         , normalization(1.0)
     { }
 
@@ -39,11 +46,13 @@ public:
             Rectangular_grid_domain_eigen const & domain )
         : domain(domain)
         , grid_points(domain.get_grid_shape()[0], domain.get_grid_shape()[1], domain.get_grid_shape()[2])
-        , grid_points_2dc(domain.get_grid_shape()[0], domain.get_grid_shape()[1])
-        , grid_points_1d(domain.get_grid_shape()[2])
+        //, grid_points_2dc(domain.get_grid_shape()[0], domain.get_grid_shape()[1])
+        //, grid_points_1d(domain.get_grid_shape()[2])
         , normalization(1.0)
     { }
+#endif
 
+#if 0
     Rectangular_grid_domain_eigen const &
     get_domain() const
     { return domain; }
@@ -51,6 +60,12 @@ public:
     Rectangular_grid_domain_eigen &
     get_domain()
     { return domain; }
+#endif
+
+    Rectangular_grid_eigen(std::array<int, 3> const & grid_shape, bool zero = false)
+        : grid_points(grid_shape[0], grid_shape[1], grid_shape[2])
+        , normalization(1.0)
+    { /*if (zero) grid_points.setZero();*/ }
 
     EArray3d const &
     get_grid_points() const
@@ -60,6 +75,15 @@ public:
     get_grid_points()
     { return grid_points; }
 
+    EArray3d::Scalar const &
+    grid(Eigen::Index x, Eigen::Index y, Eigen::Index z) const
+    { return grid_points(x, y, z); }
+
+    EArray3d::Scalar &
+    grid(Eigen::Index x, Eigen::Index y, Eigen::Index z)
+    { return grid_points(x, y, z); }
+
+#if 0
     EArray2dc const &
     get_grid_points_2dc() const
     { return grid_points_2dc; }
@@ -75,6 +99,7 @@ public:
     EArray1d &
     get_grid_points_1d()
     { return grid_points_1d; }
+#endif
 
     void
     set_normalization(double val)
@@ -84,6 +109,7 @@ public:
     get_normalization() const
     { return normalization; }
 
+#if 0
     //
     // P.L. addition, Aug 3 2011
     //
@@ -179,6 +205,7 @@ public:
 
        return val; 
     }
+#endif
 };
 
 typedef boost::shared_ptr<Rectangular_grid_eigen> Rectangular_grid_eigen_sptr; // syndoc:include

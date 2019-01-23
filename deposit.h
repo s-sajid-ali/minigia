@@ -1,11 +1,17 @@
 #ifndef DEPOSIT_H_
 #define DEPOSIT_H_
 #include "rectangular_grid.h"
+#include "rectangular_grid_eigen.h"
 #include "bunch.h"
 
 void
 deposit_charge_rectangular_zyx(Rectangular_grid & rho_grid, Bunch const& bunch,
         bool zero_first = true);
+
+void
+deposit_charge_rectangular_zyx_eigen(Rectangular_grid_eigen & rho_grid, Bunch const& bunch,
+        bool zero_first = true);
+
 
 void
 deposit_charge_rectangular_zyx_omp_reduce(Rectangular_grid & rho_grid, Bunch const& bunch,
