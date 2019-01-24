@@ -393,8 +393,7 @@ Space_charge_3d_open_hockney_eigen::get_scalar_field2(
     for (int i = lower; i < upper; ++i) {
         for (int j = 0; j < cshape[1]; ++j) {
             for (int k = 0; k < cshape[2]; ++k) {
-                phi2hat.grid(i, j, k) = 
-                    rho2hat.grid(i, j, k) * G2hat.grid(i, j, k);
+                phi2hat.grid(i, j, k) = rho2hat.grid(i, j, k) * G2hat.grid(i, j, k);
             }
         }
     }
@@ -422,27 +421,157 @@ Space_charge_3d_open_hockney_eigen::get_scalar_field2(
 
 Rectangular_grid_eigen_sptr
 Space_charge_3d_open_hockney_eigen::extract_scalar_field(
-        Rectangular_grid_eigen const & phi2)
+        Rectangular_grid_eigen const & phi2,
+        Commxx_sptr comm_sptr)
 {
     auto phi = domain_sptr->make_grid();
 
-#if 0
     #pragma omp parallel for
     for (int i = real_doubled_lower; i < real_doubled_upper; ++i) {
         for (int j = 0; j < grid_shape[1]; ++j) {
             for (int k = 0; k < grid_shape[2]; ++k) {
-                phi->get_grid_points()[i][j][k] =
-                        phi2.get_grid_points()[i][j][k];
+                phi->grid(i, j, k) = phi2.grid(i, j, k);
             }
         }
     }
+
     phi->set_normalization(phi2.get_normalization());
+
+#if 0
     if (comm1_sptr->has_this_rank()) {
         phi->fill_guards();
     }
 #endif
+
+    // all reduce to get the global scalar field
+    int error = MPI_Allreduce(
+            MPI_IN_PLACE,
+            (void*)phi->get_grid_points().data(),
+            phi->get_grid_points().size(), 
+            MPI_DOUBLE,
+            MPI_SUM, 
+            comm_sptr->get() );
+
+    if (error != MPI_SUCCESS)
+    {
+        throw std::runtime_error(
+                "MPI error in Space_charge_3d_open_hockney_eigen::extract_scalar_field");
+    }
+
     return phi;
 }
+
+Rectangular_grid_eigen_sptr
+Space_charge_3d_open_hockney_eigen::get_e_field_component(
+        Rectangular_grid_eigen const & phi, int component)
+{
+    switch(component)
+    {
+        case 0: return get_e_x(phi);
+        case 1: return get_e_y(phi);
+        case 2: return get_e_z(phi);
+        default: throw std::runtime_error("invalid component");
+    }
+}
+
+Rectangular_grid_eigen_sptr
+Space_charge_3d_open_hockney_eigen::get_e_x(Rectangular_grid_eigen const & phi)
+{
+    auto En = domain_sptr->make_grid();
+    auto shape = domain_sptr->get_grid_shape();
+
+    double cell_size = domain_sptr->get_cell_size()[2];
+    double d  = cell_size;
+    double d2 = cell_size * 2;
+
+    #pragma omp parallel for
+    for(int i=0; i<shape[0]; ++i)
+    {
+        for(int j=0; j<shape[1]; ++j)
+        {
+            for (int k=1; k<shape[2]-1; ++k)
+            { 
+                En->grid(i, j, k) = - (phi.grid(i, j, k+1) - phi.grid(i, j, k-1)) / d2;
+            }
+
+            En->grid(i, j, 0) = - (phi.grid(i, j, 1) - phi.grid(i, j, 0)) / d;
+            En->grid(i, j, shape[2]-1) = - (phi.grid(i, j, shape[2]-1) - phi.grid(i, j, shape[2]-2)) / d;
+        }
+    }
+
+    En->set_normalization(phi.get_normalization());
+    return En;
+}
+
+Rectangular_grid_eigen_sptr
+Space_charge_3d_open_hockney_eigen::get_e_y(Rectangular_grid_eigen const & phi)
+{
+    auto En = domain_sptr->make_grid();
+    auto shape = domain_sptr->get_grid_shape();
+
+    double cell_size = domain_sptr->get_cell_size()[1];
+    double d  = cell_size;
+    double d2 = cell_size * 2;
+
+    #pragma omp parallel for
+    for(int i=0; i<shape[0]; ++i)
+    {
+        for(int j=1; j<shape[1]-1; ++j)
+        {
+            for (int k=0; k<shape[2]; ++k)
+            { 
+                En->grid(i, j, k) = - (phi.grid(i, j, k+1) - phi.grid(i, j, k-1)) / d2;
+            }
+
+        }
+
+        for (int k=0; k<shape[2]; ++k)
+        {
+            En->grid(i, 0, k) = - (phi.grid(i, 1, k) - phi.grid(i, 0, k)) / d;
+            En->grid(i, shape[1]-1, k) = - (phi.grid(i, shape[1]-1, k) - phi.grid(i, shape[1]-2, k)) / d;
+        }
+    }
+
+    En->set_normalization(phi.get_normalization());
+    return En;
+}
+
+Rectangular_grid_eigen_sptr
+Space_charge_3d_open_hockney_eigen::get_e_z(Rectangular_grid_eigen const & phi)
+{
+    auto En = domain_sptr->make_grid();
+    auto shape = domain_sptr->get_grid_shape();
+
+    double cell_size = domain_sptr->get_cell_size()[0];
+    double d  = cell_size;
+    double d2 = cell_size * 2;
+
+    #pragma omp parallel for
+    for (int i=1; i<shape[0]-1; ++i)
+    {
+        for (int j=0; j<shape[1]; ++j)
+        {
+            for (int k=0; k<shape[2]; ++k)
+            { 
+                En->grid(i, j, k) = - (phi.grid(i, j, k+1) - phi.grid(i, j, k-1)) / d2;
+            }
+
+        }
+    }
+
+    for (int j=0; j<shape[1]; ++j)
+    {
+        for (int k=0; k<shape[2]; ++k)
+        {
+            En->grid(0, j, k) = - (phi.grid(1, j, k) - phi.grid(0, j, k)) / d;
+            En->grid(shape[0]-1, j, k) = - (phi.grid(shape[0]-1, j, k) - phi.grid(shape[0]-2, j, k)) / d;
+        }
+    }
+
+    En->set_normalization(phi.get_normalization());
+    return En;
+}
+
 
 Rectangular_grid_eigen_sptr
 Space_charge_3d_open_hockney_eigen::get_electric_field_component(
@@ -465,6 +594,9 @@ Space_charge_3d_open_hockney_eigen::get_electric_field_component(
 #if 0
     MArray3d_ref En_a(En->get_grid_points());
     MArray3d_ref phi_a(phi.get_grid_points());
+#endif
+
+#if 0
     int lower_limit, upper_limit;
     if (index == 0) {
         lower_limit = En->get_lower_guard();
@@ -473,7 +605,9 @@ Space_charge_3d_open_hockney_eigen::get_electric_field_component(
         lower_limit = 0;
         upper_limit = domain_sptr->get_grid_shape()[index];
     }
+
     double cell_size = domain_sptr->get_cell_size()[index];
+
     boost::array<MArray3d::index, 3 > center, left, right;
 
     #pragma omp parallel for private(center, left, right)
@@ -507,8 +641,9 @@ Space_charge_3d_open_hockney_eigen::get_electric_field_component(
             }
         }
     }
-    En->set_normalization(phi.get_normalization());
 #endif
+
+    En->set_normalization(phi.get_normalization());
     return En;
 }
 
@@ -557,32 +692,37 @@ void
 Space_charge_3d_open_hockney_eigen::apply_kick(Bunch & bunch,
         Rectangular_grid_eigen const& En, double delta_t, int component)
 {
-// $\delta \vec{p} = \vec{F} \delta t = q \vec{E} \delta t$
+    // $\delta \vec{p} = \vec{F} \delta t = q \vec{E} \delta t$
     double q = bunch.get_reference_particle().get_charge() * pconstants::e; // [C]
-// delta_t_beam: [s] in beam frame
+
+    // delta_t_beam: [s] in beam frame
     double delta_t_beam = delta_t / bunch.get_reference_particle().get_gamma();
-// unit_conversion: [kg m/s] to [Gev/c]
+
+    // unit_conversion: [kg m/s] to [Gev/c]
     double unit_conversion = pconstants::c / (1.0e9 * pconstants::e);
-// scaled p = p/p_ref
+    
+    // scaled p = p/p_ref
     double p_scale = 1.0 / bunch.get_reference_particle().get_momentum();
-    double factor = unit_conversion * q * delta_t_beam * En.get_normalization()
-            * p_scale;
+    double factor = unit_conversion * q * delta_t_beam * En.get_normalization() * p_scale;
+
+    int ps_component = 2 * component + 1;
 
 #if 0
-    int ps_component = 2 * component + 1;
     Rectangular_grid_domain_eigen & domain(*En.get_domain_sptr());
     MArray3d_ref grid_points(En.get_grid_points());
+#endif
 
     #pragma omp parallel for
-    for (int part = 0; part < bunch.get_local_num(); ++part) {
+    for (int part = 0; part < bunch.get_local_num(); ++part) 
+    {
         double x = bunch.get_local_particles()(part, Bunch::x);
         double y = bunch.get_local_particles()(part, Bunch::y);
         double z = bunch.get_local_particles()(part, Bunch::z);
-        double grid_val = interpolate_rectangular_zyx(x, y, z, domain,
-                grid_points);
+
+        double grid_val = interpolate_rectangular_zyx(x, y, z, *domain_sptr, En);
+
         bunch.get_local_particles()(part, ps_component) += factor * grid_val;
     }
-#endif
 }
 
 void
@@ -604,37 +744,41 @@ Space_charge_3d_open_hockney_eigen::apply(Bunch & bunch, double time_step,
     auto rho2 = get_global_charge_density2(*local_rho, bunch.get_comm_sptr()); // [C/m^3]
     t = simple_timer_show(t, "sce-get-global-rho");
 
-#if 0
     local_rho.reset();
-    Rectangular_grid_eigen_sptr G2; // [1/m]
-    G2 = get_green_fn2_pointlike();
+
+    auto G2 = get_green_fn2_pointlike();  // [1/m]
     t = simple_timer_show(t, "sce-get-green-fn");
 
-    Rectangular_grid_eigen_sptr phi2(get_scalar_field2(*rho2, *G2)); // [V]
+    auto phi2 = get_scalar_field2(*rho2, *G2); // [V]
     t = simple_timer_show(t, "sce-get-phi2");
 
     rho2.reset();
     G2.reset();
-    Rectangular_grid_eigen_sptr phi(extract_scalar_field(*phi2));
+
+    auto phi = extract_scalar_field(*phi2, comm1_sptr);
     t = simple_timer_show(t, "sce-get-phi");
 
-//    bunch.periodic_sort(Bunch::z);
-    t = simple_timer_show(t, "sce-sort");
+    // bunch.periodic_sort(Bunch::z);
+    // t = simple_timer_show(t, "sce-sort");
 
     phi2.reset();
-    int max_component;
-    max_component = 2;
-    for (int component = 0; component < max_component; ++component) {
-        Rectangular_grid_eigen_sptr local_En(
-                get_electric_field_component(*phi, component)); // [V/m]
+
+    for (int component = 0; component < 2; ++component) 
+    {
+#if 0
+        auto local_En = get_electric_field_component(*phi, component);  // [V/m]
         t = simple_timer_show(t, "sce-get-local-en");
-        Rectangular_grid_eigen_sptr En(
-                get_global_electric_field_component(*local_En)); // [V/m]
+
+        auto En = get_global_electric_field_component(*local_En);  // [V/m]
         t = simple_timer_show(t, "sce-get-global-en");
+#endif
+
+        auto En = get_e_field_component(*phi, component);
+        t = simple_timer_show(t, "sce-get-en");
+
         apply_kick(bunch, *En, time_step, component);
         t = simple_timer_show(t, "sce-apply-kick");
     }
-#endif
 }
 
 Space_charge_3d_open_hockney_eigen::~Space_charge_3d_open_hockney_eigen()

@@ -90,11 +90,27 @@ public:
 
     Rectangular_grid_eigen_sptr
     extract_scalar_field(
-            Rectangular_grid_eigen const & scalar_field2);
+            Rectangular_grid_eigen const & scalar_field2,
+            Commxx_sptr comm_sptr );
 
     /// Returns component of electric field [V/m]
     /// @param scalar_field the scalar field [V]
     /// @param component which component (0=x, 1=y, 2=z)
+    Rectangular_grid_eigen_sptr
+    get_e_field_component(
+            Rectangular_grid_eigen const & scalar_field, 
+            int component);
+
+    Rectangular_grid_eigen_sptr
+    get_e_x(Rectangular_grid_eigen const & scalar_field);
+
+    Rectangular_grid_eigen_sptr
+    get_e_y(Rectangular_grid_eigen const & scalar_field);
+
+    Rectangular_grid_eigen_sptr
+    get_e_z(Rectangular_grid_eigen const & scalar_field);
+
+
     Rectangular_grid_eigen_sptr
     get_electric_field_component(
             Rectangular_grid_eigen const& scalar_field, 
