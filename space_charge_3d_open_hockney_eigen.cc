@@ -381,13 +381,13 @@ Space_charge_3d_open_hockney_eigen::get_scalar_field2(
     int lower = distributed_fft3d_sptr->get_lower();
     int upper = distributed_fft3d_sptr->get_upper();
 
-    Rectangular_grid_eigen<std::complex<double>> rho2hat(cshape);
-    Rectangular_grid_eigen<std::complex<double>>   G2hat(cshape);
+    Rectangular_grid_eigen<std::complex<double>> rho2hat(cshape, false);
+    Rectangular_grid_eigen<std::complex<double>>   G2hat(cshape, false);
 
     distributed_fft3d_sptr->transform(charge_density2, rho2hat);
     distributed_fft3d_sptr->transform(green_fn2, G2hat);
 
-    Rectangular_grid_eigen<std::complex<double>> phi2hat(cshape);
+    Rectangular_grid_eigen<std::complex<double>> phi2hat(cshape, false);
 
     #pragma omp parallel for
     for (int i = lower; i < upper; ++i) {
@@ -406,7 +406,7 @@ Space_charge_3d_open_hockney_eigen::get_scalar_field2(
     normalization *= 1.0 / (4.0 * pi * epsilon0);
 
     auto phi2 = boost::make_shared<Rectangular_grid_eigen<double>>(
-            distributed_fft3d_sptr->get_padded_shape_real() );
+            distributed_fft3d_sptr->get_padded_shape_real(), false );
 
     distributed_fft3d_sptr->inv_transform(phi2hat, *phi2);
 
@@ -477,7 +477,7 @@ Space_charge_3d_open_hockney_eigen::get_e_field_component(
 Rectangular_grid_eigen_sptr<double>
 Space_charge_3d_open_hockney_eigen::get_e_x(Rectangular_grid_eigen<double> const & phi)
 {
-    auto En = domain_sptr->make_grid();
+    auto En = domain_sptr->make_grid(false);
     auto shape = domain_sptr->get_grid_shape();
 
     double cell_size = domain_sptr->get_cell_size()[2];
@@ -506,7 +506,7 @@ Space_charge_3d_open_hockney_eigen::get_e_x(Rectangular_grid_eigen<double> const
 Rectangular_grid_eigen_sptr<double>
 Space_charge_3d_open_hockney_eigen::get_e_y(Rectangular_grid_eigen<double> const & phi)
 {
-    auto En = domain_sptr->make_grid();
+    auto En = domain_sptr->make_grid(false);
     auto shape = domain_sptr->get_grid_shape();
 
     double cell_size = domain_sptr->get_cell_size()[1];
@@ -539,7 +539,7 @@ Space_charge_3d_open_hockney_eigen::get_e_y(Rectangular_grid_eigen<double> const
 Rectangular_grid_eigen_sptr<double>
 Space_charge_3d_open_hockney_eigen::get_e_z(Rectangular_grid_eigen<double> const & phi)
 {
-    auto En = domain_sptr->make_grid();
+    auto En = domain_sptr->make_grid(false);
     auto shape = domain_sptr->get_grid_shape();
 
     double cell_size = domain_sptr->get_cell_size()[0];

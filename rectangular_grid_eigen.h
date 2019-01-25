@@ -69,7 +69,7 @@ public:
     { return domain; }
 #endif
 
-    Rectangular_grid_eigen(std::array<int, 3> const & grid_shape, bool zero = false)
+    Rectangular_grid_eigen(std::array<int, 3> const & grid_shape, bool zero = true)
         : points_(grid_shape[0], grid_shape[1], grid_shape[2])
         , shape_(grid_shape)
         , normalization(1.0)

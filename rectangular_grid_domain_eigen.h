@@ -60,8 +60,8 @@ public:
     { return left; }
 
     template<typename T = double>
-    Rectangular_grid_eigen_sptr<T> make_grid() const
-    { return boost::make_shared<Rectangular_grid_eigen<T>>(grid_shape); }
+    Rectangular_grid_eigen_sptr<T> make_grid(bool zero = true) const
+    { return boost::make_shared<Rectangular_grid_eigen<T>>(grid_shape, zero); }
 
     // returns cell location and fractional offset
     inline bool get_leftmost_indices_offsets(
