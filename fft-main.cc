@@ -182,14 +182,14 @@ Eigen::Tensor<T, 3>
 read_eigen(const char* filename)
 {
     std::ifstream file(filename);
-    std::array<unsigned long, 3> shape;
+    std::array<int, 3> shape;
     file >> shape[0];
     file >> shape[1];
     file >> shape[2];
     Eigen::Tensor<T, 3> a(shape[0], shape[1], shape[2]);
-    for (unsigned long i = 0; i < shape[0]; ++i) {
-        for (unsigned long j = 0; j < shape[1]; ++j) {
-            for (unsigned long k = 0; k < shape[2]; ++k) {
+    for (int i = 0; i < shape[0]; ++i) {
+        for (int j = 0; j < shape[1]; ++j) {
+            for (int k = 0; k < shape[2]; ++k) {
                 file >> a(i, j, k);
             }
         }
