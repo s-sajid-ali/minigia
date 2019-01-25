@@ -63,54 +63,54 @@ public:
     { return *domain_sptr; }
 
     /// Returns global charge density on doubled grid in [C/m^3]
-    Rectangular_grid_eigen_sptr
+    Rectangular_grid_eigen_sptr<double>
     get_global_charge_density2_allreduce(
-            Rectangular_grid_eigen const & local_charge_density, 
+            Rectangular_grid_eigen<double> const & local_charge_density, 
             Commxx_sptr comm_sptr );
 
     /// Returns local charge density on original grid in [C/m^3]
-    Rectangular_grid_eigen_sptr
+    Rectangular_grid_eigen_sptr<double>
     get_local_charge_density(
-            Bunch const& bunch);
+            Bunch const & bunch);
 
     /// Returns global charge density on doubled grid in [C/m^3]
-    Rectangular_grid_eigen_sptr
+    Rectangular_grid_eigen_sptr<double>
     get_global_charge_density2(
-            Rectangular_grid_eigen const & local_charge_density,
+            Rectangular_grid_eigen<double> const & local_charge_density,
             Commxx_sptr comm_sptr );
 
     /// Returns Green function on the doubled grid in [1/m^3]
-    Rectangular_grid_eigen_sptr
+    Rectangular_grid_eigen_sptr<double>
     get_green_fn2_pointlike();
 
-    Rectangular_grid_eigen_sptr
+    Rectangular_grid_eigen_sptr<double>
     get_scalar_field2(
-            Rectangular_grid_eigen & charge_density22,
-            Rectangular_grid_eigen & green_fn2);
+            Rectangular_grid_eigen<double> & charge_density22,
+            Rectangular_grid_eigen<double> & green_fn2);
 
-    Rectangular_grid_eigen_sptr
+    Rectangular_grid_eigen_sptr<double>
     extract_scalar_field(
-            Rectangular_grid_eigen const & scalar_field2,
+            Rectangular_grid_eigen<double> const & scalar_field2,
             Commxx_sptr comm_sptr );
 
     /// Returns component of electric field [V/m]
     /// @param scalar_field the scalar field [V]
     /// @param component which component (0=x, 1=y, 2=z)
-    Rectangular_grid_eigen_sptr
+    Rectangular_grid_eigen_sptr<double>
     get_e_field_component(
-            Rectangular_grid_eigen const & scalar_field, 
+            Rectangular_grid_eigen<double> const & scalar_field, 
             int component);
 
-    Rectangular_grid_eigen_sptr
-    get_e_x(Rectangular_grid_eigen const & scalar_field);
+    Rectangular_grid_eigen_sptr<double>
+    get_e_x(Rectangular_grid_eigen<double> const & scalar_field);
 
-    Rectangular_grid_eigen_sptr
-    get_e_y(Rectangular_grid_eigen const & scalar_field);
+    Rectangular_grid_eigen_sptr<double>
+    get_e_y(Rectangular_grid_eigen<double> const & scalar_field);
 
-    Rectangular_grid_eigen_sptr
-    get_e_z(Rectangular_grid_eigen const & scalar_field);
+    Rectangular_grid_eigen_sptr<double>
+    get_e_z(Rectangular_grid_eigen<double> const & scalar_field);
 
-
+#if 0
     Rectangular_grid_eigen_sptr
     get_electric_field_component(
             Rectangular_grid_eigen const& scalar_field, 
@@ -123,11 +123,12 @@ public:
     Rectangular_grid_eigen_sptr
     get_global_electric_field_component(
             Rectangular_grid_eigen const& dist_field);
+#endif
 
     void
     apply_kick(
             Bunch & bunch, 
-            Rectangular_grid_eigen const & En, 
+            Rectangular_grid_eigen<double> const & En, 
             double delta_tau,
             int component );
 

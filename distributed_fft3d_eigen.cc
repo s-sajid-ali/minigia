@@ -135,7 +135,9 @@ Distributed_fft3d_eigen::get_padded_shape_complex() const
 }
 
 void
-Distributed_fft3d_eigen::transform(Rectangular_grid_eigen & in, Rectangular_grid_eigen & out)
+Distributed_fft3d_eigen::transform(
+        Rectangular_grid_eigen<double> & in, 
+        Rectangular_grid_eigen<std::complex<double>> & out )
 {
 #if 0
     if (have_local_data) {
@@ -199,10 +201,38 @@ Distributed_fft3d_eigen::transform(Rectangular_grid_eigen & in, Rectangular_grid
     }
 #endif //USE_FFTW2
 #endif
+
+    if (have_local_data) 
+    {
+#if 0
+        memcpy((void*) data, (void*) multi_array_offset(in, lower, 0, 0),
+                local_size_real * sizeof(double));
+#endif
+
+        memcpy((void*)data, (void*)in.data(lower, 0, 0), 
+                local_size_real * sizeof(double));
+    }
+
+    fftw_execute(plan);
+
+    if (have_local_data) 
+    {
+#if 0
+        memcpy((void*) multi_array_offset(out, lower, 0, 0),
+                (void*) (workspace), local_size_complex * sizeof(std::complex<
+                        double >));
+#endif
+        memcpy((void*)out.data(lower, 0, 0), (void*)workspace, 
+                local_size_complex * sizeof(std::complex<double>));
+    }
+
+
 }
 
 void
-Distributed_fft3d_eigen::inv_transform(Rectangular_grid_eigen & in, Rectangular_grid_eigen & out)
+Distributed_fft3d_eigen::inv_transform(
+        Rectangular_grid_eigen<std::complex<double>> & in, 
+        Rectangular_grid_eigen<double> & out )
 {
 #if 0
     if (have_local_data) {
@@ -263,6 +293,21 @@ Distributed_fft3d_eigen::inv_transform(Rectangular_grid_eigen & in, Rectangular_
     }
 #endif //USE_FFTW2
 #endif
+
+    if (have_local_data) 
+    {
+        memcpy((void*)workspace, (void*)in.data(lower, 0, 0),
+                local_size_complex * sizeof(std::complex<double>));
+    }
+
+    fftw_execute(inv_plan);
+
+    if (have_local_data) 
+    {
+        memcpy((void*)out.data(lower, 0, 0), (void*)data,
+                local_size_real * sizeof(double));
+    }
+
 }
 
 double

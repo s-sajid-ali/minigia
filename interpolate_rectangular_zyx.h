@@ -35,7 +35,7 @@ interpolate_rectangular_zyx(double x, double y, double z,
 inline double
 interpolate_rectangular_zyx(double x, double y, double z,
         Rectangular_grid_domain_eigen const & domain, 
-        Rectangular_grid_eigen const & a)
+        Rectangular_grid_eigen<double> const & a)
 {
     // tri-linear interpolation
     int ix, iy, iz;

@@ -92,7 +92,7 @@ deposit_charge_rectangular_zyx(Rectangular_grid & rho_grid, Bunch const& bunch,
 
 void
 deposit_charge_rectangular_zyx_eigen(
-        Rectangular_grid_eigen & rho_grid, 
+        Rectangular_grid_eigen<double> & rho_grid, 
         Bunch const& bunch,
         bool zero_first )
 {

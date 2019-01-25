@@ -5,12 +5,18 @@
 #include <unsupported/Eigen/CXX11/Tensor>
 
 
+#if 0
 typedef Eigen::Tensor<double, 3> EArray3d;
 typedef Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> EArray2dc;
 typedef Eigen::Matrix<double, Eigen::Dynamic, 1> EArray1d;
+#endif
 
+template<typename T = double>
 class Rectangular_grid_eigen
 {
+public:
+
+    typedef Eigen::Tensor<T, 3> EArray3d;
 
 private:
 
@@ -18,7 +24,8 @@ private:
     Rectangular_grid_domain_eigen domain;
 #endif
 
-    EArray3d  grid_points;
+    EArray3d  points_;
+    std::array<int, 3> shape_;
 
 #if 0
     EArray2dc grid_points_2dc;
@@ -63,25 +70,34 @@ public:
 #endif
 
     Rectangular_grid_eigen(std::array<int, 3> const & grid_shape, bool zero = false)
-        : grid_points(grid_shape[0], grid_shape[1], grid_shape[2])
+        : points_(grid_shape[0], grid_shape[1], grid_shape[2])
+        , shape_(grid_shape)
         , normalization(1.0)
-    { /*if (zero) grid_points.setZero();*/ }
+    { if (zero) points_.setZero(); }
 
     EArray3d const &
     get_grid_points() const
-    { return grid_points; }
+    { return points_; }
 
     EArray3d &
     get_grid_points()
-    { return grid_points; }
+    { return points_; }
 
-    EArray3d::Scalar const &
+    std::array<int, 3> const &
+    shape() const
+    { return shape_; }
+
+    typename EArray3d::Scalar const &
     grid(Eigen::Index x, Eigen::Index y, Eigen::Index z) const
-    { return grid_points(x, y, z); }
+    { return points_(x, y, z); }
 
-    EArray3d::Scalar &
+    typename EArray3d::Scalar &
     grid(Eigen::Index x, Eigen::Index y, Eigen::Index z)
-    { return grid_points(x, y, z); }
+    { return points_(x, y, z); }
+
+    typename EArray3d::Scalar const *
+    data(Eigen::Index x = 0, Eigen::Index y = 0, Eigen::Index z = 0) const
+    { return points_.data() + x * shape_[1] * shape_[2] + y * shape_[2] + z; }
 
 #if 0
     EArray2dc const &
@@ -208,6 +224,9 @@ public:
 #endif
 };
 
-typedef boost::shared_ptr<Rectangular_grid_eigen> Rectangular_grid_eigen_sptr; // syndoc:include
+//typedef boost::shared_ptr<Rectangular_grid_eigen> Rectangular_grid_eigen_sptr; // syndoc:include
+
+template<class T = double>
+using Rectangular_grid_eigen_sptr = boost::shared_ptr<Rectangular_grid_eigen<T>>;
 
 #endif /* RECTANGULAR_GRID_EIGEN_H_ */

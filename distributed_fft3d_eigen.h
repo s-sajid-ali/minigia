@@ -55,10 +55,14 @@ public:
     get_padded_shape_complex() const;
 
     void
-    transform(Rectangular_grid_eigen & in, Rectangular_grid_eigen & out);
+    transform(
+            Rectangular_grid_eigen<double> & in, 
+            Rectangular_grid_eigen<std::complex<double>> & out);
 
     void
-    inv_transform(Rectangular_grid_eigen & in, Rectangular_grid_eigen & out);
+    inv_transform(
+            Rectangular_grid_eigen<std::complex<double>> & in,
+            Rectangular_grid_eigen<double> & out);
 
     double
     get_roundtrip_normalization() const;

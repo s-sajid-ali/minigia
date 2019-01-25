@@ -191,7 +191,7 @@ Space_charge_3d_open_hockney_eigen::update_domain(Bunch const& bunch)
     }
 }
 
-Rectangular_grid_eigen_sptr
+Rectangular_grid_eigen_sptr<double>
 Space_charge_3d_open_hockney_eigen::get_local_charge_density(Bunch const& bunch)
 {
     double t = simple_timer_current();
@@ -210,9 +210,9 @@ Space_charge_3d_open_hockney_eigen::get_local_charge_density(Bunch const& bunch)
 }
 
 
-Rectangular_grid_eigen_sptr
+Rectangular_grid_eigen_sptr<double>
 Space_charge_3d_open_hockney_eigen::get_global_charge_density2_allreduce(
-        Rectangular_grid_eigen const & local_charge_density, Commxx_sptr comm_sptr)
+        Rectangular_grid_eigen<double> const & local_charge_density, Commxx_sptr comm_sptr)
 {
     setup_communication(comm_sptr);
 
@@ -254,7 +254,7 @@ Space_charge_3d_open_hockney_eigen::get_global_charge_density2_allreduce(
     }
 #endif
 
-    auto rho2 = boost::make_shared<Rectangular_grid_eigen>(
+    auto rho2 = boost::make_shared<Rectangular_grid_eigen<double>>(
             distributed_fft3d_sptr->get_padded_shape_real() );
 
     for (int i = real_lower; i < real_upper; ++i) 
@@ -271,15 +271,15 @@ Space_charge_3d_open_hockney_eigen::get_global_charge_density2_allreduce(
     return rho2;
 }
 
-Rectangular_grid_eigen_sptr
+Rectangular_grid_eigen_sptr<double>
 Space_charge_3d_open_hockney_eigen::get_global_charge_density2(
-        Rectangular_grid_eigen const& local_charge_density, Commxx_sptr comm_sptr)
+        Rectangular_grid_eigen<double> const& local_charge_density, Commxx_sptr comm_sptr)
 {
     return get_global_charge_density2_allreduce(local_charge_density,
             comm_sptr);
 }
 
-Rectangular_grid_eigen_sptr
+Rectangular_grid_eigen_sptr<double>
 Space_charge_3d_open_hockney_eigen::get_green_fn2_pointlike()
 {
     if (doubled_domain_sptr == NULL) {
@@ -297,7 +297,7 @@ Space_charge_3d_open_hockney_eigen::get_green_fn2_pointlike()
                     comm2_sptr));
 #endif
 
-    auto G2 = boost::make_shared<Rectangular_grid_eigen>(
+    auto G2 = boost::make_shared<Rectangular_grid_eigen<double>>(
             distributed_fft3d_sptr->get_padded_shape_real() );
 
     double hx = domain_sptr->get_cell_size()[2];
@@ -370,10 +370,10 @@ Space_charge_3d_open_hockney_eigen::get_green_fn2_pointlike()
     return G2;
 }
 
-Rectangular_grid_eigen_sptr
+Rectangular_grid_eigen_sptr<double>
 Space_charge_3d_open_hockney_eigen::get_scalar_field2(
-        Rectangular_grid_eigen & charge_density2,
-        Rectangular_grid_eigen & green_fn2)
+        Rectangular_grid_eigen<double> & charge_density2,
+        Rectangular_grid_eigen<double> & green_fn2)
 {
     std::array<int, 3> cshape(
             distributed_fft3d_sptr->get_padded_shape_complex());
@@ -381,13 +381,13 @@ Space_charge_3d_open_hockney_eigen::get_scalar_field2(
     int lower = distributed_fft3d_sptr->get_lower();
     int upper = distributed_fft3d_sptr->get_upper();
 
-    Rectangular_grid_eigen rho2hat(cshape);
-    Rectangular_grid_eigen   G2hat(cshape);
+    Rectangular_grid_eigen<std::complex<double>> rho2hat(cshape);
+    Rectangular_grid_eigen<std::complex<double>>   G2hat(cshape);
 
     distributed_fft3d_sptr->transform(charge_density2, rho2hat);
     distributed_fft3d_sptr->transform(green_fn2, G2hat);
 
-    Rectangular_grid_eigen phi2hat(cshape);
+    Rectangular_grid_eigen<std::complex<double>> phi2hat(cshape);
 
     #pragma omp parallel for
     for (int i = lower; i < upper; ++i) {
@@ -405,7 +405,7 @@ Space_charge_3d_open_hockney_eigen::get_scalar_field2(
     double normalization = hx * hy * hz; // volume element in integral
     normalization *= 1.0 / (4.0 * pi * epsilon0);
 
-    auto phi2 = boost::make_shared<Rectangular_grid_eigen>(
+    auto phi2 = boost::make_shared<Rectangular_grid_eigen<double>>(
             distributed_fft3d_sptr->get_padded_shape_real() );
 
     distributed_fft3d_sptr->inv_transform(phi2hat, *phi2);
@@ -419,9 +419,9 @@ Space_charge_3d_open_hockney_eigen::get_scalar_field2(
     return phi2;
 }
 
-Rectangular_grid_eigen_sptr
+Rectangular_grid_eigen_sptr<double>
 Space_charge_3d_open_hockney_eigen::extract_scalar_field(
-        Rectangular_grid_eigen const & phi2,
+        Rectangular_grid_eigen<double> const & phi2,
         Commxx_sptr comm_sptr)
 {
     auto phi = domain_sptr->make_grid();
@@ -461,9 +461,9 @@ Space_charge_3d_open_hockney_eigen::extract_scalar_field(
     return phi;
 }
 
-Rectangular_grid_eigen_sptr
+Rectangular_grid_eigen_sptr<double>
 Space_charge_3d_open_hockney_eigen::get_e_field_component(
-        Rectangular_grid_eigen const & phi, int component)
+        Rectangular_grid_eigen<double> const & phi, int component)
 {
     switch(component)
     {
@@ -474,8 +474,8 @@ Space_charge_3d_open_hockney_eigen::get_e_field_component(
     }
 }
 
-Rectangular_grid_eigen_sptr
-Space_charge_3d_open_hockney_eigen::get_e_x(Rectangular_grid_eigen const & phi)
+Rectangular_grid_eigen_sptr<double>
+Space_charge_3d_open_hockney_eigen::get_e_x(Rectangular_grid_eigen<double> const & phi)
 {
     auto En = domain_sptr->make_grid();
     auto shape = domain_sptr->get_grid_shape();
@@ -503,8 +503,8 @@ Space_charge_3d_open_hockney_eigen::get_e_x(Rectangular_grid_eigen const & phi)
     return En;
 }
 
-Rectangular_grid_eigen_sptr
-Space_charge_3d_open_hockney_eigen::get_e_y(Rectangular_grid_eigen const & phi)
+Rectangular_grid_eigen_sptr<double>
+Space_charge_3d_open_hockney_eigen::get_e_y(Rectangular_grid_eigen<double> const & phi)
 {
     auto En = domain_sptr->make_grid();
     auto shape = domain_sptr->get_grid_shape();
@@ -536,8 +536,8 @@ Space_charge_3d_open_hockney_eigen::get_e_y(Rectangular_grid_eigen const & phi)
     return En;
 }
 
-Rectangular_grid_eigen_sptr
-Space_charge_3d_open_hockney_eigen::get_e_z(Rectangular_grid_eigen const & phi)
+Rectangular_grid_eigen_sptr<double>
+Space_charge_3d_open_hockney_eigen::get_e_z(Rectangular_grid_eigen<double> const & phi)
 {
     auto En = domain_sptr->make_grid();
     auto shape = domain_sptr->get_grid_shape();
@@ -573,6 +573,7 @@ Space_charge_3d_open_hockney_eigen::get_e_z(Rectangular_grid_eigen const & phi)
 }
 
 
+#if 0
 Rectangular_grid_eigen_sptr
 Space_charge_3d_open_hockney_eigen::get_electric_field_component(
         Rectangular_grid_eigen const & phi, int component)
@@ -687,10 +688,14 @@ Space_charge_3d_open_hockney_eigen::get_global_electric_field_component(
 {
      return get_global_electric_field_component_allreduce(dist_field);
 }
+#endif
 
 void
-Space_charge_3d_open_hockney_eigen::apply_kick(Bunch & bunch,
-        Rectangular_grid_eigen const& En, double delta_t, int component)
+Space_charge_3d_open_hockney_eigen::apply_kick(
+        Bunch & bunch,
+        Rectangular_grid_eigen<double> const & En, 
+        double delta_t, 
+        int component )
 {
     // $\delta \vec{p} = \vec{F} \delta t = q \vec{E} \delta t$
     double q = bunch.get_reference_particle().get_charge() * pconstants::e; // [C]
