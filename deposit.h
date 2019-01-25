@@ -2,6 +2,7 @@
 #define DEPOSIT_H_
 #include "rectangular_grid.h"
 #include "rectangular_grid_eigen.h"
+#include "rectangular_grid_domain_eigen.h"
 #include "bunch.h"
 
 void
@@ -11,6 +12,7 @@ deposit_charge_rectangular_zyx(Rectangular_grid & rho_grid, Bunch const& bunch,
 void
 deposit_charge_rectangular_zyx_eigen(
         Rectangular_grid_eigen<double> & rho_grid, 
+        Rectangular_grid_domain_eigen const & domain,
         Bunch const& bunch,
         bool zero_first = true);
 

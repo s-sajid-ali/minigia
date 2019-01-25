@@ -73,7 +73,7 @@ public:
         : points_(grid_shape[0], grid_shape[1], grid_shape[2])
         , shape_(grid_shape)
         , normalization(1.0)
-    { if (zero) points_.setZero(); }
+    { if (zero) set_zero(); }
 
     EArray3d const &
     get_grid_points() const
@@ -98,6 +98,10 @@ public:
     typename EArray3d::Scalar const *
     data(Eigen::Index x = 0, Eigen::Index y = 0, Eigen::Index z = 0) const
     { return points_.data() + x * shape_[1] * shape_[2] + y * shape_[2] + z; }
+
+    void
+    set_zero()
+    { points_.setZero(); }
 
 #if 0
     EArray2dc const &

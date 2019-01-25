@@ -201,7 +201,7 @@ Space_charge_3d_open_hockney_eigen::get_local_charge_density(Bunch const& bunch)
     auto local_rho_sptr = domain_sptr->make_grid();
     t = simple_timer_show(t, "sce-local-rho-new");
 
-    deposit_charge_rectangular_zyx_eigen(*local_rho_sptr, bunch);
+    deposit_charge_rectangular_zyx_eigen(*local_rho_sptr, *domain_sptr, bunch);
     //deposit_charge_rectangular_zyx_omp_reduce(*local_rho_sptr, bunch);
     //deposit_charge_rectangular_zyx_omp_interleaved(*local_rho_sptr, bunch);
     t = simple_timer_show(t, "sce-local-rho-deposit");
