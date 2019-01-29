@@ -229,31 +229,6 @@ Space_charge_3d_open_hockney_eigen::get_global_charge_density2_allreduce(
                 "MPI error in Space_charge_3d_open_hockney_eigen::get_global_charge_density2_allreduce");
     }
 
-#if 0
-    Rectangular_grid_eigen_sptr rho2 = Rectangular_grid_eigen_sptr(
-            new Rectangular_grid_eigen(doubled_domain_sptr, doubled_lower,
-                    doubled_upper,
-                    distributed_fft3d_sptr->get_padded_shape_real(),
-                    comm_sptr));
-
-    for (int i = rho2->get_lower(); i < rho2->get_upper(); ++i) {
-        for (int j = 0; j < doubled_grid_shape[1]; ++j) {
-            for (int k = 0; k < doubled_grid_shape[2]; ++k) {
-                rho2->get_grid_points()[i][j][k] = 0.0;
-            }
-        }
-    }
-
-    for (int i = real_lower; i < real_upper; ++i) {
-        for (int j = 0; j < grid_shape[1]; ++j) {
-            for (int k = 0; k < grid_shape[2]; ++k) {
-                rho2->get_grid_points()[i][j][k] =
-                        local_charge_density.get_grid_points()[i][j][k];
-            }
-        }
-    }
-#endif
-
     auto rho2 = boost::make_shared<Rectangular_grid_eigen<double>>(
             distributed_fft3d_sptr->get_padded_shape_real() );
 
@@ -289,13 +264,6 @@ Space_charge_3d_open_hockney_eigen::get_green_fn2_pointlike()
 
     int lower = distributed_fft3d_sptr->get_lower();
     int upper = distributed_fft3d_sptr->get_upper();
-
-#if 0
-    Rectangular_grid_eigen_sptr G2 = Rectangular_grid_eigen_sptr(
-            new Rectangular_grid_eigen(doubled_domain_sptr, lower, upper,
-                    distributed_fft3d_sptr->get_padded_shape_real(),
-                    comm2_sptr));
-#endif
 
     auto G2 = boost::make_shared<Rectangular_grid_eigen<double>>(
             distributed_fft3d_sptr->get_padded_shape_real() );
@@ -713,11 +681,6 @@ Space_charge_3d_open_hockney_eigen::apply_kick(
     double factor = unit_conversion * q * delta_t_beam * En.get_normalization() * p_scale;
 
     int ps_component = 2 * component + 1;
-
-#if 0
-    Rectangular_grid_domain_eigen & domain(*En.get_domain_sptr());
-    MArray3d_ref grid_points(En.get_grid_points());
-#endif
 
     #pragma omp parallel for
     for (int part = 0; part < bunch.get_local_num(); ++part) 

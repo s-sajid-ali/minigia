@@ -1,15 +1,7 @@
 #ifndef RECTANGULAR_GRID_EIGEN_H_
 #define RECTANGULAR_GRID_EIGEN_H_
 
-//#include "rectangular_grid_domain_eigen.h"
 #include <unsupported/Eigen/CXX11/Tensor>
-
-
-#if 0
-typedef Eigen::Tensor<double, 3> EArray3d;
-typedef Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic> EArray2dc;
-typedef Eigen::Matrix<double, Eigen::Dynamic, 1> EArray1d;
-#endif
 
 template<typename T = double>
 class Rectangular_grid_eigen
@@ -20,54 +12,12 @@ public:
 
 private:
 
-#if 0
-    Rectangular_grid_domain_eigen domain;
-#endif
-
     EArray3d  points_;
     std::array<int, 3> shape_;
-
-#if 0
-    EArray2dc grid_points_2dc;
-    EArray1d  grid_points_1d;
-#endif
 
     double normalization;
 
 public:
-
-#if 0
-    Rectangular_grid_eigen(
-            std::array<double, 3> const & physical_size, 
-            std::array<double, 3> const & physical_offset,
-            std::array<int, 3>    const & grid_shape, 
-            bool periodic_z )
-        : domain(grid_shape, physical_size, physical_offset, periodic_z)
-        , grid_points(grid_shape[0], grid_shape[1], grid_shape[2])
-        //, grid_points_2dc(grid_shape[0], grid_shape[1])
-        //, grid_points_1d(grid_shape[2])
-        , normalization(1.0)
-    { }
-
-    Rectangular_grid_eigen(
-            Rectangular_grid_domain_eigen const & domain )
-        : domain(domain)
-        , grid_points(domain.get_grid_shape()[0], domain.get_grid_shape()[1], domain.get_grid_shape()[2])
-        //, grid_points_2dc(domain.get_grid_shape()[0], domain.get_grid_shape()[1])
-        //, grid_points_1d(domain.get_grid_shape()[2])
-        , normalization(1.0)
-    { }
-#endif
-
-#if 0
-    Rectangular_grid_domain_eigen const &
-    get_domain() const
-    { return domain; }
-
-    Rectangular_grid_domain_eigen &
-    get_domain()
-    { return domain; }
-#endif
 
     Rectangular_grid_eigen(std::array<int, 3> const & grid_shape, bool zero = true)
         : points_(grid_shape[0], grid_shape[1], grid_shape[2])
@@ -102,24 +52,6 @@ public:
     void
     set_zero()
     { points_.setZero(); }
-
-#if 0
-    EArray2dc const &
-    get_grid_points_2dc() const
-    { return grid_points_2dc; }
-
-    EArray2dc &
-    get_grid_points_2dc()
-    { return grid_points_2dc; }
-
-    EArray1d const &
-    get_grid_points_1d() const
-    { return grid_points_1d; }
-
-    EArray1d &
-    get_grid_points_1d()
-    { return grid_points_1d; }
-#endif
 
     void
     set_normalization(double val)
