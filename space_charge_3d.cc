@@ -67,6 +67,7 @@ run_check(Collective_operator& space_charge, Collective_operator& reference,
 
     reference.apply(b1, time_step, verbosity);
     space_charge.apply(b2, time_step, verbosity);
+
     if (!check_equal(b1, b2, tolerance)) {
         std::cerr << "run_check failed for " << name << std::endl;
     }
@@ -86,21 +87,20 @@ run()
     //Bunch bunch(bunch_in_0_path);
     Bunch bunch(1024, 1e10, size, rank);
 
-    std::vector<int> grid_shape({ 32, 32, 128 });
-    std::array<int, 3> grid_shape_a{ 32, 32, 128 };
     double time_step = 0.01;
     int verbosity = 99;
+
     Commxx_divider_sptr commxx_divider_sptr(new Commxx_divider);
 
-    Space_charge_3d_open_hockney orig(commxx_divider_sptr, grid_shape);
-    Space_charge_3d_open_hockney_eigen eigen(commxx_divider_sptr, grid_shape_a);
+    Space_charge_3d_open_hockney orig(commxx_divider_sptr, {32, 32, 128});
+    Space_charge_3d_open_hockney_eigen eigen(commxx_divider_sptr, {32, 32, 128});
 
     auto reference_timing = do_timing(orig, bunch, time_step, verbosity, "orig", 0.0);
 
     run_check(orig, orig, time_step, verbosity, "orig");
     do_timing(orig, bunch, time_step, verbosity, "orig", reference_timing);
 
-    run_check(eigen, eigen, time_step, verbosity, "eigen");
+    run_check(eigen, orig, time_step, verbosity, "eigen");
     do_timing(eigen, bunch, time_step, verbosity, "eigen", reference_timing);
 }
 

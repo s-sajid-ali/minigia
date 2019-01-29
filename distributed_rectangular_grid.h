@@ -82,6 +82,13 @@ public:
     get_comm_sptr() const;
     void
     fill_guards();
+
+    double & grid(int x, int y, int z)
+    { return (grid_points_sptr->m)[x][y][z]; }
+
+    double const & grid(int x, int y, int z) const
+    { return (grid_points_sptr->m)[x][y][z]; }
+
 };
 
 typedef boost::shared_ptr<Distributed_rectangular_grid >

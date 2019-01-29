@@ -193,6 +193,8 @@ t = simple_timer_show(t, "sc-local-rho-new");
     //deposit_charge_rectangular_zyx_omp_reduce(*local_rho_sptr, bunch);
     //deposit_charge_rectangular_zyx_omp_interleaved(*local_rho_sptr, bunch);
 t = simple_timer_show(t, "sc-local-rho-deposit");
+
+
     return local_rho_sptr;
 }
 
@@ -328,19 +330,15 @@ Space_charge_3d_open_hockney::get_scalar_field2(
         Distributed_rectangular_grid & charge_density2,
         Distributed_rectangular_grid & green_fn2)
 {
-    std::vector<int > cshape(
-            distributed_fft3d_sptr->get_padded_shape_complex());
+    std::vector<int > cshape(distributed_fft3d_sptr->get_padded_shape_complex());
     int lower = distributed_fft3d_sptr->get_lower();
     int upper = distributed_fft3d_sptr->get_upper();
 
-    MArray3dc rho2hat(
-            boost::extents[extent_range(lower, upper)][cshape[1]][cshape[2]]);
-    MArray3dc G2hat(
-            boost::extents[extent_range(lower, upper)][cshape[1]][cshape[2]]);
-    MArray3dc phi2hat(
-            boost::extents[extent_range(lower, upper)][cshape[1]][cshape[2]]);
-    distributed_fft3d_sptr->transform(charge_density2.get_grid_points(),
-            rho2hat);
+    MArray3dc rho2hat(boost::extents[extent_range(lower, upper)][cshape[1]][cshape[2]]);
+    MArray3dc G2hat(boost::extents[extent_range(lower, upper)][cshape[1]][cshape[2]]);
+    MArray3dc phi2hat(boost::extents[extent_range(lower, upper)][cshape[1]][cshape[2]]);
+
+    distributed_fft3d_sptr->transform(charge_density2.get_grid_points(), rho2hat);
     distributed_fft3d_sptr->transform(green_fn2.get_grid_points(), G2hat);
 
     #pragma omp parallel for
@@ -394,6 +392,7 @@ Space_charge_3d_open_hockney::extract_scalar_field(
     if (comm1_sptr->has_this_rank()) {
         phi->fill_guards();
     }
+
     return phi;
 }
 
@@ -493,6 +492,7 @@ Space_charge_3d_open_hockney::get_global_electric_field_component_allreduce(
                 "MPI error in Space_charge_3d_open_hockney(MPI_Allreduce in get_global_electric_field_component_allreduce)");
     }
     global_field->set_normalization(dist_field.get_normalization());
+
     return global_field;
 }
 

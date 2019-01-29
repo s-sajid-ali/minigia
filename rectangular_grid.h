@@ -50,6 +50,13 @@ public:
     get_normalization() const;
     storage3d
     get_storage() const;
+
+    double & grid(int x, int y, int z)
+    { return (grid_points_sptr->m)[x][y][z]; }
+
+    double const & grid(int x, int y, int z) const
+    { return (grid_points_sptr->m)[x][y][z]; }
+
     //
     // P.L. addition, Aug 3 2011
     //

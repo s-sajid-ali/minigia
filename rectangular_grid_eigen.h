@@ -16,7 +16,7 @@ class Rectangular_grid_eigen
 {
 public:
 
-    typedef Eigen::Tensor<T, 3> EArray3d;
+    typedef Eigen::Tensor<T, 3, Eigen::RowMajor> EArray3d;
 
 private:
 

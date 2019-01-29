@@ -198,15 +198,15 @@ Space_charge_3d_open_hockney_eigen::get_local_charge_density(Bunch const& bunch)
     update_domain(bunch);
     t = simple_timer_show(t, "sce-local-rho-update-domain");
 
-    auto local_rho_sptr = domain_sptr->make_grid();
+    auto local_rho = domain_sptr->make_grid();
     t = simple_timer_show(t, "sce-local-rho-new");
 
-    deposit_charge_rectangular_zyx_eigen(*local_rho_sptr, *domain_sptr, bunch);
+    deposit_charge_rectangular_zyx_eigen(*local_rho, *domain_sptr, bunch);
     //deposit_charge_rectangular_zyx_omp_reduce(*local_rho_sptr, bunch);
     //deposit_charge_rectangular_zyx_omp_interleaved(*local_rho_sptr, bunch);
     t = simple_timer_show(t, "sce-local-rho-deposit");
 
-    return local_rho_sptr;
+    return local_rho;
 }
 
 
@@ -500,6 +500,7 @@ Space_charge_3d_open_hockney_eigen::get_e_x(Rectangular_grid_eigen<double> const
     }
 
     En->set_normalization(phi.get_normalization());
+
     return En;
 }
 
@@ -520,7 +521,7 @@ Space_charge_3d_open_hockney_eigen::get_e_y(Rectangular_grid_eigen<double> const
         {
             for (int k=0; k<shape[2]; ++k)
             { 
-                En->grid(i, j, k) = - (phi.grid(i, j, k+1) - phi.grid(i, j, k-1)) / d2;
+                En->grid(i, j, k) = - (phi.grid(i, j+1, k) - phi.grid(i, j-1, k)) / d2;
             }
 
         }
@@ -533,6 +534,7 @@ Space_charge_3d_open_hockney_eigen::get_e_y(Rectangular_grid_eigen<double> const
     }
 
     En->set_normalization(phi.get_normalization());
+
     return En;
 }
 
@@ -760,7 +762,7 @@ Space_charge_3d_open_hockney_eigen::apply(Bunch & bunch, double time_step,
     rho2.reset();
     G2.reset();
 
-    auto phi = extract_scalar_field(*phi2, comm1_sptr);
+    auto phi = extract_scalar_field(*phi2, comm2_sptr);
     t = simple_timer_show(t, "sce-get-phi");
 
     // bunch.periodic_sort(Bunch::z);
