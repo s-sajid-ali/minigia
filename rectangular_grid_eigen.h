@@ -1,6 +1,7 @@
 #ifndef RECTANGULAR_GRID_EIGEN_H_
 #define RECTANGULAR_GRID_EIGEN_H_
 
+#include <boost/shared_ptr.hpp>
 #include <unsupported/Eigen/CXX11/Tensor>
 
 template<typename T = double>

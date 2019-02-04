@@ -5,7 +5,7 @@
 #include "collective_operator.h"
 #include "rectangular_grid_domain_eigen.h"
 #include "rectangular_grid_eigen.h"
-#include "distributed_rectangular_grid.h"
+#include "distributed_rectangular_grid_eigen.h"
 #include "commxx.h"
 #include "commxx_divider.h"
 #include "distributed_fft3d_eigen.h"
