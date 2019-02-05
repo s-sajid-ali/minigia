@@ -77,6 +77,12 @@ target_include_directories(fft PRIVATE eigen)
 target_link_libraries(fft PRIVATE fftwpp)
 target_link_libraries(fft PRIVATE fmt)
 
+add_subdirectory(kokkos)
+include_directories(${Kokkos_INCLUDE_DIRS_RET})
+
+add_executable(kokkos_test kokkos_test.cc)
+target_link_libraries(kokkos_test kokkos)
+
 if(SC)
 add_executable(space_charge_3d
                space_charge_3d.cc
