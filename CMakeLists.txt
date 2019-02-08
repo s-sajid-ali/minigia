@@ -48,6 +48,7 @@ if(OpenMP_CXX_FOUND)
 endif()
 target_link_libraries(independent_particle PRIVATE ${CHEF_LIBS})
 target_link_libraries(independent_particle PRIVATE boost_system)
+target_link_libraries(independent_particle PRIVATE kokkos)
 
 add_executable(populate
     populate.cc

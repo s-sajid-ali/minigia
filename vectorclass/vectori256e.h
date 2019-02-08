@@ -1,8 +1,8 @@
 /****************************  vectori256e.h   *******************************
 * Author:        Agner Fog
 * Date created:  2012-05-30
-* Last modified: 2017-02-19
-* Version:       1.27
+* Last modified: 2014-10-16
+* Version:       1.16
 * Project:       vector classes
 * Description:
 * Header file defining 256-bit integer point vector classes as interface
@@ -25,7 +25,7 @@
 *
 * For detailed instructions, see VectorClass.pdf
 *
-* (c) Copyright 2012-2017 GNU General Public License http://www.gnu.org/licenses
+* (c) Copyright 2012 - 2014 GNU General Public License http://www.gnu.org/licenses
 *****************************************************************************/
 
 // check combination of header files
@@ -43,9 +43,6 @@
 
 #include "vectori128.h"
 
-#ifdef VCL_NAMESPACE
-namespace VCL_NAMESPACE {
-#endif
 
 /*****************************************************************************
 *
@@ -225,18 +222,13 @@ static inline Vec256b andnot (Vec256b const & a, Vec256b const & b) {
 *****************************************************************************/
 // Generate a constant vector of 8 integers stored in memory.
 // Can be converted to any integer vector type
-template <int32_t i0, int32_t i1, int32_t i2, int32_t i3, int32_t i4, int32_t i5, int32_t i6, int32_t i7>
+template <int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7>
 static inline Vec256ie constant8i() {
     static const union {
         int32_t i[8];
         __m128i y[2];
     } u = {{i0,i1,i2,i3,i4,i5,i6,i7}};
     return Vec256ie(u.y[0], u.y[1]);
-}
-
-template <uint32_t i0, uint32_t i1, uint32_t i2, uint32_t i3, uint32_t i4, uint32_t i5, uint32_t i6, uint32_t i7>
-static inline Vec256ie constant8ui() {
-    return constant8i<int32_t(i0), int32_t(i1), int32_t(i2), int32_t(i3), int32_t(i4), int32_t(i5), int32_t(i6), int32_t(i7)>();
 }
 
 
@@ -284,11 +276,11 @@ class Vec32c : public Vec256b {
 public:
     // Default constructor:
     Vec32c(){
-    }
+    };
     // Constructor to broadcast the same value into all elements:
     Vec32c(int i) {
         y1 = y0 = _mm_set1_epi8((char)i);
-    }
+    };
     // Constructor to build from all elements:
     Vec32c(int8_t i0, int8_t i1, int8_t i2, int8_t i3, int8_t i4, int8_t i5, int8_t i6, int8_t i7,
         int8_t i8, int8_t i9, int8_t i10, int8_t i11, int8_t i12, int8_t i13, int8_t i14, int8_t i15,        
@@ -296,7 +288,7 @@ public:
         int8_t i24, int8_t i25, int8_t i26, int8_t i27, int8_t i28, int8_t i29, int8_t i30, int8_t i31) {
         y0 = _mm_setr_epi8(i0,  i1,  i2,  i3,  i4,  i5,  i6,  i7,  i8,  i9,  i10, i11, i12, i13, i14, i15);
         y1 = _mm_setr_epi8(i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29, i30, i31);
-    }
+    };
     // Constructor to build from two Vec16c:
     Vec32c(Vec16c const & a0, Vec16c const & a1) {
         y0 = a0;  y1 = a1;
@@ -305,13 +297,13 @@ public:
     Vec32c(Vec256ie const & x) {
         y0 = x.get_low();
         y1 = x.get_high();
-    }
+    };
     // Assignment operator to convert from type Vec256ie
     Vec32c & operator = (Vec256ie const & x) {
         y0 = x.get_low();
         y1 = x.get_high();
         return *this;
-    }
+    };
     // Member function to load from array (unaligned)
     Vec32c & load(void const * p) {
         y0 = _mm_loadu_si128((__m128i const*)p);
@@ -333,7 +325,7 @@ public:
             *this = Vec32c(Vec16c().load_partial(n, p), 0);
         }
         else if (n < 32) {
-            *this = Vec32c(Vec16c().load(p), Vec16c().load_partial(n-16, (char const*)p+16));
+            *this = Vec32c(Vec16c().load(p), Vec16c().load_partial(n-16, (char*)p+16));
         }
         else {
             load(p);
@@ -781,11 +773,11 @@ class Vec32uc : public Vec32c {
 public:
     // Default constructor:
     Vec32uc(){
-    }
+    };
     // Constructor to broadcast the same value into all elements:
     Vec32uc(uint32_t i) {
         y1 = y0 = _mm_set1_epi8((char)i);
-    }
+    };
     // Constructor to build from all elements:
     Vec32uc(uint8_t i0, uint8_t i1, uint8_t i2, uint8_t i3, uint8_t i4, uint8_t i5, uint8_t i6, uint8_t i7,
         uint8_t i8, uint8_t i9, uint8_t i10, uint8_t i11, uint8_t i12, uint8_t i13, uint8_t i14, uint8_t i15,        
@@ -793,7 +785,7 @@ public:
         uint8_t i24, uint8_t i25, uint8_t i26, uint8_t i27, uint8_t i28, uint8_t i29, uint8_t i30, uint8_t i31) {
         y0 = _mm_setr_epi8(i0,  i1,  i2,  i3,  i4,  i5,  i6,  i7,  i8,  i9,  i10, i11, i12, i13, i14, i15);
         y1 = _mm_setr_epi8(i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29, i30, i31);
-    }
+    };
     // Constructor to build from two Vec16uc:
     Vec32uc(Vec16uc const & a0, Vec16uc const & a1) {
         y0 = a0;  y1 = a1;
@@ -801,12 +793,12 @@ public:
     // Constructor to convert from type Vec256ie
     Vec32uc(Vec256ie const & x) {
         y0 = x.get_low();  y1 = x.get_high();
-    }
+    };
     // Assignment operator to convert from type Vec256ie
     Vec32uc & operator = (Vec256ie const & x) {
         y0 = x.get_low();  y1 = x.get_high();
         return *this;
-    }
+    };
     // Member function to load from array (unaligned)
     Vec32uc & load(void const * p) {
         y0 = _mm_loadu_si128((__m128i const*)p);
@@ -1003,17 +995,17 @@ class Vec16s : public Vec256b {
 public:
     // Default constructor:
     Vec16s() {
-    }
+    };
     // Constructor to broadcast the same value into all elements:
     Vec16s(int i) {
         y1 = y0 = _mm_set1_epi16((int16_t)i);
-    }
+    };
     // Constructor to build from all elements:
     Vec16s(int16_t i0, int16_t i1, int16_t i2,  int16_t i3,  int16_t i4,  int16_t i5,  int16_t i6,  int16_t i7,
            int16_t i8, int16_t i9, int16_t i10, int16_t i11, int16_t i12, int16_t i13, int16_t i14, int16_t i15) {
         y0 = _mm_setr_epi16(i0, i1, i2,  i3,  i4,  i5,  i6,  i7);
         y1 = _mm_setr_epi16(i8, i9, i10, i11, i12, i13, i14, i15);
-    }
+    };
     // Constructor to build from two Vec8s:
     Vec16s(Vec8s const & a0, Vec8s const & a1) {
         y0 = a0;  y1 = a1;
@@ -1021,12 +1013,12 @@ public:
     // Constructor to convert from type Vec256ie
     Vec16s(Vec256ie const & x) {
         y0 = x.get_low();  y1 = x.get_high();
-    }
+    };
     // Assignment operator to convert from type Vec256ie
     Vec16s & operator = (Vec256ie const & x) {
         y0 = x.get_low();  y1 = x.get_high();
         return *this;
-    }
+    };
     // Member function to load from array (unaligned)
     Vec16s & load(void const * p) {
         y0 = _mm_loadu_si128((__m128i const*)p);
@@ -1048,7 +1040,7 @@ public:
             *this = Vec16s(Vec8s().load_partial(n, p), 0);
         }
         else if (n < 16) {
-            *this = Vec16s(Vec8s().load(p), Vec8s().load_partial(n-8, (int16_t const*)p+8));
+            *this = Vec16s(Vec8s().load(p), Vec8s().load_partial(n-8, (int16_t*)p+8));
         }
         else {
             load(p);
@@ -1086,7 +1078,7 @@ public:
             y1 = Vec8s(y1).insert(index-8, value);
         }
         return *this;
-    }
+    };
     // Member function extract a single element from vector
     int16_t extract(uint32_t index) const {
         if (index < 8) {
@@ -1486,17 +1478,17 @@ class Vec16us : public Vec16s {
 public:
     // Default constructor:
     Vec16us(){
-    }
+    };
     // Constructor to broadcast the same value into all elements:
     Vec16us(uint32_t i) {
         y1 = y0 = _mm_set1_epi16((int16_t)i);
-    }
+    };
     // Constructor to build from all elements:
     Vec16us(uint16_t i0, uint16_t i1, uint16_t i2,  uint16_t i3,  uint16_t i4,  uint16_t i5,  uint16_t i6,  uint16_t i7,
             uint16_t i8, uint16_t i9, uint16_t i10, uint16_t i11, uint16_t i12, uint16_t i13, uint16_t i14, uint16_t i15) {
         y0 = _mm_setr_epi16(i0, i1, i2,  i3,  i4,  i5,  i6,  i7);
         y1 = _mm_setr_epi16(i8, i9, i10, i11, i12, i13, i14, i15 );
-    }
+    };
     // Constructor to build from two Vec8us:
     Vec16us(Vec8us const & a0, Vec8us const & a1) {
         y0 = a0;  y1 = a1;
@@ -1504,12 +1496,12 @@ public:
     // Constructor to convert from type Vec256ie
     Vec16us(Vec256ie const & x) {
         y0 = x.get_low();  y1 = x.get_high();
-    }
+    };
     // Assignment operator to convert from type Vec256ie
     Vec16us & operator = (Vec256ie const & x) {
         y0 = x.get_low();  y1 = x.get_high();
         return *this;
-    }
+    };
     // Member function to load from array (unaligned)
     Vec16us & load(void const * p) {
         y0 = _mm_loadu_si128((__m128i const*)p);
@@ -1527,7 +1519,7 @@ public:
     Vec16us const & insert(uint32_t index, uint16_t value) {
         Vec16s::insert(index, value);
         return *this;
-    }
+    };
     // Member function extract a single element from vector
     uint16_t extract(uint32_t index) const {
         return Vec16s::extract(index);
@@ -1750,7 +1742,7 @@ public:
             *this = Vec8i(Vec4i().load_partial(n, p), 0);
         }
         else if (n < 8) {
-            *this = Vec8i(Vec4i().load(p), Vec4i().load_partial(n-4, (int32_t const*)p+4));
+            *this = Vec8i(Vec4i().load(p), Vec4i().load_partial(n-4, (int32_t*)p+4));
         }
         else {
             load(p);
@@ -1863,7 +1855,7 @@ public:
     Vec8ib & insert (int index, bool a) {
         Vec8i::insert(index, -(int)a);
         return *this;
-    }
+    };
     // Member function extract a single element from vector
     // Note: This function is inefficient. Use store function if extracting more than one element
     bool extract(uint32_t index) const {
@@ -2187,16 +2179,16 @@ class Vec8ui : public Vec8i {
 public:
     // Default constructor:
     Vec8ui() {
-    }
+    };
     // Constructor to broadcast the same value into all elements:
     Vec8ui(uint32_t i) {
         y1 = y0 = _mm_set1_epi32(i);
-    }
+    };
     // Constructor to build from all elements:
     Vec8ui(uint32_t i0, uint32_t i1, uint32_t i2, uint32_t i3, uint32_t i4, uint32_t i5, uint32_t i6, uint32_t i7) {
         y0 = _mm_setr_epi32(i0, i1, i2, i3);
         y1 = _mm_setr_epi32(i4, i5, i6, i7);
-    }
+    };
     // Constructor to build from two Vec4ui:
     Vec8ui(Vec4ui const & a0, Vec4ui const & a1) {
         y0 = a0;  y1 = a1;
@@ -2204,12 +2196,12 @@ public:
     // Constructor to convert from type Vec256ie
     Vec8ui(Vec256ie const & x) {
         y0 = x.get_low();  y1 = x.get_high();
-    }
+    };
     // Assignment operator to convert from type Vec256ie
     Vec8ui & operator = (Vec256ie const & x) {
         y0 = x.get_low();  y1 = x.get_high();
         return *this;
-    }
+    };
     // Member function to load from array (unaligned)
     Vec8ui & load(void const * p) {
         y0 = _mm_loadu_si128((__m128i const*)p);
@@ -2455,7 +2447,7 @@ public:
             *this = Vec4q(Vec2q().load_partial(n, p), 0);
         }
         else if (n < 4) {
-            *this = Vec4q(Vec2q().load(p), Vec2q().load_partial(n-2, (int64_t const*)p+2));
+            *this = Vec4q(Vec2q().load(p), Vec2q().load_partial(n-2, (int64_t*)p+2));
         }
         else {
             load(p);
@@ -2568,7 +2560,7 @@ public:
     Vec4qb & insert (int index, bool a) {
         Vec4q::insert(index, -(int64_t)a);
         return *this;
-    }    
+    };    
     // Member function extract a single element from vector
     // Note: This function is inefficient. Use store function if extracting more than one element
     bool extract(uint32_t index) const {
@@ -2867,16 +2859,16 @@ class Vec4uq : public Vec4q {
 public:
     // Default constructor:
     Vec4uq() {
-    }
+    };
     // Constructor to broadcast the same value into all elements:
     Vec4uq(uint64_t i) {
         y1 = y0 = Vec2q(i);
-    }
+    };
     // Constructor to build from all elements:
     Vec4uq(uint64_t i0, uint64_t i1, uint64_t i2, uint64_t i3) {
         y0 = Vec2q(i0, i1);
         y1 = Vec2q(i2, i3);
-    }
+    };
     // Constructor to build from two Vec2uq:
     Vec4uq(Vec2uq const & a0, Vec2uq const & a1) {
         y0 = a0;  y1 = a1;
@@ -2884,12 +2876,12 @@ public:
     // Constructor to convert from type Vec256ie
     Vec4uq(Vec256ie const & x) {
         y0 = x.get_low();  y1 = x.get_high();
-    }
+    };
     // Assignment operator to convert from type Vec256ie
     Vec4uq & operator = (Vec256ie const & x) {
         y0 = x.get_low();  y1 = x.get_high();
         return *this;
-    }
+    };
     // Member function to load from array (unaligned)
     Vec4uq & load(void const * p) {
         y0 = _mm_loadu_si128((__m128i const*)p);
@@ -3892,70 +3884,8 @@ static inline Vec4q gather4q(void const * a) {
     return lookup<imax+1>(Vec4q(i0,i1,i2,i3), a);
 }
 
-/*****************************************************************************
-*
-*          Vector scatter functions
-*
-******************************************************************************
-*
-* These functions write the elements of a vector to arbitrary positions in an
-* array in memory. Each vector element is written to an array position 
-* determined by an index. An element is not written if the corresponding
-* index is out of range.
-* The indexes can be specified as constant template parameters or as an
-* integer vector.
-* 
-* The scatter functions are useful if the data are distributed in a sparce
-* manner into the array. If the array is dense then it is more efficient
-* to permute the data into the right positions and then write the whole
-* permuted vector into the array.
-*
-* Example:
-* Vec8q a(10,11,12,13,14,15,16,17);
-* int64_t b[16] = {0};
-* scatter<0,2,14,10,1,-1,5,9>(a,b); 
-* // Now, b = {10,14,11,0,0,16,0,0,0,17,13,0,0,0,12,0}
-*
-*****************************************************************************/
 
-template <int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7>
-static inline void scatter(Vec8i const & data, void * array) {
-    int32_t* arr = (int32_t*)array;
-    const int index[8] = {i0,i1,i2,i3,i4,i5,i6,i7};
-    for (int i = 0; i < 8; i++) {
-        if (index[i] >= 0) arr[index[i]] = data[i];
-    }
-}
 
-template <int i0, int i1, int i2, int i3>
-static inline void scatter(Vec4q const & data, void * array) {
-    int64_t* arr = (int64_t*)array;
-    const int index[4] = {i0,i1,i2,i3};
-    for (int i = 0; i < 4; i++) {
-        if (index[i] >= 0) arr[index[i]] = data[i];
-    }
-}
-
-static inline void scatter(Vec8i const & index, uint32_t limit, Vec8i const & data, void * array) {
-    int32_t* arr = (int32_t*)array;
-    for (int i = 0; i < 8; i++) {
-        if (uint32_t(index[i]) < limit) arr[index[i]] = data[i];
-    }
-}
-
-static inline void scatter(Vec4q const & index, uint32_t limit, Vec4q const & data, void * array) {
-    int64_t* arr = (int64_t*)array;
-    for (int i = 0; i < 4; i++) {
-        if (uint64_t(index[i]) < uint64_t(limit)) arr[index[i]] = data[i];
-    }
-} 
-
-static inline void scatter(Vec4i const & index, uint32_t limit, Vec4q const & data, void * array) {
-    int64_t* arr = (int64_t*)array;
-    for (int i = 0; i < 4; i++) {
-        if (uint32_t(index[i]) < limit) arr[index[i]] = data[i];
-    }
-} 
 
 /*****************************************************************************
 *
@@ -4398,9 +4328,5 @@ static inline uint8_t to_bits(Vec4qb const & x) {
 static inline Vec4qb to_Vec4qb(uint8_t x) {
     return Vec4q(to_Vec2qb(x), to_Vec2qb(x>>2));
 }
-
-#ifdef VCL_NAMESPACE
-}
-#endif
 
 #endif // VECTORI256_H

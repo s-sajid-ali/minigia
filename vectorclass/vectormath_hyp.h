@@ -1,7 +1,7 @@
 /****************************  vectormath_hyp.h   ******************************
 * Author:        Agner Fog
 * Date created:  2014-07-09
-* Last modified: 2015-02-10
+* Last modified: 2014-10-16
 * Version:       1.16
 * Project:       vector classes
 * Description:
@@ -24,7 +24,7 @@
 *
 * For detailed instructions, see vectormath_common.h and VectorClass.pdf
 *
-* (c) Copyright 2014-2016 GNU General Public License http://www.gnu.org/licenses
+* (c) Copyright 2014 GNU General Public License http://www.gnu.org/licenses
 ******************************************************************************/
 
 #ifndef VECTORMATH_HYP_H
@@ -32,9 +32,6 @@
 
 #include "vectormath_exp.h"  
 
-#ifdef VCL_NAMESPACE
-namespace VCL_NAMESPACE {
-#endif
 
 /******************************************************************************
 *                 Hyperbolic functions
@@ -43,9 +40,9 @@ namespace VCL_NAMESPACE {
 // Template for sinh function, double precision
 // This function does not produce denormals
 // Template parameters:
-// VTYPE:  double vector type
-// BVTYPE: boolean vector type 
-template<class VTYPE, class BVTYPE> 
+// VTYPE: double vector type
+// BTYPE: boolean vector type 
+template<class VTYPE, class BTYPE> 
 static inline VTYPE sinh_d(VTYPE const & x0) {    
 // The limit of abs(x) is 709.7, as defined by max_x in vectormath_exp.h for 0.5*exp(x).
 
@@ -61,8 +58,8 @@ static inline VTYPE sinh_d(VTYPE const & x0) {
     const double q3 =  1.0; 
 
     // data vectors
-    VTYPE  x, x2, y1, y2;
-    BVTYPE x_small;                              // boolean vector
+    VTYPE x, x2, y1, y2;
+    BTYPE x_small;                               // boolean vector
 
     x = abs(x0);
     x_small = x <= 1.0;                          // use Pade approximation if abs(x) <= 1
@@ -75,7 +72,7 @@ static inline VTYPE sinh_d(VTYPE const & x0) {
     }
     if (!horizontal_and(x_small)) {
         // At least one element needs big method
-        y2 =  exp_d<VTYPE, BVTYPE, 0, 1>(x);     //   0.5 * exp(x)
+        y2 =  exp_d<VTYPE, BTYPE, 0, 1>(x);      //   0.5 * exp(x)
         y2 -= 0.25 / y2;                         // - 0.5 * exp(-x)
     }
     y1 = select(x_small, y1, y2);                // choose method
@@ -105,9 +102,9 @@ static inline Vec8d sinh(Vec8d const & x) {
 // Template for sinh function, single precision
 // This function does not produce denormals
 // Template parameters:
-// VTYPE:  double vector type
-// BVTYPE: boolean vector type 
-template<class VTYPE, class BVTYPE> 
+// VTYPE: double vector type
+// BTYPE: boolean vector type 
+template<class VTYPE, class BTYPE> 
 static inline VTYPE sinh_f(VTYPE const & x0) {    
 // The limit of abs(x) is 89.0, as defined by max_x in vectormath_exp.h for 0.5*exp(x).
 
@@ -118,7 +115,7 @@ static inline VTYPE sinh_f(VTYPE const & x0) {
 
     // data vectors
     VTYPE x, x2, y1, y2;
-    BVTYPE x_small;                              // boolean vector
+    BTYPE x_small;                               // boolean vector
 
     x = abs(x0);
     x_small = x <= 1.0f;                         // use polynomial approximation if abs(x) <= 1
@@ -131,7 +128,7 @@ static inline VTYPE sinh_f(VTYPE const & x0) {
     }
     if (!horizontal_and(x_small)) {
         // At least one element needs big method
-        y2 =  exp_f<VTYPE, BVTYPE, 0, 1>(x);     //   0.5 * exp(x)
+        y2 =  exp_f<VTYPE, BTYPE, 0, 1>(x);      //   0.5 * exp(x)
         y2 -= 0.25f / y2;                        // - 0.5 * exp(-x)
     }
     y1 = select(x_small, y1, y2);                // choose method
@@ -161,9 +158,9 @@ static inline Vec16f sinh(Vec16f const & x) {
 // Template for cosh function, double precision
 // This function does not produce denormals
 // Template parameters:
-// VTYPE:  double vector type
-// BVTYPE: boolean vector type 
-template<class VTYPE, class BVTYPE> 
+// VTYPE: double vector type
+// BTYPE: boolean vector type 
+template<class VTYPE, class BTYPE> 
 static inline VTYPE cosh_d(VTYPE const & x0) {    
 // The limit of abs(x) is 709.7, as defined by max_x in vectormath_exp.h for 0.5*exp(x).
 
@@ -171,7 +168,7 @@ static inline VTYPE cosh_d(VTYPE const & x0) {
     VTYPE x, y;
 
     x  = abs(x0);
-    y  = exp_d<VTYPE, BVTYPE, 0, 1>(x);          //   0.5 * exp(x)
+    y  = exp_d<VTYPE, BTYPE, 0, 1>(x);           //   0.5 * exp(x)
     y += 0.25 / y;                               // + 0.5 * exp(-x)
     return y;
 }
@@ -197,9 +194,9 @@ static inline Vec8d cosh(Vec8d const & x) {
 // Template for cosh function, single precision
 // This function does not produce denormals
 // Template parameters:
-// VTYPE:  double vector type
-// BVTYPE: boolean vector type 
-template<class VTYPE, class BVTYPE> 
+// VTYPE: double vector type
+// BTYPE: boolean vector type 
+template<class VTYPE, class BTYPE> 
 static inline VTYPE cosh_f(VTYPE const & x0) {    
 // The limit of abs(x) is 89.0, as defined by max_x in vectormath_exp.h for 0.5*exp(x).
 
@@ -207,7 +204,7 @@ static inline VTYPE cosh_f(VTYPE const & x0) {
     VTYPE x, y;
 
     x  = abs(x0);
-    y  = exp_f<VTYPE, BVTYPE, 0, 1>(x);          //   0.5 * exp(x)
+    y  = exp_f<VTYPE, BTYPE, 0, 1>(x);           //   0.5 * exp(x)
     y += 0.25f / y;                              // + 0.5 * exp(-x)
     return y;
 }
@@ -233,9 +230,9 @@ static inline Vec16f cosh(Vec16f const & x) {
 // Template for tanh function, double precision
 // This function does not produce denormals
 // Template parameters:
-// VTYPE:  double vector type
-// BVTYPE: boolean vector type 
-template<class VTYPE, class BVTYPE> 
+// VTYPE: double vector type
+// BTYPE: boolean vector type 
+template<class VTYPE, class BTYPE> 
 static inline VTYPE tanh_d(VTYPE const & x0) {    
 
     // Coefficients
@@ -249,8 +246,8 @@ static inline VTYPE tanh_d(VTYPE const & x0) {
     const double q3 =  1.0; 
 
     // data vectors
-    VTYPE  x, x2, y1, y2;
-    BVTYPE x_small, x_big;                       // boolean vectors
+    VTYPE x, x2, y1, y2;
+    BTYPE x_small, x_big;                        // boolean vectors
 
     x = abs(x0);
     x_small = x <= 0.625;                        // use Pade approximation if abs(x) <= 5/8
@@ -295,9 +292,9 @@ static inline Vec8d tanh(Vec8d const & x) {
 // Template for tanh function, single precision
 // This function does not produce denormals
 // Template parameters:
-// VTYPE:  double vector type
-// BVTYPE: boolean vector type 
-template<class VTYPE, class BVTYPE> 
+// VTYPE: double vector type
+// BTYPE: boolean vector type 
+template<class VTYPE, class BTYPE> 
 static inline VTYPE tanh_f(VTYPE const & x0) {    
 // The limit of abs(x) is 89.0, as defined by max_x in vectormath_exp.h for 0.5*exp(x).
 
@@ -310,7 +307,7 @@ static inline VTYPE tanh_f(VTYPE const & x0) {
 
     // data vectors
     VTYPE x, x2, y1, y2;
-    BVTYPE x_small, x_big;                       // boolean vectors
+    BTYPE x_small, x_big;                        // boolean vectors
 
     x = abs(x0);
     x_small = x <= 0.625f;                       // use polynomial approximation if abs(x) <= 5/8
@@ -360,9 +357,9 @@ static inline Vec16f tanh(Vec16f const & x) {
 // Template for asinh function, double precision
 // This function does not produce denormals
 // Template parameters:
-// VTYPE:  double vector type
-// BVTYPE: boolean vector type 
-template<class VTYPE, class BVTYPE> 
+// VTYPE: double vector type
+// BTYPE: boolean vector type 
+template<class VTYPE, class BTYPE> 
 static inline VTYPE asinh_d(VTYPE const & x0) {    
 
     // Coefficients
@@ -379,8 +376,8 @@ static inline VTYPE asinh_d(VTYPE const & x0) {
     const double q4 =  1.0;
 
     // data vectors
-    VTYPE  x, x2, y1, y2;
-    BVTYPE x_small, x_huge;                      // boolean vectors
+    VTYPE x, x2, y1, y2;
+    BTYPE x_small, x_huge;                       // boolean vectors
 
     x2 = x0 * x0;
     x  = abs(x0);
@@ -428,9 +425,9 @@ static inline Vec8d asinh(Vec8d const & x) {
 // Template for asinh function, single precision
 // This function does not produce denormals
 // Template parameters:
-// VTYPE:  double vector type
-// BVTYPE: boolean vector type 
-template<class VTYPE, class BVTYPE> 
+// VTYPE: double vector type
+// BTYPE: boolean vector type 
+template<class VTYPE, class BTYPE> 
 static inline VTYPE asinh_f(VTYPE const & x0) {    
 
     // Coefficients
@@ -440,8 +437,8 @@ static inline VTYPE asinh_f(VTYPE const & x0) {
     const float r3 =  2.0122003309E-2f;
 
     // data vectors
-    VTYPE  x, x2, y1, y2;
-    BVTYPE x_small, x_huge;                      // boolean vectors
+    VTYPE x, x2, y1, y2;
+    BTYPE x_small, x_huge;                       // boolean vectors
 
     x2 = x0 * x0;
     x  = abs(x0);
@@ -488,9 +485,9 @@ static inline Vec16f asinh(Vec16f const & x) {
 // Template for acosh function, double precision
 // This function does not produce denormals
 // Template parameters:
-// VTYPE:  double vector type
-// BVTYPE: boolean vector type 
-template<class VTYPE, class BVTYPE> 
+// VTYPE: double vector type
+// BTYPE: boolean vector type 
+template<class VTYPE, class BTYPE> 
 static inline VTYPE acosh_d(VTYPE const & x0) {    
 
     // Coefficients
@@ -508,8 +505,8 @@ static inline VTYPE acosh_d(VTYPE const & x0) {
     const double q5 = 1.0;
 
     // data vectors
-    VTYPE  x1, y1, y2;
-    BVTYPE x_small, x_huge, undef;               // boolean vectors
+    VTYPE x1, y1, y2;
+    BTYPE x_small, x_huge, undef;                // boolean vectors
 
     x1      = x0 - 1.0;
     undef   = x0 < 1.0;                          // result is NAN
@@ -555,9 +552,9 @@ static inline Vec8d acosh(Vec8d const & x) {
 // Template for acosh function, single precision
 // This function does not produce denormals
 // Template parameters:
-// VTYPE:  double vector type
-// BVTYPE: boolean vector type 
-template<class VTYPE, class BVTYPE> 
+// VTYPE: double vector type
+// BTYPE: boolean vector type 
+template<class VTYPE, class BTYPE> 
 static inline VTYPE acosh_f(VTYPE const & x0) {    
 
     // Coefficients
@@ -568,8 +565,8 @@ static inline VTYPE acosh_f(VTYPE const & x0) {
     const float r4 =  1.7596881071E-3f;
 
     // data vectors
-    VTYPE  x1, y1, y2;
-    BVTYPE x_small, x_huge, undef;               // boolean vectors
+    VTYPE x1, y1, y2;
+    BTYPE x_small, x_huge, undef;                // boolean vectors
 
     x1      = x0 - 1.0f;
     undef   = x0 < 1.0f;                         // result is NAN
@@ -615,9 +612,9 @@ static inline Vec16f acosh(Vec16f const & x) {
 // Template for atanh function, double precision
 // This function does not produce denormals
 // Template parameters:
-// VTYPE:  double vector type
-// BVTYPE: boolean vector type 
-template<class VTYPE, class BVTYPE> 
+// VTYPE: double vector type
+// BTYPE: boolean vector type 
+template<class VTYPE, class BTYPE> 
 static inline VTYPE atanh_d(VTYPE const & x0) {    
 
     // Coefficients
@@ -635,8 +632,8 @@ static inline VTYPE atanh_d(VTYPE const & x0) {
     const double q5 =  1.0;
 
     // data vectors
-    VTYPE  x, x2, y1, y2, y3;
-    BVTYPE x_small;                              // boolean vector
+    VTYPE x, x2, y1, y2, y3;
+    BTYPE x_small;                               // boolean vector
 
     x  = abs(x0);
     x_small = x < 0.5;                           // use Pade approximation if abs(x) < 0.5
@@ -681,9 +678,9 @@ static inline Vec8d atanh(Vec8d const & x) {
 // Template for atanh function, single precision
 // This function does not produce denormals
 // Template parameters:
-// VTYPE:  double vector type
-// BVTYPE: boolean vector type 
-template<class VTYPE, class BVTYPE> 
+// VTYPE: double vector type
+// BTYPE: boolean vector type 
+template<class VTYPE, class BTYPE> 
 static inline VTYPE atanh_f(VTYPE const & x0) {    
 
     // Coefficients
@@ -694,8 +691,8 @@ static inline VTYPE atanh_f(VTYPE const & x0) {
     const float r4 = 1.81740078349E-1f;
 
     // data vectors
-    VTYPE  x, x2, y1, y2, y3;
-    BVTYPE x_small;                              // boolean vector
+    VTYPE x, x2, y1, y2, y3;
+    BTYPE x_small;                               // boolean vector
 
     x  = abs(x0);
     x_small = x < 0.5f;                          // use polynomial approximation if abs(x) < 0.5
@@ -735,9 +732,5 @@ static inline Vec16f atanh(Vec16f const & x) {
     return atanh_f<Vec16f, Vec16fb>(x);
 }
 #endif // MAX_VECTOR_SIZE >= 512
-
-#ifdef VCL_NAMESPACE
-}
-#endif
 
 #endif

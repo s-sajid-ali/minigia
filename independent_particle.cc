@@ -9,9 +9,13 @@
 #include <omp.h>
 #endif
 
+#include <Kokkos_Core.hpp>
+
+#define GSV_AVX 1
+#include "gsvector_v2.h"
+
 #include "bunch.h"
 #include "bunch_data_paths.h"
-#include "gsvector.h"
 #include "populate.h"
 
 #ifdef HAVE_CHEF
@@ -19,7 +23,7 @@
 #include <beamline/drift.h>
 #endif
 
-const int particles_per_rank = 100000;
+const int particles_per_rank = 10000000;
 const double real_particles = 1.0e12;
 
 const double dummy_length = 2.1;
@@ -39,6 +43,7 @@ invsqrt(double x)
     return 1.0 / sqrt(x);
 }
 
+#if 0
 template <typename T>
 inline void
 libff_drift_unit(T& x, T& y, T& cdt, T& xp, T& yp, T& dpop, double length,
@@ -55,6 +60,50 @@ libff_drift_unit(T& x, T& y, T& cdt, T& xp, T& yp, T& dpop, double length,
     y += lypr;
     cdt += sqrt(D2 * inv_beta2) - reference_time;
 }
+#endif
+
+template <typename T>
+inline static void libff_drift_unit
+  (T & x, T & y, T & cdt, T const& xp, T const& yp, T const& dpop,
+   double length, double reference_momentum, double m, double reference_cdt)
+{
+    T uni(1.0);
+    //T sig((0.0<length) - (length<0.0));
+
+    T vl(length);
+    T vm(m);
+    T vrm(reference_momentum);
+    T vrc(reference_cdt);
+
+    T dp = dpop + uni;
+    T inv_npz = uni / sqrt(dp * dp - xp * xp - yp * yp);
+    T lxpr = xp * vl * inv_npz;
+    T lypr = yp * vl * inv_npz;
+    T D2 = lxpr * lxpr + vl * vl + lypr * lypr;
+    T p = dp * vrm;
+    T E2 = p * p + vm * vm;
+    //T beta2 = p*p / E2;
+    T ibeta2 = E2 / (p * p);
+    x = x + lxpr;
+    y = y + lypr;
+    cdt = cdt + sqrt(D2 * ibeta2) - vrc;
+    //cdt = cdt + sig * sqrt(D2 * ibeta2) - vrc;
+}
+
+
+template <typename T>
+inline static void thin_quadrupole_unit
+  (T const& x, T& xp, T const& y, T& yp, double const * kL)
+{
+    T vk0(kL[0]);
+    T vk1(kL[1]);
+
+    xp = xp - vk0 * x + vk1 * y;
+    yp = yp + vk0 * y + vk1 * x;
+}
+
+
+
 
 #ifdef HAVE_CHEF
 void
@@ -111,7 +160,10 @@ propagate_double(Bunch& bunch, libff_drift& thelibff_drift)
         *RESTRICT cdta, *RESTRICT dpopa;
     bunch.set_arrays(xa, xpa, ya, ypa, cdta, dpopa);
 
+    double kl[2] = {0.1, 0.1};
+
     for (int part = 0; part < local_num; ++part) {
+#if 1
         auto x(xa[part]);
         auto xp(xpa[part]);
         auto y(ya[part]);
@@ -119,14 +171,106 @@ propagate_double(Bunch& bunch, libff_drift& thelibff_drift)
         auto cdt(cdta[part]);
         auto dpop(dpopa[part]);
 
-        libff_drift_unit(x, y, cdt, xp, yp, dpop, length, reference_momentum, m,
-                         reference_time);
+        libff_drift_unit(x, y, cdt, xp, yp, dpop, length, reference_momentum, m, reference_time);
 
         xa[part] = x;
         ya[part] = y;
         cdta[part] = cdt;
+#endif
+        
+#if 0
+        auto x(xa[part]);
+        auto xp(xpa[part]);
+        auto y(ya[part]);
+        auto yp(ypa[part]);
+
+        thin_quadrupole_unit(x, xp, y, yp, kl);
+
+        xpa[part] = x;
+        ypa[part] = y;
+#endif
     }
 }
+
+
+void
+propagate_gsv(Bunch& bunch, libff_drift& thelibff_drift)
+{
+    auto local_num = bunch.get_local_num();
+    auto gsvs = GSVector::size();
+
+    if (local_num % gsvs != 0) {
+        throw std::runtime_error(
+            "local number of particles must be a multiple of GSVector::size");
+    }
+
+    const auto length = thelibff_drift.Length();
+    const auto reference_momentum = bunch.get_reference_particle().get_momentum();
+    const auto m = bunch.get_mass();
+    const auto reference_time = thelibff_drift.getReferenceTime();
+
+    double *RESTRICT xa, *RESTRICT xpa, *RESTRICT ya, *RESTRICT ypa,
+        *RESTRICT cdta, *RESTRICT dpopa;
+    bunch.set_arrays(xa, xpa, ya, ypa, cdta, dpopa);
+
+    double kl[2] = {0.1, 0.2};
+
+    for (int part = 0; part < local_num; part += gsvs) {
+#if 1
+        GSVector x(&xa[part]);
+        GSVector xp(&xpa[part]);
+        GSVector y(&ya[part]);
+        GSVector yp(&ypa[part]);
+        GSVector cdt(&cdta[part]);
+        GSVector dpop(&dpopa[part]);
+
+        libff_drift_unit(x, y, cdt, xp, yp, dpop, length, reference_momentum, m,
+                         reference_time);
+
+        x.store(&xa[part]);
+        y.store(&ya[part]);
+        cdt.store(&cdta[part]);
+#endif
+
+#if 0
+        GSVector x(&xa[part]);
+        GSVector xp(&xpa[part]);
+        GSVector y(&ya[part]);
+        GSVector yp(&ypa[part]);
+
+        thin_quadrupole_unit(x, xp, y, yp, kl);
+
+        xp.store(&xpa[part]);
+        yp.store(&ypa[part]);
+#endif
+    }
+}
+
+void
+propagate_double_simpler(Bunch& bunch, libff_drift& thelibff_drift)
+{
+    auto local_num = bunch.get_local_num();
+    auto gsvs = GSVector::size();
+    if (local_num % gsvs != 0) {
+        throw std::runtime_error(
+            "local number of particles must be a multiple of GSVector::size");
+    }
+    const auto length = thelibff_drift.Length();
+    const auto reference_momentum =
+        bunch.get_reference_particle().get_momentum();
+    const auto m = bunch.get_mass();
+    const auto reference_time = thelibff_drift.getReferenceTime();
+    double *RESTRICT xa, *RESTRICT xpa, *RESTRICT ya, *RESTRICT ypa,
+        *RESTRICT cdta, *RESTRICT dpopa;
+    bunch.set_arrays(xa, xpa, ya, ypa, cdta, dpopa);
+
+    for (int part = 0; part < local_num; ++part) {
+        libff_drift_unit(xa[part], ya[part], cdta[part], xpa[part], ypa[part],
+                         dpopa[part], length, reference_momentum, m,
+                         reference_time);
+    }
+}
+
 
 #if defined(_OPENMP)
 void
@@ -174,6 +318,27 @@ propagate_omp_simd2(Bunch& bunch, libff_drift& thelibff_drift)
     bunch.set_arrays(xa, xpa, ya, ypa, cdta, dpopa);
 
 #pragma omp simd
+    for (int part = 0; part < local_num; ++part) {
+        libff_drift_unit(xa[part], ya[part], cdta[part], xpa[part], ypa[part],
+                         dpopa[part], length, reference_momentum, m,
+                         reference_time);
+    }
+}
+
+void
+propagate_omp_for(Bunch& bunch, libff_drift& thelibff_drift)
+{
+    auto local_num = bunch.get_local_num();
+    const auto length = thelibff_drift.Length();
+    const auto reference_momentum =
+        bunch.get_reference_particle().get_momentum();
+    const auto m = bunch.get_mass();
+    const auto reference_time = thelibff_drift.getReferenceTime();
+    double *RESTRICT xa, *RESTRICT xpa, *RESTRICT ya, *RESTRICT ypa,
+        *RESTRICT cdta, *RESTRICT dpopa;
+    bunch.set_arrays(xa, xpa, ya, ypa, cdta, dpopa);
+
+#pragma omp parallel for
     for (int part = 0; part < local_num; ++part) {
         libff_drift_unit(xa[part], ya[part], cdta[part], xpa[part], ypa[part],
                          dpopa[part], length, reference_momentum, m,
@@ -356,63 +521,27 @@ propagate_lambda1(Bunch& bunch, libff_drift& thelibff_drift)
     });
 }
 
+
 void
-propagate_gsv(Bunch& bunch, libff_drift& thelibff_drift)
+propagate_kokkos(Bunch& bunch, libff_drift& thelibff_drift)
 {
     auto local_num = bunch.get_local_num();
-    if (local_num % GSVector::size != 0) {
-        throw std::runtime_error(
-            "local number of particles must be a multiple of GSVector::size");
-    }
     const auto length = thelibff_drift.Length();
-    const auto reference_momentum =
-        bunch.get_reference_particle().get_momentum();
+
+    const auto reference_momentum = bunch.get_reference_particle().get_momentum();
     const auto m = bunch.get_mass();
     const auto reference_time = thelibff_drift.getReferenceTime();
+
     double *RESTRICT xa, *RESTRICT xpa, *RESTRICT ya, *RESTRICT ypa,
         *RESTRICT cdta, *RESTRICT dpopa;
     bunch.set_arrays(xa, xpa, ya, ypa, cdta, dpopa);
 
-    for (int part = 0; part < local_num; part += GSVector::size) {
-        GSVector x(&xa[part]);
-        GSVector xp(&xpa[part]);
-        GSVector y(&ya[part]);
-        GSVector yp(&ypa[part]);
-        GSVector cdt(&cdta[part]);
-        GSVector dpop(&dpopa[part]);
-
-        libff_drift_unit(x, y, cdt, xp, yp, dpop, length, reference_momentum, m,
-                         reference_time);
-
-        x.store(&xa[part]);
-        y.store(&ya[part]);
-        cdt.store(&cdta[part]);
-    }
+    Kokkos::parallel_for("drift", local_num, [=](const int p){
+            libff_drift_unit(xa[p], ya[p], cdta[p], xpa[p], ypa[p], dpopa[p], 
+                length, reference_momentum, m, reference_time);
+    });
 }
 
-void
-propagate_double_simpler(Bunch& bunch, libff_drift& thelibff_drift)
-{
-    auto local_num = bunch.get_local_num();
-    if (local_num % GSVector::size != 0) {
-        throw std::runtime_error(
-            "local number of particles must be a multiple of GSVector::size");
-    }
-    const auto length = thelibff_drift.Length();
-    const auto reference_momentum =
-        bunch.get_reference_particle().get_momentum();
-    const auto m = bunch.get_mass();
-    const auto reference_time = thelibff_drift.getReferenceTime();
-    double *RESTRICT xa, *RESTRICT xpa, *RESTRICT ya, *RESTRICT ypa,
-        *RESTRICT cdta, *RESTRICT dpopa;
-    bunch.set_arrays(xa, xpa, ya, ypa, cdta, dpopa);
-
-    for (int part = 0; part < local_num; ++part) {
-        libff_drift_unit(xa[part], ya[part], cdta[part], xpa[part], ypa[part],
-                         dpopa[part], length, reference_momentum, m,
-                         reference_time);
-    }
-}
 
 #ifdef HAVE_CHEF
 double
@@ -457,17 +586,15 @@ do_timing(void (*propagator)(Bunch&, libff_drift&), const char* name,
           const int rank)
 {
     double t = 0;
-    const int num_runs = 100;
+    const int num_runs = 10;
     auto best_time = std::numeric_limits<double>::max();
     std::vector<double> times(num_runs);
     for (size_t i = 0; i < num_runs; ++i) {
         const auto start = std::chrono::high_resolution_clock::now();
         (*propagator)(bunch, thelibff_drift);
         const auto end = std::chrono::high_resolution_clock::now();
-        const auto time =
-            std::chrono::duration_cast<std::chrono::duration<double>>(end -
-                                                                      start)
-                .count();
+        const auto time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start) .count();
+
         if (time < best_time) {
             best_time = time;
         }
@@ -614,55 +741,58 @@ run()
     drift the_drift("drift", dummy_length);
 #endif
 
-    auto reference_timing =
-        do_timing(&propagate_orig, "orig", bunch, thelibff_drift, 0.0, rank);
+    //auto reference_timing = do_timing(&propagate_orig, "orig", bunch, thelibff_drift, 0.0, rank);
+    auto reference_timing = 0.0;
 
 #ifdef HAVE_CHEF
-    do_chef_timing(&propagate_chef, "chef", chef_bunch, the_drift,
-                   reference_timing, rank);
+    do_chef_timing(&propagate_chef, "chef", chef_bunch, the_drift, reference_timing, rank);
 #endif
 
     run_check(&propagate_double, "optimized", thelibff_drift, size, rank);
-    auto opt_timing = do_timing(&propagate_double, "optimized", bunch,
-                                thelibff_drift, reference_timing, rank);
+    auto opt_timing = do_timing(&propagate_double, "optimized", bunch, thelibff_drift, reference_timing, rank);
+
+#if 0
     if (rank == 0) {
         std::cout << "GSVector::implementation = " << GSVector::implementation
                   << std::endl;
     }
+#endif
+
     run_check(&propagate_gsv, "vectorized", thelibff_drift, size, rank);
-    do_timing(&propagate_gsv, "vectorized", bunch, thelibff_drift, opt_timing,
-              rank);
-    run_check(&propagate_double_simpler, "not manually vectorized",
-              thelibff_drift, size, rank);
-    do_timing(&propagate_double_simpler, "not manually vectorized", bunch,
-              thelibff_drift, opt_timing, rank);
+    do_timing(&propagate_gsv, "vectorized", bunch, thelibff_drift, opt_timing, rank);
+
+    run_check(&propagate_double_simpler, "not manually vectorized", thelibff_drift, size, rank);
+    do_timing(&propagate_double_simpler, "not manually vectorized", bunch, thelibff_drift, opt_timing, rank);
+
+    run_check(&propagate_kokkos, "kokkos", thelibff_drift, size, rank);
+    do_timing(&propagate_kokkos, "kokkos", bunch, thelibff_drift, opt_timing, rank);
 
 #if defined(_OPENMP)
+    run_check(&propagate_omp_for, "omp for", thelibff_drift, size, rank);
+    do_timing(&propagate_omp_for, "omp for", bunch, thelibff_drift, opt_timing, rank);
+
     run_check(&propagate_omp_simd, "omp simd", thelibff_drift, size, rank);
-    do_timing(&propagate_omp_simd, "omp simd", bunch, thelibff_drift,
-              opt_timing, rank);
+    do_timing(&propagate_omp_simd, "omp simd", bunch, thelibff_drift, opt_timing, rank);
+
     run_check(&propagate_omp_simd2, "omp simd2", thelibff_drift, size, rank);
-    do_timing(&propagate_omp_simd2, "omp simd2", bunch, thelibff_drift,
-              opt_timing, rank);
-    run_check(&propagate_omp_simd3_nosimd, "omp simd3_nosimd", thelibff_drift,
-              size, rank);
-    do_timing(&propagate_omp_simd3_nosimd, "omp simd3_nosimd", bunch,
-              thelibff_drift, opt_timing, rank);
+    do_timing(&propagate_omp_simd2, "omp simd2", bunch, thelibff_drift, opt_timing, rank);
+
+#if 1
+    run_check(&propagate_omp_simd3_nosimd, "omp simd3_nosimd", thelibff_drift, size, rank);
+    do_timing(&propagate_omp_simd3_nosimd, "omp simd3_nosimd", bunch, thelibff_drift, opt_timing, rank);
+
     run_check(&propagate_omp_simd3, "omp simd3", thelibff_drift, size, rank);
-    do_timing(&propagate_omp_simd3, "omp simd3", bunch, thelibff_drift,
-              opt_timing, rank);
-    run_check(&propagate_omp_simd3_2, "omp simd3_2", thelibff_drift, size,
-              rank);
-    do_timing(&propagate_omp_simd3_2, "omp simd3_2", bunch, thelibff_drift,
-              opt_timing, rank);
-    run_check(&propagate_omp_simd3_4, "omp simd3_4", thelibff_drift, size,
-              rank);
-    do_timing(&propagate_omp_simd3_4, "omp simd3_4", bunch, thelibff_drift,
-              opt_timing, rank);
-    run_check(&propagate_omp_simd3_8, "omp simd3_8", thelibff_drift, size,
-              rank);
-    do_timing(&propagate_omp_simd3_8, "omp simd3_8", bunch, thelibff_drift,
-              opt_timing, rank);
+    do_timing(&propagate_omp_simd3, "omp simd3", bunch, thelibff_drift, opt_timing, rank);
+
+    run_check(&propagate_omp_simd3_2, "omp simd3_2", thelibff_drift, size, rank);
+    do_timing(&propagate_omp_simd3_2, "omp simd3_2", bunch, thelibff_drift, opt_timing, rank);
+
+    run_check(&propagate_omp_simd3_4, "omp simd3_4", thelibff_drift, size, rank);
+    do_timing(&propagate_omp_simd3_4, "omp simd3_4", bunch, thelibff_drift, opt_timing, rank);
+
+    run_check(&propagate_omp_simd3_8, "omp simd3_8", thelibff_drift, size, rank);
+    do_timing(&propagate_omp_simd3_8, "omp simd3_8", bunch, thelibff_drift, opt_timing, rank);
+
     //    run_check(&propagate_omp_simd3_16, "omp simd3_16", thelibff_drift,
     //    size,
     //              rank);
@@ -676,8 +806,10 @@ run()
     //    thelibff_drift,
     //              opt_timing, rank);
     run_check(&propagate_lambda1, "lambda1", thelibff_drift, size, rank);
-    do_timing(&propagate_lambda1, "lambda1", bunch, thelibff_drift, opt_timing,
-              rank);
+    do_timing(&propagate_lambda1, "lambda1", bunch, thelibff_drift, opt_timing, rank);
+#endif
+
+
 #endif
 }
 
@@ -685,7 +817,9 @@ int
 main(int argc, char** argv)
 {
     MPI_Init(&argc, &argv);
+    Kokkos::initialize(argc, argv);
     run();
+    Kokkos::finalize();
     MPI_Finalize();
     return 0;
 }
