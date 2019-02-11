@@ -23,7 +23,7 @@
 #include <beamline/drift.h>
 #endif
 
-const int particles_per_rank = 10000000;
+const int particles_per_rank = 100000000;
 const double real_particles = 1.0e12;
 
 const double dummy_length = 2.1;
@@ -62,6 +62,7 @@ libff_drift_unit(T& x, T& y, T& cdt, T& xp, T& yp, T& dpop, double length,
 }
 #endif
 
+#pragma omp declare simd
 template <typename T>
 inline static void libff_drift_unit
   (T & x, T & y, T & cdt, T const& xp, T const& yp, T const& dpop,
@@ -295,8 +296,36 @@ propagate_omp_simd(Bunch& bunch, libff_drift& thelibff_drift)
         auto cdt(cdta[part]);
         auto dpop(dpopa[part]);
 
+#if 1
         libff_drift_unit(x, y, cdt, xp, yp, dpop, length, reference_momentum, m,
                          reference_time);
+#endif
+
+#if 0
+{
+    double uni(1.0);
+    //T sig((0.0<length) - (length<0.0));
+
+    double vl(length);
+    double vm(m);
+    double vrm(reference_momentum);
+    double vrc(reference_time);
+
+    double dp = dpop + uni;
+    double inv_npz = uni / sqrt(dp * dp - xp * xp - yp * yp);
+    double lxpr = xp * vl * inv_npz;
+    double lypr = yp * vl * inv_npz;
+    double D2 = lxpr * lxpr + vl * vl + lypr * lypr;
+    double p = dp * vrm;
+    double E2 = p * p + vm * vm;
+    //T beta2 = p*p / E2;
+    double ibeta2 = E2 / (p * p);
+    x = x + lxpr;
+    y = y + lypr;
+    cdt = cdt + sqrt(D2 * ibeta2) - vrc;
+    //cdt = cdt + sig * sqrt(D2 * ibeta2) - vrc;
+}
+#endif
 
         xa[part] = x;
         ya[part] = y;
@@ -345,6 +374,46 @@ propagate_omp_for(Bunch& bunch, libff_drift& thelibff_drift)
                          reference_time);
     }
 }
+
+void
+propagate_gsv_omp_for(Bunch& bunch, libff_drift& thelibff_drift)
+{
+    auto local_num = bunch.get_local_num();
+    auto gsvs = GSVector::size();
+
+    if (local_num % gsvs != 0) {
+        throw std::runtime_error(
+            "local number of particles must be a multiple of GSVector::size");
+    }
+
+    const auto length = thelibff_drift.Length();
+    const auto reference_momentum = bunch.get_reference_particle().get_momentum();
+    const auto m = bunch.get_mass();
+    const auto reference_time = thelibff_drift.getReferenceTime();
+
+    double *RESTRICT xa, *RESTRICT xpa, *RESTRICT ya, *RESTRICT ypa,
+        *RESTRICT cdta, *RESTRICT dpopa;
+    bunch.set_arrays(xa, xpa, ya, ypa, cdta, dpopa);
+
+    #pragma omp parallel for
+    for (int part = 0; part < local_num; part += gsvs) 
+    {
+        GSVector x(&xa[part]);
+        GSVector xp(&xpa[part]);
+        GSVector y(&ya[part]);
+        GSVector yp(&ypa[part]);
+        GSVector cdt(&cdta[part]);
+        GSVector dpop(&dpopa[part]);
+
+        libff_drift_unit(x, y, cdt, xp, yp, dpop, length, reference_momentum, m,
+                         reference_time);
+
+        x.store(&xa[part]);
+        y.store(&ya[part]);
+        cdt.store(&cdta[part]);
+    }
+}
+
 
 void
 propagate_omp_simd3_nosimd(Bunch& bunch, libff_drift& thelibff_drift)
@@ -770,6 +839,9 @@ run()
 #if defined(_OPENMP)
     run_check(&propagate_omp_for, "omp for", thelibff_drift, size, rank);
     do_timing(&propagate_omp_for, "omp for", bunch, thelibff_drift, opt_timing, rank);
+
+    run_check(&propagate_gsv_omp_for, "gsv omp for", thelibff_drift, size, rank);
+    do_timing(&propagate_gsv_omp_for, "gsv omp for", bunch, thelibff_drift, opt_timing, rank);
 
     run_check(&propagate_omp_simd, "omp simd", thelibff_drift, size, rank);
     do_timing(&propagate_omp_simd, "omp simd", bunch, thelibff_drift, opt_timing, rank);

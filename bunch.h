@@ -75,6 +75,7 @@ public:
         , comm_sptr(new Commxx)
     {
         init_aview();
+#pragma omp parallel for
         for (Eigen::Index part = 0; part < local_num; ++part) {
             Eigen::Index index = part + mpi_rank * mpi_size;
             local_particles(part, Bunch::x) = 1.0e-6 * index;
