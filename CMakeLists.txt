@@ -78,11 +78,29 @@ target_include_directories(fft PRIVATE eigen)
 target_link_libraries(fft PRIVATE fftwpp)
 target_link_libraries(fft PRIVATE fmt)
 
+
 add_subdirectory(kokkos)
 include_directories(${Kokkos_INCLUDE_DIRS_RET})
 
 add_executable(kokkos_test kokkos_test.cc)
 target_link_libraries(kokkos_test kokkos)
+
+
+add_executable(independent_kokkos
+               independent_kokkos.cc
+               commxx.cc)
+target_include_directories(independent_kokkos PRIVATE ${MINIGIA_BINARY_DIR})
+target_include_directories(independent_kokkos PRIVATE vectorclass)
+target_include_directories(independent_kokkos PRIVATE eigen)
+target_link_libraries(independent_kokkos PRIVATE MPI::MPI_C)
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(independent_kokkos PRIVATE OpenMP::OpenMP_CXX)
+endif()
+target_link_libraries(independent_kokkos PRIVATE boost_system)
+target_link_libraries(independent_kokkos PRIVATE kokkos)
+
+
+
 
 if(SC)
 add_executable(space_charge_3d
