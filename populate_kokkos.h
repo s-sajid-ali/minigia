@@ -7,8 +7,6 @@
 void
 fill_random_gaussian(Bunch_kokkos& bunch)
 {
-    bunch.copy_to_host();
-
     auto particles = bunch.get_host_particles();
     auto local_num = bunch.get_local_num();
 
@@ -22,8 +20,6 @@ fill_random_gaussian(Bunch_kokkos& bunch)
             particles(part, index) = distribution(generator);
         }
     }
-
-    bunch.copy_to_device();
 }
 
 #if 0
@@ -100,16 +96,12 @@ example_mom2()
 void
 set_particle_ids(Bunch_kokkos& bunch)
 {
-    bunch.copy_to_host();
-
     auto particles = bunch.get_host_particles();
     auto local_num = bunch.get_local_num();
 
     for (size_t part = 0; part < local_num; ++part) {
         particles(part, 6) = part;
     }
-
-    bunch.copy_to_device();
 }
 
 #if 0
@@ -127,10 +119,14 @@ show_covariance(Bunch_kokkos const& bunch)
 void
 populate_gaussian(Bunch_kokkos& bunch)
 {
+    bunch.copy_to_host();
+
     fill_random_gaussian(bunch);
     //force_unit_covariance(bunch);
     //set_covariance(bunch, example_mom2());
     set_particle_ids(bunch);
+
+    bunch.copy_to_device();
 }
 
 #endif // POPULATE_H
