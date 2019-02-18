@@ -21,7 +21,7 @@ namespace detail
     template <class T, class E = void>
     struct VectorHelper
     { 
-        static const size_t size() { return 1; }
+        static size_t size() { return 1; }
         static T ld(const double *p) { return *p; } 
         static void st(double * p, const T & v) { *p = v; }
     };
@@ -50,7 +50,7 @@ struct Vec : public VecExpr<Vec<T>, T>
 {
     T data;
 
-    static const size_t size() { return detail::VectorHelper<T>::size(); }
+    static size_t size() { return detail::VectorHelper<T>::size(); }
 
     Vec(const double   d) : data( d ) { }
     Vec(const double * p) : data( detail::VectorHelper<T>::ld(p) ) { }
@@ -212,7 +212,7 @@ namespace detail
     //struct VectorHelper<T, typename std::enable_if<std::is_same<T, Vec2d > >::type>
     struct VectorHelper<T, typename std::enable_if<std::is_same<T, Vec2d>::value>::type>
     { 
-        static const size_t size() { return 2; }
+        static size_t size() { return 2; }
         static T ld(const double *p) { T t; t.load_a(p); return t; }
         static void st(double * p, const T & v) { v.store_a(p); }
     };
@@ -220,7 +220,7 @@ namespace detail
     template <class T>
     struct VectorHelper<T, typename std::enable_if<std::is_same<T, Vec4d>::value>::type>
     { 
-        static const size_t size() { return 4; }
+        static size_t size() { return 4; }
         static T ld(const double *p) { T t; t.load_a(p); return t; }
         static void st(double * p, const T & v) { v.store_a(p); }
     };
