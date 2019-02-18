@@ -3,4 +3,5 @@ build-*
 CMakeLists.txt.user
 .DS_Store
 *.swp
+*.swo
 
