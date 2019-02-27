@@ -112,8 +112,10 @@ void
 populate_gaussian(Bunch& bunch)
 {
     fill_random_gaussian(bunch);
+#if 0
     force_unit_covariance(bunch);
     set_covariance(bunch, example_mom2());
+#endif
     set_particle_ids(bunch);
 }
 #endif // POPULATE_H

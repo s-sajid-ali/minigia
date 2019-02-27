@@ -787,7 +787,9 @@ run()
     }
 
     Bunch bunch(particles_per_rank, real_particles, 1, 0);
+    std::cout << "populate..."; std::flush(std::cout);
     populate_gaussian(bunch);
+    std::cout << "done\n";
     libff_drift thelibff_drift;
 
 #ifdef HAVE_CHEF

@@ -9,7 +9,6 @@
 #include <iomanip>
 #include <iostream>
 
-#if 1
 //  J. Beringer et al. (Particle Data Group), PR D86, 010001 (2012) and 2013
 //  partial update for the 2014 edition (URL: http://pdg.lbl.gov)
 static const double proton_mass = 0.938272046; // Mass of proton [GeV/c^2]
@@ -17,10 +16,16 @@ static const double example_gamma = 10.0;
 static const int proton_charge = 1; // Charge in units of e
 
 static constexpr int particle_size_workaround = 7;
-#endif
+
+
 
 typedef Kokkos::View<double*[7], Kokkos::LayoutLeft> Particles;
+typedef Kokkos::View<const double*[7], Kokkos::LayoutLeft> ConstParticles;
+
 typedef Particles::HostMirror HostParticles;
+typedef ConstParticles::HostMirror ConstHostParticles;
+
+
 
 struct InitParts
 {
@@ -46,6 +51,8 @@ class Bunch_kokkos
 {
 public:
 
+    //constexpr int x() { return 0; }
+
     static const int x = 0;
     static const int xp = 1;
     static const int y = 2;
@@ -69,6 +76,7 @@ private:
     Commxx_sptr comm_sptr;
 
 public:
+
     Bunch_kokkos(long total_num, double real_num, int mpi_size = 1, int mpi_rank = 0)
         : reference_particle(proton_charge, proton_mass, example_gamma * proton_mass)
         , local_num(total_num / mpi_size)
@@ -88,7 +96,13 @@ public:
     Particles get_local_particles() 
     { return local_particles; }
 
+    ConstParticles get_local_particles() const
+    { return local_particles; }
+
     HostParticles get_host_particles() 
+    { return host_particles; }
+
+    ConstHostParticles get_host_particles() const
     { return host_particles; }
 
     void copy_to_host() 

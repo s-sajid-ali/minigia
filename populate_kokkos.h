@@ -4,6 +4,35 @@
 #include "bunch_kokkos.h"
 #include <random>
 
+#if 0
+struct RandomGaussian
+{
+    Particles p;
+
+    std::seed_seq seed;
+    std::mt19937 generator;
+    std::normal_distribution<double> distribution;
+
+    RandomGaussian(Particles p_) 
+        : p(p_) 
+        , seed{ 15485863, 32452843, 49979687, 67867967, 86028121 }
+        , generator(seed)
+        , distribution(0.0, 1.0)
+    { }
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()(const int i) const
+    {
+        p(i, 0) = distribution(generator);
+        p(i, 1) = distribution(generator);
+        p(i, 2) = distribution(generator);
+        p(i, 3) = distribution(generator);
+        p(i, 4) = distribution(generator);
+        p(i, 5) = distribution(generator);
+    }
+};
+#endif
+
 void
 fill_random_gaussian(Bunch_kokkos& bunch)
 {
@@ -20,6 +49,8 @@ fill_random_gaussian(Bunch_kokkos& bunch)
             particles(part, index) = distribution(generator);
         }
     }
+
+    // Kokkos::parallel_for(local_num, RandomGaussian(particles distribution));
 }
 
 #if 0

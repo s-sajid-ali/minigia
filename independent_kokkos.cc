@@ -179,6 +179,54 @@ propagate_device(Bunch_kokkos& bunch, libff_drift& thelibff_drift)
             PropDevice(particles, length, reference_momentum, m, reference_time) );
 }
 
+
+#if 0
+void
+propagate_gsv_omp_for(Bunch_kokkos& bunch, libff_drift& thelibff_drift)
+{
+    bunch.copy_to_host();
+
+    auto local_num = bunch.get_local_num();
+    auto gsvs = GSVector::size();
+
+    if (local_num % gsvs != 0) {
+        throw std::runtime_error(
+            "local number of particles must be a multiple of GSVector::size");
+    }
+
+    const auto length = thelibff_drift.Length();
+    const auto reference_momentum = bunch.get_reference_particle().get_momentum();
+    const auto m = bunch.get_mass();
+    const auto reference_time = thelibff_drift.getReferenceTime();
+
+    double *RESTRICT xa, *RESTRICT xpa, *RESTRICT ya, *RESTRICT ypa,
+        *RESTRICT cdta, *RESTRICT dpopa;
+    bunch.set_arrays(xa, xpa, ya, ypa, cdta, dpopa);
+
+    //#pragma omp parallel for
+    for (int part = 0; part < local_num; part += gsvs) 
+    {
+        GSVector x(&xa[part]);
+        GSVector xp(&xpa[part]);
+        GSVector y(&ya[part]);
+        GSVector yp(&ypa[part]);
+        GSVector cdt(&cdta[part]);
+        GSVector dpop(&dpopa[part]);
+
+        libff_drift_unit(x, y, cdt, xp, yp, dpop, length, reference_momentum, m,
+                         reference_time);
+
+        x.store(&xa[part]);
+        y.store(&ya[part]);
+        cdt.store(&cdta[part]);
+    }
+
+    bunch.copy_to_device();
+}
+#endif
+
+
+
 void
 run_check( propagator_t propagator,
            const char * name,
@@ -276,6 +324,12 @@ void run()
     // parallel, runs on available devices (GPU or OpenMP)
     run_check(propagate_device, "device", drift, size, rank);
     do_timing(propagate_device, "device", bunch, drift, ori_t, rank);
+
+#if 0
+    // gsv
+    run_check(propagate_gsv_omp_for, "gsv omp for", drift, size, rank);
+    do_timing(propagate_gsv_omp_for, "gsv omp for", bunch, drift, ori_t, rank);
+#endif
 }
 
 
