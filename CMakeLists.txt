@@ -11,6 +11,7 @@ endif()
 find_package(MPI)
 find_package(Boost 1.41 REQUIRED)
 find_package(OpenMP)
+find_package(RAJA)
 
 option(SC "compile space charge benchmarks; requires FFTW" OFF)
 #if(SC)
@@ -42,12 +43,15 @@ add_executable(independent_particle
 target_include_directories(independent_particle PRIVATE ${MINIGIA_BINARY_DIR})
 target_include_directories(independent_particle PRIVATE vectorclass)
 target_include_directories(independent_particle PRIVATE eigen)
+target_include_directories(independent_particle PRIVATE ${RAJA_INCLUDE_DIR})
+
 target_link_libraries(independent_particle PRIVATE MPI::MPI_C)
 if(OpenMP_CXX_FOUND)
   target_link_libraries(independent_particle PRIVATE OpenMP::OpenMP_CXX)
 endif()
 target_link_libraries(independent_particle PRIVATE ${CHEF_LIBS})
 target_link_libraries(independent_particle PRIVATE boost_system)
+target_link_libraries(independent_particle PRIVATE RAJA)
 
 add_executable(populate
     populate.cc
@@ -60,6 +64,7 @@ target_link_libraries(populate PRIVATE MPI::MPI_C)
 if(OpenMP_CXX_FOUND)
   target_link_libraries(populate PRIVATE OpenMP::OpenMP_CXX)
 endif()
+
 
 add_subdirectory(fftwpp)
 add_subdirectory(fmt)

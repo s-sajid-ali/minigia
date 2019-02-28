@@ -14,5 +14,8 @@
     mkdir build 
     cd build
     CXX=/usr/local/bin/g++-7 cmake .. -DCMAKE_BUILD_TYPE=Release \
+        -DFFTW_DIR=${FFTW_ROOT} \
+        -DRAJA_DIR=${RAJA_ROOT}/share/raja/cmake \
         -DDEFINES='-DGSV_AVX -ffast-math'
     make
+

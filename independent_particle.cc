@@ -9,6 +9,8 @@
 #include <omp.h>
 #endif
 
+#include "RAJA/RAJA.hpp"
+
 #include "bunch.h"
 #include "bunch_data_paths.h"
 #include "gsvector.h"
@@ -19,7 +21,7 @@
 #include <beamline/drift.h>
 #endif
 
-const int particles_per_rank = 100000;
+const int particles_per_rank = 1000000;
 const double real_particles = 1.0e12;
 
 const double dummy_length = 2.1;
@@ -39,6 +41,7 @@ invsqrt(double x)
     return 1.0 / sqrt(x);
 }
 
+//#pragma omp declare simd
 template <typename T>
 inline void
 libff_drift_unit(T& x, T& y, T& cdt, T& xp, T& yp, T& dpop, double length,
@@ -127,6 +130,71 @@ propagate_double(Bunch& bunch, libff_drift& thelibff_drift)
         cdta[part] = cdt;
     }
 }
+
+
+void
+propagate_raja_seq(Bunch& bunch, libff_drift& thelibff_drift)
+{
+    auto local_num = bunch.get_local_num();
+    const auto length = thelibff_drift.Length();
+    const auto reference_momentum =
+        bunch.get_reference_particle().get_momentum();
+    const auto m = bunch.get_mass();
+    const auto reference_time = thelibff_drift.getReferenceTime();
+    double *RESTRICT xa, *RESTRICT xpa, *RESTRICT ya, *RESTRICT ypa,
+        *RESTRICT cdta, *RESTRICT dpopa;
+    bunch.set_arrays(xa, xpa, ya, ypa, cdta, dpopa);
+
+    RAJA::forall<RAJA::seq_exec>(RAJA::RangeSegment(0, local_num), [=](int part) {
+        libff_drift_unit(xa[part], ya[part], cdta[part], xpa[part], ypa[part],
+                         dpopa[part], length, reference_momentum, m,
+                         reference_time);
+    });
+}
+
+
+void
+propagate_raja_simd(Bunch& bunch, libff_drift& thelibff_drift)
+{
+    auto local_num = bunch.get_local_num();
+    const auto length = thelibff_drift.Length();
+    const auto reference_momentum =
+        bunch.get_reference_particle().get_momentum();
+    const auto m = bunch.get_mass();
+    const auto reference_time = thelibff_drift.getReferenceTime();
+    double *RESTRICT xa, *RESTRICT xpa, *RESTRICT ya, *RESTRICT ypa,
+        *RESTRICT cdta, *RESTRICT dpopa;
+    bunch.set_arrays(xa, xpa, ya, ypa, cdta, dpopa);
+
+    RAJA::forall<RAJA::simd_exec>(RAJA::RangeSegment(0, local_num), [=](int part) {
+        libff_drift_unit(xa[part], ya[part], cdta[part], xpa[part], ypa[part],
+                         dpopa[part], length, reference_momentum, m,
+                         reference_time);
+    });
+}
+
+
+void
+propagate_raja_omp(Bunch& bunch, libff_drift& thelibff_drift)
+{
+    auto local_num = bunch.get_local_num();
+    const auto length = thelibff_drift.Length();
+    const auto reference_momentum =
+        bunch.get_reference_particle().get_momentum();
+    const auto m = bunch.get_mass();
+    const auto reference_time = thelibff_drift.getReferenceTime();
+    double *RESTRICT xa, *RESTRICT xpa, *RESTRICT ya, *RESTRICT ypa,
+        *RESTRICT cdta, *RESTRICT dpopa;
+    bunch.set_arrays(xa, xpa, ya, ypa, cdta, dpopa);
+
+    RAJA::forall<RAJA::omp_parallel_for_exec>(RAJA::RangeSegment(0, local_num), [=](int part) {
+        libff_drift_unit(xa[part], ya[part], cdta[part], xpa[part], ypa[part],
+                         dpopa[part], length, reference_momentum, m,
+                         reference_time);
+    });
+}
+
+
 
 #if defined(_OPENMP)
 void
@@ -625,6 +693,8 @@ run()
     run_check(&propagate_double, "optimized", thelibff_drift, size, rank);
     auto opt_timing = do_timing(&propagate_double, "optimized", bunch,
                                 thelibff_drift, reference_timing, rank);
+    std::cout << "\n";
+
     if (rank == 0) {
         std::cout << "GSVector::implementation = " << GSVector::implementation
                   << std::endl;
@@ -632,37 +702,66 @@ run()
     run_check(&propagate_gsv, "vectorized", thelibff_drift, size, rank);
     do_timing(&propagate_gsv, "vectorized", bunch, thelibff_drift, opt_timing,
               rank);
+    std::cout << "\n";
+
     run_check(&propagate_double_simpler, "not manually vectorized",
               thelibff_drift, size, rank);
     do_timing(&propagate_double_simpler, "not manually vectorized", bunch,
               thelibff_drift, opt_timing, rank);
+    std::cout << "\n";
+
+    run_check(&propagate_raja_seq, "raja seq", thelibff_drift, size, rank);
+    do_timing(&propagate_raja_seq, "raja seq", bunch, thelibff_drift, opt_timing, rank);
+    std::cout << "\n";
+
+    run_check(&propagate_raja_simd, "raja simd", thelibff_drift, size, rank);
+    do_timing(&propagate_raja_simd, "raja simd", bunch, thelibff_drift, opt_timing, rank);
+    std::cout << "\n";
+
+    run_check(&propagate_raja_omp, "raja omp", thelibff_drift, size, rank);
+    do_timing(&propagate_raja_omp, "raja omp", bunch, thelibff_drift, opt_timing, rank);
+    std::cout << "\n";
 
 #if defined(_OPENMP)
     run_check(&propagate_omp_simd, "omp simd", thelibff_drift, size, rank);
     do_timing(&propagate_omp_simd, "omp simd", bunch, thelibff_drift,
               opt_timing, rank);
+    std::cout << "\n";
+
     run_check(&propagate_omp_simd2, "omp simd2", thelibff_drift, size, rank);
     do_timing(&propagate_omp_simd2, "omp simd2", bunch, thelibff_drift,
               opt_timing, rank);
+    std::cout << "\n";
+
     run_check(&propagate_omp_simd3_nosimd, "omp simd3_nosimd", thelibff_drift,
               size, rank);
     do_timing(&propagate_omp_simd3_nosimd, "omp simd3_nosimd", bunch,
               thelibff_drift, opt_timing, rank);
+    std::cout << "\n";
+
     run_check(&propagate_omp_simd3, "omp simd3", thelibff_drift, size, rank);
     do_timing(&propagate_omp_simd3, "omp simd3", bunch, thelibff_drift,
               opt_timing, rank);
+    std::cout << "\n";
+
     run_check(&propagate_omp_simd3_2, "omp simd3_2", thelibff_drift, size,
               rank);
     do_timing(&propagate_omp_simd3_2, "omp simd3_2", bunch, thelibff_drift,
               opt_timing, rank);
+    std::cout << "\n";
+
     run_check(&propagate_omp_simd3_4, "omp simd3_4", thelibff_drift, size,
               rank);
     do_timing(&propagate_omp_simd3_4, "omp simd3_4", bunch, thelibff_drift,
               opt_timing, rank);
+    std::cout << "\n";
+
     run_check(&propagate_omp_simd3_8, "omp simd3_8", thelibff_drift, size,
               rank);
     do_timing(&propagate_omp_simd3_8, "omp simd3_8", bunch, thelibff_drift,
               opt_timing, rank);
+    std::cout << "\n";
+
     //    run_check(&propagate_omp_simd3_16, "omp simd3_16", thelibff_drift,
     //    size,
     //              rank);
