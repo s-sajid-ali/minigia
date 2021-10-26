@@ -8,11 +8,14 @@ if(DEFINES)
 endif()
 
 #find_package(MPI REQUIRED CXX)
-find_package(MPI)
-find_package(Boost 1.41 REQUIRED)
+set(MPI_CXX_SKIP_MPICXX TRUE CACHE BOOL "disable the MPI2-C++ bindings")
+find_package(MPI REQUIRED COMPONENTS C CXX)
+set_property(DIRECTORY PROPERTY COMPILE_DEFINITIONS ${MPI_CXX_COMPILE_DEFINITIONS})
+
 find_package(OpenMP)
 
 option(SC "compile space charge benchmarks; requires FFTW" OFF)
+
 #if(SC)
 find_package(FFTW REQUIRED MPI)
 #endif()
@@ -47,7 +50,6 @@ if(OpenMP_CXX_FOUND)
   target_link_libraries(independent_particle PRIVATE OpenMP::OpenMP_CXX)
 endif()
 target_link_libraries(independent_particle PRIVATE ${CHEF_LIBS})
-target_link_libraries(independent_particle PRIVATE boost_system)
 target_link_libraries(independent_particle PRIVATE kokkos)
 
 add_executable(populate
@@ -96,7 +98,6 @@ target_link_libraries(independent_kokkos PRIVATE MPI::MPI_C)
 if(OpenMP_CXX_FOUND)
   target_link_libraries(independent_kokkos PRIVATE OpenMP::OpenMP_CXX)
 endif()
-target_link_libraries(independent_kokkos PRIVATE boost_system)
 target_link_libraries(independent_kokkos PRIVATE kokkos)
 
 
