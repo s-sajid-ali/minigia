@@ -24,26 +24,11 @@ endif()
 # Kokkos
 # Follow official kokkos guidelines
 # https://github.com/kokkos/kokkos/wiki/Compiling#42-using-general-cmake-build-system
-if (USE_EXTERNAL_KOKKOS)
-  find_package(Kokkos REQUIRED)
-  set(kokkos_libs "Kokkos::kokkos")
-else ()
-  add_subdirectory(src/synergia/utils/kokkos)
-  include_directories(${Kokkos_INCLUDE_DIRS_RET})
-  set(kokkos_libs kokkos)
-  if(${Kokkos_ENABLE_CUDA})
-    add_definitions(-DKokkos_ENABLE_CUDA)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -expt-relaxed-constexpr")
-  endif()
-  if(${Kokkos_ENABLE_OPENMP})
-    add_definitions(-DKokkos_ENABLE_OPENMP)
-  endif()
-endif()
+find_package(Kokkos REQUIRED)
+set(kokkos_libs "Kokkos::kokkos")
 
 # Ceral
-if (USE_EXTERNAL_CEREAL)
-    find_package(cereal REQUIRED)
-endif()
+find_package(cereal REQUIRED)
 
 # HDF5
 set(HDF5_PREFER_PARALLEL true)
