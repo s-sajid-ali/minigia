@@ -1,10 +1,11 @@
 #ifndef PARALLEL_UTILS_H_
 #define PARALLEL_UTILS_H_
 
-#include "mpi.h"
+#include <mpi.h>
 #include <vector>
-#include "commxx.h"
 #include <iostream>
+
+#include "commxx.h"
 
 /// Perform a one-dimensional decomposition. In cases where the decomposition
 /// is uneven, i.e., processors is not an integral multiple of length, the
@@ -53,11 +54,11 @@ distribute_1d(Commxx const& comm, int elements);
 
 void
 counts_and_offsets_for_impedance_raw(unsigned int  processors, int length, std::vector<int > &offsets,
- std::vector<int > &counts);
+        std::vector<int > &counts);
 
 void
 counts_and_offsets_for_impedance(Commxx const& comm,int length, std::vector<int > &offsets,
- std::vector<int > &counts);
+        std::vector<int > &counts);
 
 #endif /* PARALLEL_UTILS_H_ */
 
