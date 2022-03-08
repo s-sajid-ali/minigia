@@ -1,7 +1,10 @@
-#include "../catch.hpp"
+#include <catch2/catch_test_macros.hpp>
+
+#include <numeric>
 
 #include "../hdf5_file.h"
 #include "../multi_array_typedefs.h"
+
 
 TEST_CASE("hdf5_append", "[Hdf5_file_append]")
 {

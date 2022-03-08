@@ -1,4 +1,4 @@
-set(synergia_parallel_utils_src
+set(minigia_parallel_utils_src
     parallel_utils.cc 
     commxx.cc 
     logger.cc
@@ -6,38 +6,38 @@ set(synergia_parallel_utils_src
     base64.cpp
     )
 
-add_library(synergia_parallel_utils        SHARED ${synergia_parallel_utils_src})
-add_library(synergia_parallel_utils_static STATIC ${synergia_parallel_utils_src})
+add_library(minigia_parallel_utils        SHARED ${minigia_parallel_utils_src})
+add_library(minigia_parallel_utils_static STATIC ${minigia_parallel_utils_src})
 
-target_link_libraries(synergia_parallel_utils MPI::MPI_C ${kokkos_libs})
-target_link_libraries(synergia_parallel_utils_static MPI::MPI_C ${kokkos_libs})
+target_link_libraries(minigia_parallel_utils MPI::MPI_C ${kokkos_libs})
+target_link_libraries(minigia_parallel_utils_static MPI::MPI_C ${kokkos_libs})
 
-target_link_options(synergia_parallel_utils PRIVATE ${LINKER_OPTIONS})
-target_link_options(synergia_parallel_utils_static PRIVATE ${LINKER_OPTIONS})
+target_link_options(minigia_parallel_utils PRIVATE ${LINKER_OPTIONS})
+target_link_options(minigia_parallel_utils_static PRIVATE ${LINKER_OPTIONS})
 
-add_library(synergia_test_main STATIC catch_test_main.cc)
-target_link_libraries(synergia_test_main ${kokkos_libs} MPI::MPI_C)
+add_library(minigia_test_main STATIC catch_test_main.cc)
+target_link_libraries(minigia_test_main PRIVATE Catch2::Catch2 ${kokkos_libs} MPI::MPI_C)
 
-add_library(synergia_serialization cereal_files.cc)
-target_link_libraries(synergia_serialization synergia_parallel_utils)
-target_link_options(synergia_serialization PRIVATE ${LINKER_OPTIONS})
+add_library(minigia_serialization cereal_files.cc)
+target_link_libraries(minigia_serialization minigia_parallel_utils)
+target_link_options(minigia_serialization PRIVATE ${LINKER_OPTIONS})
 
-add_library(synergia_hdf5_utils 
+add_library(minigia_hdf5_utils 
     hdf5_file.cc
     hdf5_misc.cc
     )
-target_link_libraries(synergia_hdf5_utils 
+target_link_libraries(minigia_hdf5_utils 
     ${HDF5_LIBRARIES} 
-    synergia_parallel_utils
+    minigia_parallel_utils
     ${kokkos_libs}
     )
-target_link_options(synergia_hdf5_utils 
+target_link_options(minigia_hdf5_utils 
     PRIVATE ${LINKER_OPTIONS}
     )
 
-add_library(synergia_command_line command_line_arg.cc)
-target_link_libraries(synergia_command_line ${kokkos_libs})
-target_link_options(synergia_command_line PRIVATE ${LINKER_OPTIONS})
+add_library(minigia_command_line command_line_arg.cc)
+target_link_libraries(minigia_command_line ${kokkos_libs})
+target_link_options(minigia_command_line PRIVATE ${LINKER_OPTIONS})
 
 add_library(lsexpr SHARED lsexpr.cc)
 add_library(lsexpr_static STATIC lsexpr.cc)
@@ -48,10 +48,10 @@ target_link_options(lsexpr PRIVATE ${LINKER_OPTIONS})
 target_link_options(lsexpr_static PRIVATE ${LINKER_OPTIONS})
 
 install(TARGETS
-    synergia_parallel_utils
-    synergia_hdf5_utils
-    synergia_serialization
-    synergia_command_line
+    minigia_parallel_utils
+    minigia_hdf5_utils
+    minigia_serialization
+    minigia_command_line
     lsexpr
     DESTINATION ${LIB_INSTALL_DIR})
 
@@ -76,8 +76,8 @@ install(FILES
     digits.h
     logger.h
     lsexpr.h
-    synergia_omp.h
-    DESTINATION ${INCLUDE_INSTALL_DIR}/synergia/utils)
+    minigia_omp.h
+    DESTINATION ${INCLUDE_INSTALL_DIR}/minigia/utils)
 
 add_subdirectory(tests)
 
