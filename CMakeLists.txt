@@ -13,9 +13,7 @@ include(MPITest)
 
 # MPI
 find_package(MPI REQUIRED COMPONENTS C)
-message(MPI_VERSION is: ${MPI_VERSION})
-message(STATUS "MPI_INCLUDE_PATH : ${MPI_INCLUDE_PATH}")
-message(STATUS "MPI_LIBRARIES : ${MPI_LIBRARIES}")
+message(STATUS "MPI_VERSION is: " ${MPI_C_VERSION})
 # mpi oversubscribe
 if(${MPI_VERSION} MATCHES "OpenRTE.*")
     set(MPIEXEC_PREFLAGS ${MPIEXEC_PREFLAGS} "--oversubscribe")
@@ -42,6 +40,22 @@ else(HDF5_IS_PARALLEL)
     message(STATUS "Using serial hdf5")
 endif()
 
+
+# Catch2-v3
+if(USE_EXTERNAL_CATCH2)
+    find_package(Catch2 3 REQUIRED CONFIG)
+    message(STATUS "Using external catch2-v3")
+else()
+    Include(FetchContent)
+    FetchContent_Declare(
+	Catch2
+	GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+	GIT_TAG        v3.0.0-preview4
+	)
+    FetchContent_MakeAvailable(Catch2)
+endif()
+
+
 # GSL
 find_package(GSL REQUIRED)
 
@@ -59,6 +73,10 @@ else()
     message(STATUS "using double for gsvector")
 endif()
 
+
+set(testing_libs "Catch2::Catch2;${kokkos_libs};MPI::MPI_C")
+set(test_main "${CMAKE_SOURCE_DIR}/src/utils/catch_test_main.cc")
+enable_testing()
 
 add_subdirectory(src)
 add_subdirectory(examples)

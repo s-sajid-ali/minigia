@@ -25,7 +25,7 @@ Command_line_arg::get_rhs() const
 
 template<>
 bool
-Command_line_arg::extract_value<bool >() const
+Command_line_arg::extract_value<bool>() const
 {
     bool retval;
     if ((get_rhs() == "True") || (get_rhs() == "true")
@@ -40,4 +40,3 @@ Command_line_arg::extract_value<bool >() const
     }
     return retval;
 }
-

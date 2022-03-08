@@ -3,7 +3,6 @@
 #include <climits>
 #include <algorithm>
 
-
 namespace
 {
     struct comm_free

@@ -4,7 +4,7 @@
 #include <cmath>
 
 inline
-long int
+    long int
 digits(long int val)
 {
     long int retval = 1;
@@ -19,7 +19,7 @@ digits(long int val)
 }
 
 inline
-int
+    int
 decimal_digits(double val)
 {
     int retval = 1;
