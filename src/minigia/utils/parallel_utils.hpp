@@ -5,7 +5,7 @@
 #include <vector>
 #include <iostream>
 
-#include "commxx.h"
+#include "commxx.hpp"
 
 /// Perform a one-dimensional decomposition. In cases where the decomposition
 /// is uneven, i.e., processors is not an integral multiple of length, the

@@ -2,7 +2,7 @@
 #include <limits>
 #include <iostream>
 
-#include "lsexpr.h"
+#include "lsexpr.hpp"
 
 
 Lsexpr::Lsexpr()

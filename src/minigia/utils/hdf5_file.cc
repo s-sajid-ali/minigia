@@ -1,8 +1,8 @@
-#include "hdf5_file.h"
-#include "multi_array_typedefs.h"
-#include "hdf5_misc.h"
-
 #include <thread>
+
+#include "hdf5_file.hpp"
+#include "multi_array_typedefs.hpp"
+#include "hdf5_misc.hpp"
 
 Hdf5_file::Hdf5_file(
         std::string const& file_name,

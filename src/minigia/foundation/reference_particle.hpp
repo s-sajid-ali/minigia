@@ -3,8 +3,8 @@
 
 #include <cereal/types/array.hpp>
 
-#include "four_momentum.h"
-#include "physical_constants.h"
+#include "four_momentum.hpp"
+#include "physical_constants.hpp"
 
 /// Reference_particle stores the four momentum of the reference frame
 /// with respect to  the lab frame (defined to be along the axis of the

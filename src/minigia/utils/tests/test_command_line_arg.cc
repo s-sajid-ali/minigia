@@ -3,7 +3,7 @@
 #include <catch2/catch_approx.hpp>
 using Catch::Approx;
 
-#include "../command_line_arg.h"
+#include "../command_line_arg.hpp"
 
 TEST_CASE("test command line argument parse", "[Command_line_arg]")
 {

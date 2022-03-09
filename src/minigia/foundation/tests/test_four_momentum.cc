@@ -2,9 +2,9 @@
 #include <catch2/catch_approx.hpp>
 using Catch::Approx;
 
-#include <minigia/utils/cereal_files.h>
+#include <minigia/utils/cereal_files.hpp>
 
-#include "../four_momentum.h"
+#include "../four_momentum.hpp"
 
 const double tolerance = 1.0e-15;
 

@@ -2,8 +2,8 @@
 
 #include <numeric>
 
-#include "../hdf5_file.h"
-#include "../multi_array_typedefs.h"
+#include "../hdf5_file.hpp"
+#include "../multi_array_typedefs.hpp"
 
 
 TEST_CASE("hdf5_append", "[Hdf5_file_append]")

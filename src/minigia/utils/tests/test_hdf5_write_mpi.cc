@@ -2,8 +2,8 @@
 
 #include <numeric>
 
-#include "../hdf5_file.h"
-#include "../multi_array_typedefs.h"
+#include "../hdf5_file.hpp"
+#include "../multi_array_typedefs.hpp"
 
 TEST_CASE("hdf5_file_dim_check_array_nothrow", "[Hdf5_file_write]")
 {

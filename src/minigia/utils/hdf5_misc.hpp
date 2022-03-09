@@ -1,7 +1,7 @@
 #ifndef HDF5_MISC_H_
 #define HDF5_MISC_H_
 
-#include "hdf5.h"
+#include <hdf5.h>
 
 #include <stdexcept>
 #include <sstream>
@@ -30,27 +30,27 @@ struct Hdf5_exception : public std::exception
 {
     Hdf5_exception(std::string const & msg = "")
         : hdf5_msg(), user_msg(msg), what_msg()
-    { 
-        std::stringstream buf;
+        {
+            std::stringstream buf;
 
-        //H5Eprint(H5E_DEFAULT, stderr);
-        H5Ewalk(H5E_DEFAULT, H5E_WALK_UPWARD, &Hdf5_exception::err_walk, &buf);
+            //H5Eprint(H5E_DEFAULT, stderr);
+            H5Ewalk(H5E_DEFAULT, H5E_WALK_UPWARD, &Hdf5_exception::err_walk, &buf);
 
-        hdf5_msg = buf.str();
+            hdf5_msg = buf.str();
 
-        what_msg = std::string("\n")
-            + "===================================\n" 
-            + "USER MESSAGE:\n  " + user_msg + "\n\n"
-            + "HDF5 MESSAGE:\n"   + hdf5_msg
-            + "===================================\n";
-    }
+            what_msg = std::string("\n")
+                + "===================================\n"
+                + "USER MESSAGE:\n  " + user_msg + "\n\n"
+                + "HDF5 MESSAGE:\n"   + hdf5_msg
+                + "===================================\n";
+        }
 
     ~Hdf5_exception() throw() { }
 
     const char* what() const noexcept override
     { return what_msg.c_str(); }
 
-private:
+    private:
 
     static herr_t err_walk(unsigned int n, H5E_error_t const *err_desc, void *client_data)
     {
@@ -65,12 +65,12 @@ private:
 
         /* Print error message */
         (*ss) << "  #" << std::setfill('0') << std::setw(4) << n
-              << ": " << err_desc->file_name << " line " << err_desc->line 
-              << " in " << err_desc->func_name << "(): " << err_desc->desc << "\n"
-              << "    major(" << std::setfill('0') << std::setw(3) << (int)err_desc->maj_num 
-              << "): " << maj_str << "\n"
-              << "    minor(" << std::setfill('0') << std::setw(3) << (int)err_desc->min_num 
-              << "): " << min_str << "\n"
+            << ": " << err_desc->file_name << " line " << err_desc->line
+            << " in " << err_desc->func_name << "(): " << err_desc->desc << "\n"
+            << "    major(" << std::setfill('0') << std::setw(3) << (int)err_desc->maj_num
+            << "): " << maj_str << "\n"
+            << "    minor(" << std::setfill('0') << std::setw(3) << (int)err_desc->min_num
+            << "): " << min_str << "\n"
             ;
 
         return 0;
@@ -109,14 +109,14 @@ struct Hdf5_handler
 
         switch(H5Iget_type(hid))
         {
-        case H5I_FILE:      H5Fclose(hid); break;
-        case H5I_GROUP:     H5Gclose(hid); break;
-        case H5I_DATATYPE:  H5Tclose(hid); break;
-        case H5I_DATASPACE: H5Sclose(hid); break;
-        case H5I_DATASET:   H5Dclose(hid); break;
-        case H5I_ATTR:      H5Aclose(hid); break;
-        case H5I_GENPROP_LST: H5Pclose(hid); break;
-        default: throw std::runtime_error("close of unhandled Hdf5 handler type");
+            case H5I_FILE:      H5Fclose(hid); break;
+            case H5I_GROUP:     H5Gclose(hid); break;
+            case H5I_DATATYPE:  H5Tclose(hid); break;
+            case H5I_DATASPACE: H5Sclose(hid); break;
+            case H5I_DATASET:   H5Dclose(hid); break;
+            case H5I_ATTR:      H5Aclose(hid); break;
+            case H5I_GENPROP_LST: H5Pclose(hid); break;
+            default: throw std::runtime_error("close of unhandled Hdf5 handler type");
         }
 
         hid = 0;
@@ -145,7 +145,7 @@ struct hdf5_traits<Boost::multi_array<T, N>> { using value_type = T; }
 
 // The generic (T) version of h5_atomic_data_type is undefined.
 // Only versions with specializations will compile.
-template<typename T>
+    template<typename T>
 inline hid_t hdf5_atomic_data_type()
 { return hdf5_atomic_data_type<typename T::value_type>(); }
 //{ return hdf5_traits<T>::value_type; }
@@ -157,15 +157,15 @@ inline hid_t hdf5_atomic_data_type()
 { return hdf5_atomic_data_type<typename T::value_type>(); }
 #endif
 
-template<>
+    template<>
 inline hid_t hdf5_atomic_data_type<uint8_t>()
 { return H5Tcopy(H5T_NATIVE_UCHAR); }
 
-template<>
+    template<>
 inline hid_t hdf5_atomic_data_type<int>()
 { return H5Tcopy(H5T_NATIVE_INT); }
 
-template<>
+    template<>
 inline hid_t hdf5_atomic_data_type<double>()
 { return H5Tcopy(H5T_NATIVE_DOUBLE); }
 
@@ -184,53 +184,53 @@ namespace syn
     };
 
     template<class T>
-    std::enable_if_t<std::is_arithmetic<T>::value, data_info_t>
-    extract_data_info(T const& t)
-    { return {&t, {}, hdf5_atomic_data_type<T>(), sizeof(T), 1}; }
+        std::enable_if_t<std::is_arithmetic<T>::value, data_info_t>
+        extract_data_info(T const& t)
+        { return {&t, {}, hdf5_atomic_data_type<T>(), sizeof(T), 1}; }
 
     template<class T>
-    std::enable_if_t<Kokkos::is_view<T>::value, data_info_t>
-    extract_data_info(T const& t)
-    { 
-        size_t size = 1;
-        std::vector<hsize_t> dims(T::Rank);
-
-        for(int i=0; i<T::Rank; ++i) 
+        std::enable_if_t<Kokkos::is_view<T>::value, data_info_t>
+        extract_data_info(T const& t)
         {
-            dims[i] = t.extent(i);
-            size *= t.extent(i);
+            size_t size = 1;
+            std::vector<hsize_t> dims(T::Rank);
+
+            for(int i=0; i<T::Rank; ++i)
+            {
+                dims[i] = t.extent(i);
+                size *= t.extent(i);
+            }
+
+            return { t.data(), dims,
+                hdf5_atomic_data_type<typename T::value_type>(),
+                sizeof(typename T::value_type), size };
         }
 
-        return { t.data(), dims, 
-            hdf5_atomic_data_type<typename T::value_type>(),
-            sizeof(typename T::value_type), size }; 
-    }
-
     template<class T>
-    std::enable_if_t<std::is_arithmetic<T>::value, void>
-    resize_data_obj(T& t, data_info_t& di)
-    {
-        if (di.dims.size()) throw std::runtime_error(
-                "resize_data_obj: non-zero rank resizing scalar");
-    }
-
-    template<class T>
-    std::enable_if_t<Kokkos::is_view<T>::value, void>
-    resize_data_obj(T& t, data_info_t& di)
-    { 
-        if (di.dims.size() != T::Rank) throw std::runtime_error(
-                "resize_data_obj: inconsistent data rank");
-
-        switch(di.dims.size())
+        std::enable_if_t<std::is_arithmetic<T>::value, void>
+        resize_data_obj(T& t, data_info_t& di)
         {
-            case 1: Kokkos::resize(t, di.dims[0]); break;
-            case 2: Kokkos::resize(t, di.dims[0], di.dims[1]); break;
-            case 3: Kokkos::resize(t, di.dims[0], di.dims[1], di.dims[2]); break;
-            default: throw std::runtime_error("unsupported dims");
+            if (di.dims.size()) throw std::runtime_error(
+                    "resize_data_obj: non-zero rank resizing scalar");
         }
 
-        di.ptr = t.data();
-    }
+    template<class T>
+        std::enable_if_t<Kokkos::is_view<T>::value, void>
+        resize_data_obj(T& t, data_info_t& di)
+        {
+            if (di.dims.size() != T::Rank) throw std::runtime_error(
+                    "resize_data_obj: inconsistent data rank");
+
+            switch(di.dims.size())
+            {
+                case 1: Kokkos::resize(t, di.dims[0]); break;
+                case 2: Kokkos::resize(t, di.dims[0], di.dims[1]); break;
+                case 3: Kokkos::resize(t, di.dims[0], di.dims[1], di.dims[2]); break;
+                default: throw std::runtime_error("unsupported dims");
+            }
+
+            di.ptr = t.data();
+        }
 
 
 
@@ -245,12 +245,12 @@ namespace syn
     //
     // no | r0        | r1        | col   | all_dim_0 | notes
     //----------------------------------------------------------------------
-    // 1  | {}        | {}        | true  | error     | scalars in col write 
+    // 1  | {}        | {}        | true  | error     | scalars in col write
     //    |           |           |       |           | must be promoted
     //----+-----------+-----------+-------+-----------+----------------------
     // 2  | {}        | {}        | false | [1, 0]    | write from r0 only
     //----+-----------+-----------+-------+-----------+----------------------
-    // 3  | {3}       | {4}       | true  | [3, 4]    | 
+    // 3  | {3}       | {4}       | true  | [3, 4]    |
     //----+-----------+-----------+-------+-----------+----------------------
     // 4  | {3}       | {0}       | true  | [3, 0]    | it is allowed
     //----+-----------+-----------+-------+-----------+----------------------
@@ -258,38 +258,38 @@ namespace syn
     //----+-----------+-----------+-------+-----------+----------------------
     // 6  | {3}       | {4}       | false | error     | dims must be the same
     //----+-----------+-----------+-------+-----------+----------------------
-    // 7  | {4}       | {4}       | false | [4, 0]    | 
+    // 7  | {4}       | {4}       | false | [4, 0]    |
     //----+-----------+-----------+-------+-----------+----------------------
-    // 8  | {0}       | {0}       | false | [0, 0]    | 
+    // 8  | {0}       | {0}       | false | [0, 0]    |
     //----+-----------+-----------+-------+-----------+----------------------
     // 9  | {3, 3}    | {4, 4}    | true  | error     | only 1st dim can be diff
     //----+-----------+-----------+-------+-----------+----------------------
-    // 10 | {3, 5}    | {4, 5}    | true  | [3, 4]    | 
+    // 10 | {3, 5}    | {4, 5}    | true  | [3, 4]    |
     //----+-----------+-----------+-------+-----------+----------------------
-    // 11 | {3, 5}    | {3, 5}    | true  | [3, 3]    | 
+    // 11 | {3, 5}    | {3, 5}    | true  | [3, 3]    |
     //----+-----------+-----------+-------+-----------+----------------------
     // 12 | {3, 3}    | {4, 3}    | false | error     | dims must be the same
     //----+-----------+-----------+-------+-----------+----------------------
-    // 13 | {3, 4}    | {3, 4}    | false | [3, 0]    | 
+    // 13 | {3, 4}    | {3, 4}    | false | [3, 0]    |
     //----+-----------+-----------+-------+-----------+----------------------
-    // 14 | {3, 4, 5} | {6, 4, 4} | true  | error     | 
+    // 14 | {3, 4, 5} | {6, 4, 4} | true  | error     |
     //----+-----------+-----------+-------+-----------+----------------------
-    // 15 | {3, 4, 5} | {6, 4, 5} | true  | [3, 6]    | 
+    // 15 | {3, 4, 5} | {6, 4, 5} | true  | [3, 6]    |
     //----+-----------+-----------+-------+-----------+----------------------
-    // 16 | {3, 4, 5} | {6, 4, 5} | false | error     | 
+    // 16 | {3, 4, 5} | {6, 4, 5} | false | error     |
     //----+-----------+-----------+-------+-----------+----------------------
-    // 17 | {3, 4, 5} | {3, 4, 5} | false | [3, 0]    | 
+    // 17 | {3, 4, 5} | {3, 4, 5} | false | [3, 0]    |
     //----+-----------+-----------+-------+-----------+----------------------
     // 18 | {3}       | {3, 4}    | true  | error     | data rank must be same
     //----+-----------+-----------+-------+-----------+----------------------
     // 19 | {3}       | {3, 4}    | false | error     | data rank must be same
     //----+-----------+-----------+-------+-----------+----------------------
     //
-    std::vector<hsize_t> 
-    collect_dims( std::vector<hsize_t> const& dims, 
-                  bool collective, 
-                  Commxx const& comm, 
-                  int root_rank );
+    std::vector<hsize_t>
+        collect_dims( std::vector<hsize_t> const& dims,
+                bool collective,
+                Commxx const& comm,
+                int root_rank );
 }
 
 

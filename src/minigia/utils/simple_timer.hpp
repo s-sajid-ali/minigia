@@ -3,7 +3,7 @@
 
 #include <iomanip>
 #include <map>
-#include "logger.h"
+#include "logger.hpp"
 
 struct simple_timer_counter
 {

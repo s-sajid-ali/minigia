@@ -2,8 +2,8 @@
 #define FOUR_MOMENTUM_H_
 
 #include <cereal/cereal.hpp>
-#include <minigia/utils/lsexpr.h>
-#include <minigia/utils/floating_point.h>
+#include <minigia/utils/lsexpr.hpp>
+#include <minigia/utils/floating_point.hpp>
 
 /// Four_momentum provides conversion between various relativistic kinematic
 /// parameters.

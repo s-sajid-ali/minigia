@@ -1,4 +1,4 @@
-#include "reference_particle.h"
+#include "reference_particle.hpp"
 
 Reference_particle::Reference_particle()
     : charge(0)

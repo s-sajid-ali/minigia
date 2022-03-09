@@ -1,7 +1,7 @@
 
-#include "cereal_files.h"
-#include "commxx.h"
-#include "digits.h"
+#include "cereal_files.hpp"
+#include "commxx.hpp"
+#include "digits.hpp"
 
 #pragma message "TODO: replace boost::filesystem here"
 
@@ -16,32 +16,32 @@ const std::string serialization_directory("serialization");
 
 class Parallel_helper
 {
-private:
-    bool parallel;
-public:
-    Parallel_helper(bool parallel) :
-        parallel(parallel)
+    private:
+        bool parallel;
+    public:
+        Parallel_helper(bool parallel) :
+            parallel(parallel)
     {
     }
-    void
-    barrier()
-    {
-        if (parallel) {
-            MPI_Barrier(Commxx());
-        }
-    }
-    bool
-    operate_locally()
-    {
-        if (parallel) {
-            return Commxx().get_rank() == 0;
-        } else {
-            return true;
-        }
-    }
+        void
+            barrier()
+            {
+                if (parallel) {
+                    MPI_Barrier(Commxx());
+                }
+            }
+        bool
+            operate_locally()
+            {
+                if (parallel) {
+                    return Commxx().get_rank() == 0;
+                } else {
+                    return true;
+                }
+            }
 };
 
-void
+    void
 copy_file_overwrite_if_exists(std::string const & source,
         std::string const & dest)
 {
@@ -53,13 +53,13 @@ copy_file_overwrite_if_exists(std::string const & source,
 #endif
 }
 
-std::string
+    std::string
 get_serialization_directory()
 {
     return serialization_directory;
 }
 
-void
+    void
 remove_directory(std::string const & name, bool parallel)
 {
 #if 0
@@ -74,7 +74,7 @@ remove_directory(std::string const & name, bool parallel)
 #endif
 }
 
-void
+    void
 remove_serialization_directory(bool parallel)
 {
 #if 0
@@ -93,7 +93,7 @@ remove_serialization_directory(bool parallel)
 #endif
 }
 
-void
+    void
 ensure_serialization_directory_exists(bool parallel)
 {
 #if 0
@@ -108,7 +108,7 @@ ensure_serialization_directory_exists(bool parallel)
 #endif
 }
 
-void
+    void
 rename_serialization_directory(std::string const& new_name, bool parallel)
 {
 #if 0
@@ -124,7 +124,7 @@ rename_serialization_directory(std::string const& new_name, bool parallel)
 #endif
 }
 
-void
+    void
 symlink_serialization_directory(std::string const& existing_dir, bool parallel)
 {
 #if 0
@@ -137,7 +137,7 @@ symlink_serialization_directory(std::string const& existing_dir, bool parallel)
 #endif
 }
 
-void
+    void
 unlink_serialization_directory(bool parallel)
 {
 #if 0
@@ -152,7 +152,7 @@ unlink_serialization_directory(bool parallel)
 #endif
 }
 
-std::string
+    std::string
 get_combined_path(std::string const& directory, std::string const& base_name,
         bool parallel)
 {
@@ -170,28 +170,28 @@ get_combined_path(std::string const& directory, std::string const& base_name,
     return directory + "/" + full_name;
 }
 
-std::string
+    std::string
 get_serialization_path(std::string const& base_name, bool parallel)
 {
     return std::string();
 #if 0
 #if (defined BOOST_FILESYSTEM_VERSION) && (BOOST_FILESYSTEM_VERSION > 2)
     return get_combined_path(serialization_directory,
-                             path(base_name).filename().string(), parallel);
+            path(base_name).filename().string(), parallel);
 #else
     return get_combined_path(serialization_directory,
-                             path(base_name).filename(), parallel);
+            path(base_name).filename(), parallel);
 #endif
 #endif
 }
 
-void
+    void
 copy_to_serialization_directory(std::string const& file_name)
 {
     copy_file_overwrite_if_exists(file_name, get_serialization_path(file_name));
 }
 
-void
+    void
 copy_from_serialization_directory(std::string const& file_name)
 {
     copy_file_overwrite_if_exists(get_serialization_path(file_name), file_name);

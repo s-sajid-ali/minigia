@@ -1,11 +1,12 @@
-#include "distribution.h"
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <ctime>
 #include <fstream>
 #include <stdexcept>
 
-unsigned long int
+#include "distribution.hpp"
+
+    unsigned long int
 Random_distribution::get_default_seed(const char * device)
 {
     unsigned long int seed;
@@ -32,7 +33,7 @@ Random_distribution::Random_distribution(unsigned long int seed,
     set_seed(seed);
 }
 
-void
+    void
 Random_distribution::set_seed(unsigned long int seed)
 {
     if (seed == 0) {
@@ -42,7 +43,7 @@ Random_distribution::set_seed(unsigned long int seed)
     }
     unsigned long int distributed_seed;
     distributed_seed = (1000 + 5 * (rank + original_seed)) * ((rank
-            + original_seed) + 7) - 1;
+                + original_seed) + 7) - 1;
 
     gsl_rng_set(rng, distributed_seed);
 }
@@ -53,26 +54,26 @@ Random_distribution::get_original_seed() const
     return original_seed;
 }
 
-double
+    double
 Random_distribution::get()
 {
     return gsl_rng_uniform(rng);
 }
 
-double
+    double
 Random_distribution::get_uniform(double min, double max)
 {
     return gsl_ran_flat(rng, min, max);
 }
 
-double
+    double
 Random_distribution::get_unit_gaussian()
 {
     return gsl_ran_ugaussian_ratio_method(rng);
 }
 
 #if 0
-void
+    void
 Random_distribution::fill_unit_disk(double* x_array, double* y_array)
 {
     const auto Nx = x_array.extent(0);

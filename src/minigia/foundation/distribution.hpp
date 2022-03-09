@@ -1,8 +1,8 @@
 #ifndef DISTRIBUTION_H_
 #define DISTRIBUTION_H_
 
-#include <minigia/utils/commxx.h>
 #include <gsl/gsl_rng.h>
+#include <minigia/utils/commxx.hpp>
 
 /// Distribution is a virtual base class for obtaining the next number or set
 /// of numbers from a sequence according to a limited set of shapes.

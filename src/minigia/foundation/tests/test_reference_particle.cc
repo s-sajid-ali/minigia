@@ -2,8 +2,8 @@
 #include <catch2/catch_approx.hpp>
 using Catch::Approx;
 
-#include "../reference_particle.h"
-#include <minigia/utils/cereal_files.h>
+#include "../reference_particle.hpp"
+#include <minigia/utils/cereal_files.hpp>
 
 const double tolerance = 1.0e-13;
 const double mass = 100.0;

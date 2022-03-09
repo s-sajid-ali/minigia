@@ -2,7 +2,7 @@
 #include <climits>
 #include <algorithm>
 
-#include "commxx.h"
+#include "commxx.hpp"
 
 namespace
 {

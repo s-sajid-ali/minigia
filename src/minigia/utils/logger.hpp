@@ -6,7 +6,7 @@
 #include <fstream>
 #include <string>
 
-#include "commxx.h"
+#include "commxx.hpp"
 
 enum class LoggerV
 {

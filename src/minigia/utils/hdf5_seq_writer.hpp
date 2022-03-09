@@ -4,10 +4,10 @@
 #include <vector>
 #include <string>
 
-#include "commxx.h"
-#include "hdf5_misc.h"
-#include "hdf5_reader.h"
-#include "multi_array_typedefs.h"
+#include "commxx.hpp"
+#include "hdf5_misc.hpp"
+#include "hdf5_reader.hpp"
+#include "multi_array_typedefs.hpp"
 
 class Hdf5_seq_writer
 {

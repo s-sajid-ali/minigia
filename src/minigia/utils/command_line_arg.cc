@@ -1,4 +1,4 @@
-#include "command_line_arg.h"
+#include "command_line_arg.hpp"
 
 Command_line_arg::Command_line_arg(const char * char_ptr) :
     str(char_ptr)

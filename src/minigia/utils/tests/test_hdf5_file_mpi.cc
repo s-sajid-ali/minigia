@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "../hdf5_file.h"
-#include "../multi_array_typedefs.h"
+#include "../hdf5_file.hpp"
+#include "../multi_array_typedefs.hpp"
 
 
 TEST_CASE("hdf5_file_scalar_read", "[Hdf5_file]")

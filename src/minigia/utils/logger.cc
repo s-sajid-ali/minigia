@@ -1,8 +1,8 @@
 #include <sstream>
 #include <iomanip>
 
-#include "digits.h"
-#include "logger.h"
+#include "digits.hpp"
+#include "logger.hpp"
 
 Logger::Logger( int rank,
         LoggerV verbosity,

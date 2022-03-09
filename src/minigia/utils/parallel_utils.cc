@@ -1,6 +1,9 @@
-#include "parallel_utils.h"
 #include <cmath>
 #include <stdexcept>
+
+#include "parallel_utils.hpp"
+
+
     void
 decompose_1d_raw(int processors, int length, std::vector<int > &offsets,
         std::vector<int > &counts)

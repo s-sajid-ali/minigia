@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "../commxx.h"
-#include "../cereal_files.h"
+#include "../commxx.hpp"
+#include "../cereal_files.hpp"
 
 TEST_CASE("null commxx")
 {

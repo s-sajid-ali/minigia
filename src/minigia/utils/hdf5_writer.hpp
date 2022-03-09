@@ -3,9 +3,9 @@
 #include <vector>
 #include <string>
 
-#include "commxx.h"
-#include "hdf5_misc.h"
-#include "multi_array_typedefs.h"
+#include "commxx.hpp"
+#include "hdf5_misc.hpp"
+#include "multi_array_typedefs.hpp"
 
 class Hdf5_writer
 {

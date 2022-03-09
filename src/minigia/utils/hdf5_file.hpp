@@ -4,13 +4,13 @@
 #include <string>
 #include <memory>
 
-#include "hdf5_misc.h"
-#include "hdf5_writer.h"
-#include "hdf5_reader.h"
-#include "hdf5_seq_writer.h"
+#include "hdf5_misc.hpp"
+#include "hdf5_writer.hpp"
+#include "hdf5_reader.hpp"
+#include "hdf5_seq_writer.hpp"
 
-#include "cereal.h"
-#include "commxx.h"
+#include "cereal.hpp"
+#include "commxx.hpp"
 
 
 class Hdf5_file

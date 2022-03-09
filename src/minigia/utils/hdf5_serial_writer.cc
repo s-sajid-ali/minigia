@@ -1,6 +1,4 @@
-#include "hdf5_serial_writer.h"
-
-
+#include "hdf5_serial_writer.hpp"
 
 void Hdf5_serial_writer::do_setup(std::vector<hsize_t> const& data_dims)
 {
@@ -11,7 +9,7 @@ void Hdf5_serial_writer::do_setup(std::vector<hsize_t> const& data_dims)
     size.resize(data_rank + 1);
     offset.resize(data_rank + 1);
 
-    for (int i = 0; i < data_rank; ++i) 
+    for (int i = 0; i < data_rank; ++i)
     {
         dims[i] = data_dims.at(i);
         max_dims[i] = data_dims.at(i);
@@ -25,17 +23,17 @@ void Hdf5_serial_writer::do_setup(std::vector<hsize_t> const& data_dims)
     max_dims[data_rank] = H5S_UNLIMITED;
 
     const size_t good_chunk_size = 8192; // pulled out of air
-    chunk_dims[data_rank] = (data_size < good_chunk_size) 
+    chunk_dims[data_rank] = (data_size < good_chunk_size)
         ? good_chunk_size/data_size : 1;
 
-    try 
+    try
     {
         // try to open the dataset
         dataset = H5Dopen(file_ptr, name.c_str(), H5P_DEFAULT);
         Hdf5_handler dataspace = H5Dget_space(dataset);
 
         // check the data_rank
-        if ( H5Sget_simple_extent_ndims(dataspace) != data_rank + 1 ) 
+        if ( H5Sget_simple_extent_ndims(dataspace) != data_rank + 1 )
         {
             throw std::runtime_error(
                     "Hdf5_serial_writer::resumed data has wrong rank");
@@ -54,15 +52,15 @@ void Hdf5_serial_writer::do_setup(std::vector<hsize_t> const& data_dims)
 
         size[data_rank] = fdims[data_rank];
         offset[data_rank] = fdims[data_rank];
- 
-    } 
-    catch (Hdf5_exception & e) 
+
+    }
+    catch (Hdf5_exception & e)
     {
         // dataset not exist, create a new one
         size[data_rank] = 0;
         offset[data_rank] = 0;
 
-        if (data_size == 0) 
+        if (data_size == 0)
         {
             throw std::runtime_error(
                     "Hdf5_serial_writer: zero data size encountered");
@@ -73,7 +71,7 @@ void Hdf5_serial_writer::do_setup(std::vector<hsize_t> const& data_dims)
         if (res < 0) throw Hdf5_exception();
 
         Hdf5_handler dataspace = H5Screate_simple(data_rank+1, &dims[0], &max_dims[0]);
-        dataset = H5Dcreate(file_ptr, name.c_str(), atomic_type, 
+        dataset = H5Dcreate(file_ptr, name.c_str(), atomic_type,
                 dataspace, H5P_DEFAULT, cparms, H5P_DEFAULT);
     }
 
@@ -102,98 +100,3 @@ void Hdf5_serial_writer::do_append(void* ptr)
     // increment the offset
     ++offset[data_rank];
 }
-
-
-#if 0
-template<>
-void Hdf5_serial_writer::append<karray1d>(karray1d const& data)
-{
-    if (!have_setup) 
-    {
-        data_rank = 1;
-        atomic_type = hdf5_atomic_data_type<double>();
-        data_size = sizeof(double) * data.num_elements();
-
-        std::vector<int> data_dims(data_rank);
-        for (int i=0; i<data_rank; ++i) data_dims[i] = data.shape()[i];
-
-        setup(data_dims);
-    }
-
-    Hdf5_handler dataspace = H5Screate_simple(data_rank + 1, &dims[0], &max_dims[0]);
-    ++size[data_rank];
-
-    herr_t res = H5Dextend(dataset, &size[0]);
-    if (res < 0) throw Hdf5_exception();
-
-    Hdf5_handler filespace = H5Dget_space(dataset);
-
-    res = H5Sselect_hyperslab(filespace, H5S_SELECT_SET, &offset[0], NULL, &dims[0], NULL);
-    if (res < 0) throw Hdf5_exception();
-
-    res = H5Dwrite(dataset, atomic_type, dataspace, filespace, H5P_DEFAULT, data.origin());
-    if (res < 0) throw Hdf5_exception();
-
-    ++offset[data_rank];
-}
-
-template<>
-    void
-    Hdf5_serial_writer<MArray2d_ref >::append(MArray2d_ref & data)
-    {
-        if (!have_setup) {
-            std::vector<int > data_dims(data_rank);
-            for (int i = 0; i < data_rank; ++i) {
-                data_dims.at(i) = data.shape()[i];
-            }
-            data_size = sizeof(double) * data.num_elements();
-            setup(data_dims);
-        }
-
-        Hdf5_handler dataspace = H5Screate_simple(data_rank + 1, &dims[0], &max_dims[0]);
-        ++size[data_rank];
-
-        herr_t res = H5Dextend(dataset, &size[0]);
-        if (res < 0) throw Hdf5_exception();
-
-        Hdf5_handler filespace = H5Dget_space(dataset);
-
-        res = H5Sselect_hyperslab(filespace, H5S_SELECT_SET, &offset[0], NULL, &dims[0], NULL);
-        if (res < 0) throw Hdf5_exception();
-
-        res = H5Dwrite(dataset, atomic_type, dataspace, filespace, H5P_DEFAULT, data.origin());
-        if (res < 0) throw Hdf5_exception();
-
-        ++offset[data_rank];
-    }
-
-template<>
-    void
-    Hdf5_serial_writer<MArray3d_ref >::append(MArray3d_ref & data)
-    {
-        if (!have_setup) {
-            std::vector<int > data_dims(data_rank);
-            for (int i = 0; i < data_rank; ++i) {
-                data_dims.at(i) = data.shape()[i];
-            }
-            data_size = sizeof(double) * data.num_elements();
-            setup(data_dims);
-        }
-
-        Hdf5_handler dataspace = H5Screate_simple(data_rank + 1, &dims[0], &max_dims[0]);
-        ++size[data_rank];
-
-        herr_t res = H5Dextend(dataset, &size[0]);
-        if (res < 0) throw Hdf5_exception();
-
-        Hdf5_handler filespace = H5Dget_space(dataset);
-
-        res = H5Sselect_hyperslab(filespace, H5S_SELECT_SET, &offset[0], NULL, &dims[0], NULL);
-        if (res < 0) throw Hdf5_exception();
-
-        res = H5Dwrite(dataset, atomic_type, dataspace, filespace, H5P_DEFAULT, data.origin());
-        if (res < 0) throw Hdf5_exception();
-
-        ++offset[data_rank];
-    }
-#endif

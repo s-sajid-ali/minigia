@@ -23,11 +23,11 @@ target_include_directories(minigia_parallel_utils INTERFACE
 install(TARGETS minigia_foundation DESTINATION lib)
 
 install(FILES
-    distribution.h
-    four_momentum.h
-    math_constants.h
-    physical_constants.h
-    reference_particle.h
+    distribution.hpp
+    four_momentum.hpp
+    math_constants.hpp
+    physical_constants.hpp
+    reference_particle.hpp
     DESTINATION include/minigia/foundation)
 
 add_subdirectory(tests)

@@ -42,24 +42,23 @@ install(TARGETS
     DESTINATION lib)
 
 install(FILES 
-    command_line_arg.h
-    commxx.h
-    commxx_divider.h
-    fast_int_floor.h
-    floating_point.h
-    gsvector.h
-    hdf5_misc.h
-    hdf5_file.h
-    hdf5_serial_writer.h
-    hdf5_writer.h
-    multi_array_typedefs.h
-    parallel_utils.h
-    simple_timer.h
-    cereal.h
-    cereal_files.h
-    digits.h
-    logger.h
-    lsexpr.h
+    command_line_arg.hpp
+    commxx.hpp
+    commxx_divider.hpp
+    fast_int_floor.hpp
+    floating_point.hpp
+    gsvector.hpp
+    hdf5_misc.hpp
+    hdf5_file.hpp
+    hdf5_serial_writer.hpp
+    multi_array_typedefs.hpp
+    parallel_utils.hpp
+    simple_timer.hpp
+    cereal.hpp
+    cereal_files.hpp
+    digits.hpp
+    logger.hpp
+    lsexpr.hpp
     DESTINATION include/minigia/utils)
 
 add_subdirectory(tests)

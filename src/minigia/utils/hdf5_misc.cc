@@ -3,8 +3,8 @@
 
 #pragma message "HDF5 version checking in Hdf5_reader (changes of H5O interfaces in Hdf5 1.12)"
 
-#include "hdf5_misc.h"
-#include "commxx.h"
+#include "hdf5_misc.hpp"
+#include "commxx.hpp"
 
 namespace
 {

@@ -1,7 +1,7 @@
 #include <cmath>
 #include <stdexcept>
 
-#include "four_momentum.h"
+#include "four_momentum.hpp"
 
     void
 Four_momentum::update_from_gamma()

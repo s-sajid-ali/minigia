@@ -1,5 +1,5 @@
 
-#include "simple_timer.h"
+#include "simple_timer.hpp"
 
 
 std::map<std::string, simple_timer_counter::timing>

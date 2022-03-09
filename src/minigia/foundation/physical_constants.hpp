@@ -2,7 +2,7 @@
 #define PHYSICAL_CONSTANTS_H_
 #include <string>
 
-#include "math_constants.h"
+#include "math_constants.hpp"
 
 #ifndef PDG_VERSION
 #define PDG_VERSION 2012
