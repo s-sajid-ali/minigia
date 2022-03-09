@@ -4,9 +4,6 @@
 #include <type_traits>
 
 // general is_trigon type trait
-template<typename>
-struct is_trigon : std::false_type { };
+template <typename> struct is_trigon : std::false_type {};
 
 #endif
-
-
