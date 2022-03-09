@@ -36,3 +36,7 @@ build/**
 
 # Ignore install directory
 install/**
+
+# clangd LSP files
+compile_commands.json
+**.cache/clangd
