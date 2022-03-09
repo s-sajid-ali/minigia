@@ -1,34 +1,35 @@
-#include "logger.h"
 #include <sstream>
 #include <iomanip>
-#include "digits.h"
 
-Logger::Logger( int rank, 
-                LoggerV verbosity,
-                bool log ) 
+#include "digits.h"
+#include "logger.h"
+
+Logger::Logger( int rank,
+        LoggerV verbosity,
+        bool log )
     : stream_ptr(&std::cout)
     , have_stream(false)
     , fstream_ptr(0)
     , have_fstream(false)
     , verbosity(verbosity)
-    , severity(LoggerV::INFO)
+      , severity(LoggerV::INFO)
 {
     if ((Commxx().get_rank() == rank) && log) {
         have_stream = true;
     }
 }
 
-Logger::Logger( int rank, 
-                std::string const& filename, 
-                LoggerV verbosity,
-                bool screen, 
-                bool log ) 
+Logger::Logger( int rank,
+        std::string const& filename,
+        LoggerV verbosity,
+        bool screen,
+        bool log )
     : stream_ptr(&std::cout)
     , have_stream(false)
     , fstream_ptr(0)
     , have_fstream(false)
     , verbosity(verbosity)
-    , severity(LoggerV::INFO)
+      , severity(LoggerV::INFO)
 {
     if ((Commxx().get_rank() == rank) && log) {
         have_stream = screen;
@@ -37,17 +38,17 @@ Logger::Logger( int rank,
     }
 }
 
-Logger::Logger( int rank, 
-                char const* filename, 
-                LoggerV verbosity,
-                bool screen, 
-                bool log ) 
+Logger::Logger( int rank,
+        char const* filename,
+        LoggerV verbosity,
+        bool screen,
+        bool log )
     : stream_ptr(&std::cout)
     , have_stream(false)
     , fstream_ptr(0)
     , have_fstream(false)
     , verbosity(verbosity)
-    , severity(LoggerV::INFO)
+      , severity(LoggerV::INFO)
 {
     if ((Commxx().get_rank() == rank) && log) {
         have_stream = screen;
@@ -56,15 +57,15 @@ Logger::Logger( int rank,
     }
 }
 
-Logger::Logger( std::string const& filename_base, 
-                LoggerV verbosity,
-                bool log ) 
+Logger::Logger( std::string const& filename_base,
+        LoggerV verbosity,
+        bool log )
     : stream_ptr(&std::cout)
     , have_stream(false)
     , fstream_ptr(0)
     , have_fstream(false)
     , verbosity(verbosity)
-    , severity(LoggerV::INFO)
+      , severity(LoggerV::INFO)
 {
     if (log) {
         Commxx commxx;
@@ -79,20 +80,20 @@ Logger::Logger( std::string const& filename_base,
     }
 }
 
-Logger &
+    Logger &
 Logger::set_stream(std::ostream & stream)
 {
     stream_ptr = &stream;
     return *this;
 }
 
-Logger &
+    Logger &
 Logger::write(std::string const& str)
 {
     return (*this) << str;
 }
 
-Logger &
+    Logger &
 Logger::operator<<(std::ostream & (*op)(std::ostream&))
 {
     if (have_stream) {
@@ -104,7 +105,7 @@ Logger::operator<<(std::ostream & (*op)(std::ostream&))
     return *this;
 }
 
-Logger &
+    Logger &
 Logger::flush()
 {
     if (have_stream) {
