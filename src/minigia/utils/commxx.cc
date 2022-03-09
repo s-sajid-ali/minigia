@@ -1,7 +1,8 @@
-#include "commxx.h"
 #include <stdexcept>
 #include <climits>
 #include <algorithm>
+
+#include "commxx.h"
 
 namespace
 {

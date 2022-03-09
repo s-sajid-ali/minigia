@@ -41,6 +41,9 @@ else(HDF5_IS_PARALLEL)
 endif()
 
 
+# GSL
+find_package(GSL REQUIRED)
+
 # Catch2-v3
 if(USE_EXTERNAL_CATCH2)
     find_package(Catch2 3 REQUIRED CONFIG)
@@ -75,7 +78,7 @@ endif()
 
 
 set(testing_libs "Catch2::Catch2;${kokkos_libs};MPI::MPI_C")
-set(test_main "${CMAKE_SOURCE_DIR}/src/utils/catch_test_main.cc")
+set(test_main "${CMAKE_SOURCE_DIR}/src/minigia/utils/catch_test_main.cc")
 enable_testing()
 
 add_subdirectory(src)
