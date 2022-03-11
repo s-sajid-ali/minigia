@@ -7,14 +7,11 @@ using Catch::Approx;
 #include "../mx_expr.hpp"
 #include "../mx_parse.hpp"
 
-
-
 using namespace synergia;
 
 const double tolerance = 1.0e-12;
 
-TEST_CASE("mx_expr")
-{
+TEST_CASE("mx_expr") {
   {
     mx_expr expr;
     CHECK(parse_expression("3+1", expr));
@@ -31,8 +28,7 @@ TEST_CASE("mx_expr")
   }
 }
 
-TEST_CASE("mx_expr_writer")
-{
+TEST_CASE("mx_expr_writer") {
   {
     mx_expr expr;
     CHECK(parse_expression("3", expr));
@@ -136,9 +132,4 @@ TEST_CASE("mx_expr_writer")
 
     std::cout << mx_expr_str(expr) << "\n";
   }
-
-
-
 }
-
-

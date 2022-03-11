@@ -1,40 +1,36 @@
 #ifndef MADX_READER_CC_
 #define MADX_READER_CC_
 
-#include "madx.hpp"
 #include "lattice.hpp"
+#include "madx.hpp"
 
-class MadX_reader
-{
-  private:
+class MadX_reader {
+private:
+  synergia::MadX madx;
 
-    synergia::MadX madx;
+public:
+  void parse(std::string const &string);
+  void parse_file(std::string const &filename);
 
-  public:
+  std::vector<std::string> get_line_names() const;
+  std::vector<std::string> get_sequence_names() const;
+  std::vector<std::string> get_all_names() const;
 
-    void parse(std::string const& string);
-    void parse_file(std::string const& filename);
+  double get_double_variable(std::string const &name) const;
+  std::string get_string_variable(std::string const &name) const;
 
-    std::vector<std::string > get_line_names() const;
-    std::vector<std::string > get_sequence_names() const;
-    std::vector<std::string > get_all_names() const;
+  Lattice get_lattice(std::string const &line_name);
+  Lattice get_lattice(std::string const &line_name,
+                      std::string const &filename);
 
-    double get_double_variable(std::string const& name) const;
-    std::string get_string_variable(std::string const& name) const;
+  Lattice get_dynamic_lattice(std::string const &line_name);
+  Lattice get_dynamic_lattice(std::string const &line_name,
+                              std::string const &filename);
 
-    Lattice get_lattice(std::string const& line_name);
-    Lattice get_lattice(std::string const& line_name, std::string const& filename);
+  static Lattice get_lattice(std::string const &line_name,
+                             synergia::MadX const &mx);
 
-    Lattice get_dynamic_lattice(std::string const& line_name);
-    Lattice get_dynamic_lattice(std::string const& line_name, std::string const& filename);
-
-    static Lattice get_lattice(
-        std::string const& line_name,
-        synergia::MadX const& mx);
-
-    static Lattice get_dynamic_lattice(
-        std::string const& line_name,
-        synergia::MadX const& mx);
-
+  static Lattice get_dynamic_lattice(std::string const &line_name,
+                                     synergia::MadX const &mx);
 };
 #endif /* MADX_READER_CC_ */

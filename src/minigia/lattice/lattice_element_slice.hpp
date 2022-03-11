@@ -3,51 +3,45 @@
 
 #include "lattice_element.hpp"
 
-class Lattice_element_slice
-{
-  private:
+class Lattice_element_slice {
+private:
+  Lattice_element const *element;
 
-    Lattice_element const * element;
+  bool whole;
+  bool left_edge;
+  bool right_edge;
 
-    bool whole;
-    bool left_edge;
-    bool right_edge;
+  double left;
+  double right;
+  double ref_ct;
 
-    double left;
-    double right;
-    double ref_ct;
+public:
+  // lattice functions
+  latt_func_t lf;
 
-  public:
+public:
+  explicit Lattice_element_slice(Lattice_element const &element);
 
-    // lattice functions
-    latt_func_t lf;
+  Lattice_element_slice(Lattice_element const &element, double left,
+                        double right);
 
-  public:
+  bool is_whole() const { return whole; }
+  bool has_left_edge() const { return left_edge; }
+  bool has_right_edge() const { return right_edge; }
 
-    explicit Lattice_element_slice(Lattice_element const & element);
+  double get_left() const { return left; }
+  double get_right() const { return right; }
 
-    Lattice_element_slice(
-        Lattice_element const & element,
-        double left, double right);
+  double get_length() const { return right - left; }
 
-    bool is_whole()       const { return whole; }
-    bool has_left_edge()  const { return left_edge; }
-    bool has_right_edge() const { return right_edge; }
+  void set_reference_ct(double ct) { ref_ct = ct; }
+  double get_reference_ct() const { return ref_ct; }
 
-    double get_left()     const { return left; }
-    double get_right()    const { return right; }
+  Lattice_element const &get_lattice_element() const { return *element; }
 
-    double get_length()   const { return right - left; }
+  std::string as_string() const;
 
-    void   set_reference_ct(double ct) { ref_ct = ct; }
-    double get_reference_ct() const { return ref_ct; }
-
-    Lattice_element const & get_lattice_element() const
-    { return *element; }
-
-    std::string as_string() const;
-
-    void print() const;
+  void print() const;
 };
 
 #endif /* LATTICE_ELEMENT_SLICE_H_ */

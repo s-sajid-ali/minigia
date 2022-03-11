@@ -6,61 +6,43 @@
 #include "madx.hpp"
 #include "mx_parse.hpp"
 
+class Lattice_tree {
+public:
+  // default ctor for serialization
+  Lattice_tree() : mx() {}
 
-class Lattice_tree
-{
-  public:
+  explicit Lattice_tree(synergia::MadX const &madx) : mx(madx) {}
 
-    // default ctor for serialization
-    Lattice_tree() : mx()
-  { }
+  // set the value of a variable
+  void set_variable(std::string const &name, double val);
+  void set_variable(std::string const &name, std::string const &val);
 
-    explicit Lattice_tree(synergia::MadX const& madx)
-      : mx(madx)
-    { }
+  // set the attribute value of an element
+  void set_element_attribute(std::string const &label, std::string const &attr,
+                             double val);
 
-    // set the value of a variable
-    void set_variable(std::string const& name, double val);
-    void set_variable(std::string const& name, std::string const& val);
+  void set_element_attribute(std::string const &label, std::string const &attr,
+                             std::string const &val);
 
-    // set the attribute value of an element
-    void set_element_attribute(
-        std::string const& label,
-        std::string const& attr,
-        double val);
+  void print() const;
 
-    void set_element_attribute(
-        std::string const& label,
-        std::string const& attr,
-        std::string const& val);
+public:
+  synergia::MadX mx;
 
-    void print() const;
+private:
+  friend class cereal::access;
 
-  public:
+  template <class Archive> void save(Archive &ar) const {
+    std::string madx = mx.to_madx();
+    ar(madx);
+  }
 
-    synergia::MadX mx;
+  template <class Archive> void load(Archive &ar) {
+    std::string madx;
+    ar(madx);
 
-  private:
-
-    friend class cereal::access;
-
-
-    template<class Archive>
-      void save(Archive & ar) const
-      {
-        std::string madx = mx.to_madx();
-        ar(madx);
-      }
-
-    template<class Archive>
-      void load(Archive & ar)
-      {
-        std::string madx;
-        ar(madx);
-
-        parse_madx(madx, mx);
-      }
+    parse_madx(madx, mx);
+  }
 };
-
 
 #endif

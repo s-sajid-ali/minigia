@@ -1,37 +1,49 @@
 
 #include "lattice_element_processor.hpp"
 
-
-  Lattice_element
-Lattice_element_processor::process(Lattice_element const & element)
-{
+Lattice_element
+Lattice_element_processor::process(Lattice_element const &element) {
   auto t = element.get_type();
   Lattice_element e(element);
 
-  switch(element.get_type())
-  {
-    case element_type::drift:      drift(e); break;
-    case element_type::sbend:      sbend(e); break;
-    case element_type::quadrupole: quadrupole(e); break;
-    case element_type::multipole:  multipole(e); break;
-    case element_type::rfcavity:   rfcavity(e); break;
+  switch (element.get_type()) {
+  case element_type::drift:
+    drift(e);
+    break;
+  case element_type::sbend:
+    sbend(e);
+    break;
+  case element_type::quadrupole:
+    quadrupole(e);
+    break;
+  case element_type::multipole:
+    multipole(e);
+    break;
+  case element_type::rfcavity:
+    rfcavity(e);
+    break;
 
-    case element_type::hkicker:    hkicker(e); break;
-    case element_type::vkicker:    vkicker(e); break;
-    case element_type::kicker:     kicker(e); break;
-    default: break;
+  case element_type::hkicker:
+    hkicker(e);
+    break;
+  case element_type::vkicker:
+    vkicker(e);
+    break;
+  case element_type::kicker:
+    kicker(e);
+    break;
+  default:
+    break;
   }
 
   return e;
 }
 
-void Lattice_element_processor::drift(Lattice_element & e)
-{
+void Lattice_element_processor::drift(Lattice_element &e) {
   e.set_default_double_attribute("l", 0.0);
 }
 
-void Lattice_element_processor::sbend(Lattice_element & e)
-{
+void Lattice_element_processor::sbend(Lattice_element &e) {
   e.set_default_string_attribute("propagator_type", "yoshida");
   e.set_default_double_attribute("l", 0.0);
   e.set_default_double_attribute("angle", 0.0);
@@ -67,21 +79,18 @@ void Lattice_element_processor::sbend(Lattice_element & e)
   e.set_default_double_attribute("exit_edge_kick", 1.0);
 }
 
-void Lattice_element_processor::quadrupole(Lattice_element & e)
-{
+void Lattice_element_processor::quadrupole(Lattice_element &e) {
   e.set_default_string_attribute("propagator_type", "yoshida");
   e.set_default_double_attribute("yoshida_order", 2.0);
 }
 
-void Lattice_element_processor::multipole(Lattice_element & e)
-{
+void Lattice_element_processor::multipole(Lattice_element &e) {
   e.set_default_double_attribute("tilt", 0.0);
-  //e.set_default_vector_attribute("knl", std::vector<double >(0));
-  //e.set_default_vector_attribute("ksl", std::vector<double >(0));
+  // e.set_default_vector_attribute("knl", std::vector<double >(0));
+  // e.set_default_vector_attribute("ksl", std::vector<double >(0));
 }
 
-void Lattice_element_processor::hkicker(Lattice_element& e)
-{
+void Lattice_element_processor::hkicker(Lattice_element &e) {
   // Logic is: if it has "kick" attribute, copy it
   // to "hkick" (overwrite if "hkick" already exisits).
   // Otherwise, set a default "hkick" of 0.0.
@@ -90,13 +99,11 @@ void Lattice_element_processor::hkicker(Lattice_element& e)
   // Same logic for the vkicker
 
   // having both kick and hkick causes confusion
-  if (e.has_double_attribute("kick") &&
-      e.has_double_attribute("hkick"))
-  {
+  if (e.has_double_attribute("kick") && e.has_double_attribute("hkick")) {
     double kick = e.get_double_attribute("kick");
     double hkick = e.get_double_attribute("hkick");
 
-    if (fabs(kick-hkick) > 1e-6)
+    if (fabs(kick - hkick) > 1e-6)
       throw std::runtime_error(
           "Lattice_element_processor: element hkicker "
           "should not have both kick and hkick attributes");
@@ -115,16 +122,13 @@ void Lattice_element_processor::hkicker(Lattice_element& e)
   e.set_double_attribute("vkick", 0.0);
 }
 
-void Lattice_element_processor::vkicker(Lattice_element& e)
-{
+void Lattice_element_processor::vkicker(Lattice_element &e) {
   // having both kick and vkick causes confusion
-  if (e.has_double_attribute("kick") &&
-      e.has_double_attribute("vkick"))
-  {
+  if (e.has_double_attribute("kick") && e.has_double_attribute("vkick")) {
     double kick = e.get_double_attribute("kick");
     double vkick = e.get_double_attribute("vkick");
 
-    if (fabs(kick-vkick) > 1e-6)
+    if (fabs(kick - vkick) > 1e-6)
       throw std::runtime_error(
           "Lattice_element_processor: element vkicker "
           "should not have both kick and vkick attributes");
@@ -143,8 +147,7 @@ void Lattice_element_processor::vkicker(Lattice_element& e)
   e.set_double_attribute("hkick", 0.0);
 }
 
-void Lattice_element_processor::kicker(Lattice_element& e)
-{
+void Lattice_element_processor::kicker(Lattice_element &e) {
   // default
   e.set_default_double_attribute("l", 0.0);
   e.set_default_double_attribute("hkick", 0.0);
@@ -152,15 +155,10 @@ void Lattice_element_processor::kicker(Lattice_element& e)
   e.set_default_double_attribute("tilt", 0.0);
 }
 
-void Lattice_element_processor::rfcavity(Lattice_element & e)
-{
+void Lattice_element_processor::rfcavity(Lattice_element &e) {
   e.set_default_double_attribute("l", 0.0);
   e.set_default_double_attribute("volt", 0.0);
   e.set_default_double_attribute("lag", 0.0);
   e.set_default_double_attribute("harmon", 0.0);
   e.set_default_double_attribute("shunt", 0.0);
 }
-
-
-
-
