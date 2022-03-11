@@ -44,14 +44,15 @@ install(TARGETS
 install(FILES 
     command_line_arg.hpp
     commxx.hpp
-    commxx_divider.hpp
     fast_int_floor.hpp
     floating_point.hpp
     gsvector.hpp
     hdf5_misc.hpp
     hdf5_file.hpp
     hdf5_serial_writer.hpp
+    kokkos_types.hpp
     multi_array_typedefs.hpp
+    minigia_json.hpp
     parallel_utils.hpp
     simple_timer.hpp
     cereal.hpp

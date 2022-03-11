@@ -1,12 +1,12 @@
 #ifndef FOUNDATION_NORMAL_FORM_H
 #define FOUNDATION_NORMAL_FORM_H
 
-#include "Eigen/Eigen"
-#include "synergia/foundation/physical_constants.h"
-#include "synergia/foundation/trigon.h"
-
+#include <Eigen/Eigen>
 #include <cereal/cereal.hpp>
 #include <cereal/types/complex.hpp>
+
+#include "physical_constants.hpp"
+#include "trigon.hpp"
 
 template <unsigned int order> class NormalForm {
   // max iterations for the eigen solver
@@ -129,8 +129,8 @@ NormalForm<order>::NormalForm(mapping_t const &one_turn_map, double e0,
 
 #if 0
     {
-        std::ofstream of("map.json");
-        of << one_turn_map.to_json();
+      std::ofstream of("map.json");
+      of << one_turn_map.to_json();
     }
 #endif
 
@@ -168,17 +168,17 @@ NormalForm<order>::NormalForm(mapping_t const &one_turn_map, double e0,
 
     for(int i=0; i<6; ++i)
     {
-        for(int j=0; j<6; ++j)
-        {
-            jac2(i, j) = jac(map[i], map[j]);
-        }
+      for(int j=0; j<6; ++j)
+      {
+        jac2(i, j) = jac(map[i], map[j]);
+      }
     }
 
 #if 1
     Eigen::EigenSolver<Matrix6D> eigensolver(jac2);
 
     if (eigensolver.info() != Eigen::Success)
-        throw std::runtime_error("failed solving eigenvectors");
+      throw std::runtime_error("failed solving eigenvectors");
 
     auto E = eigensolver.eigenvectors();
 #endif
@@ -302,7 +302,7 @@ NormalForm<order>::NormalForm(mapping_t const &one_turn_map, double e0,
     for(int i=0; i<6; ++i) id(i,i) = 1.0;
 
     for(int i=0; i<6; ++i)
-        std::cout << "(A-lambda*I)*v = \n" << (A - ev(0)*id) * B.col(0) << "\n\n";
+      std::cout << "(A-lambda*I)*v = \n" << (A - ev(0)*id) * B.col(0) << "\n\n";
 #endif
 
 #if 0
@@ -329,9 +329,9 @@ NormalForm<order>::NormalForm(mapping_t const &one_turn_map, double e0,
 
     for(int c=0; c<3; ++c)
     {
-        std::complex<double> csum(0,0);
-        for(int i=0; i<3; ++i) csum += tb(i,c)*std::conj(tb(i,c));
-        std::cout << "sum = " << csum << "\n";
+      std::complex<double> csum(0,0);
+      for(int i=0; i<3; ++i) csum += tb(i,c)*std::conj(tb(i,c));
+      std::cout << "sum = " << csum << "\n";
     }
 #endif
 
@@ -367,8 +367,8 @@ NormalForm<order>::NormalForm(mapping_t const &one_turn_map, double e0,
     nf[5] = std::conj(nf[2]);
 
     for(int c=0; c<6; ++c)
-        for(int i=0; i<6; ++i)
-            Br(i,c) *= nf[c];
+      for(int i=0; i<6; ++i)
+        Br(i,c) *= nf[c];
 #endif
 
   // std::cout << "B after reordering and norm = \n" << Br << "\n\n";
@@ -447,17 +447,17 @@ NormalForm<order>::NormalForm(mapping_t const &one_turn_map, double e0,
 #if 0
     using c = std::complex<double>;
     B <<
-        c(114209.354071,7.27595761418e-12), c(0,0), c(1.76447810335,-357.117325749), c(114209.354071,-7.27595761418e-12), c(0,0), c(1.76447810335,357.117325749),
+      c(114209.354071,7.27595761418e-12), c(0,0), c(1.76447810335,-357.117325749), c(114209.354071,-7.27595761418e-12), c(0,0), c(1.76447810335,357.117325749),
 
-        c(0,0), c(117322.83252,0), c(0,0), c(0,0), c(117322.83252,0), c(0,0),
+      c(0,0), c(117322.83252,0), c(0,0), c(0,0), c(117322.83252,0), c(0,0),
 
-        c(0.000316365569078,-0.000372429994752), c(0,0), c(0.119106484258,-3.46944695195e-18), c(0.000316365569078,0.000372429994752), c(0,0), c(0.119106484258,3.46944695195e-18),
+      c(0.000316365569078,-0.000372429994752), c(0,0), c(0.119106484258,-3.46944695195e-18), c(0.000316365569078,0.000372429994752), c(0,0), c(0.119106484258,3.46944695195e-18),
 
-        c(-5.68522460523e-06,-4.37792515282e-06), c(0,0), c(-1.34435122251e-10,2.940539278e-08), c(-5.68522460523e-06,4.37792515282e-06), c(0,0), c(-1.34435122251e-10,-2.940539278e-08),
+      c(-5.68522460523e-06,-4.37792515282e-06), c(0,0), c(-1.34435122251e-10,2.940539278e-08), c(-5.68522460523e-06,4.37792515282e-06), c(0,0), c(-1.34435122251e-10,-2.940539278e-08),
 
-        c(0,0), c(-1.82289069495e-06,-4.26174504364e-06), c(0,0), c(0,0), c(-1.82289069495e-06,4.26174504364e-06), c(0,0),
+      c(0,0), c(-1.82289069495e-06,-4.26174504364e-06), c(0,0), c(0,0), c(-1.82289069495e-06,4.26174504364e-06), c(0,0),
 
-        c(-2.88383130626e-05,4.62007074946e-05), c(0,0), c(0.00596608560441,-4.19792429432), c(-2.88383130626e-05,-4.62007074946e-05), c(0,0), c(0.00596608560441,4.19792429432);
+      c(-2.88383130626e-05,4.62007074946e-05), c(0,0), c(0.00596608560441,-4.19792429432), c(-2.88383130626e-05,-4.62007074946e-05), c(0,0), c(0.00596608560441,4.19792429432);
 
 #endif
 
@@ -593,7 +593,7 @@ NormalForm<order>::NormalForm(mapping_t const &one_turn_map, double e0,
     //for(int i=0; i<16; ++i) clt1.terms[i] = 0.0;
     for(int i=0; i<clt1.terms.size(); ++i)
     {
-        if (i!=16) clt1.terms[i] = 0.0;
+      if (i!=16) clt1.terms[i] = 0.0;
     }
 #endif
 
@@ -730,9 +730,9 @@ NormalForm<order>::NormalForm(mapping_t const &one_turn_map, double e0,
     mapping_c_t doc = N[k] - reg;
 
 #if 0
-        std::cout << "N[" << k << "] = \n" << N[k] << "\n";
-        std::cout << "reg = \n" << reg << "\n";
-        std::cout << "doc[" << k << "] = \n" << doc << "\n";
+      std::cout << "N[" << k << "] = \n" << N[k] << "\n";
+      std::cout << "reg = \n" << reg << "\n";
+      std::cout << "doc[" << k << "] = \n" << doc << "\n";
 #endif
 
     for (int d = 0; d < dim; ++d) {
@@ -761,12 +761,12 @@ NormalForm<order>::NormalForm(mapping_t const &one_turn_map, double e0,
           N[k][d].set_term(power, idx, val);
 
 #if 0
-                    // If this is not a shear term, print a warning
-                    auto exponents = trigon_t::exponent(z);
-                    if (!(shear[i])(exponents, std::complex<double>(0,0)))
-                    {
-                        // print
-                    }
+            // If this is not a shear term, print a warning
+            auto exponents = trigon_t::exponent(z);
+            if (!(shear[i])(exponents, std::complex<double>(0,0)))
+            {
+              // print
+            }
 #endif
 
         } else {
@@ -812,9 +812,9 @@ NormalForm<order>::NormalForm(mapping_t const &one_turn_map, double e0,
 #if 0
     for(int i=0; i<order; ++i)
     {
-        std::cout << "N[" << i << "] = \n" << N[i] << "\n";
-        std::cout << "T[" << i << "] = \n" << T[i] << "\n";
-        std::cout << "\n\n";
+      std::cout << "N[" << i << "] = \n" << N[i] << "\n";
+      std::cout << "T[" << i << "] = \n" << T[i] << "\n";
+      std::cout << "\n\n";
     }
 #endif
 

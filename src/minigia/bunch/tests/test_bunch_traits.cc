@@ -20,7 +20,7 @@ struct TinyBunch {
 };
 
 static_assert(std::is_move_constructible<TinyBunch>::value,
-    "TinyBunch isn't move constructible");
+              "TinyBunch isn't move constructible");
 
 TEST_CASE("Bunch traits", "[Bunch]") {
   CHECK(true);

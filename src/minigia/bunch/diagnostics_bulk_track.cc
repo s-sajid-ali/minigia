@@ -8,42 +8,42 @@
 #include "diagnostics_bulk_track.hpp"
 
 Diagnostics_bulk_track::Diagnostics_bulk_track(std::string const &filename,
-    int num_tracks, int offset,
-    ParticleGroup pg)
-  : Diagnostics("diagnostis_bulk_track", filename, true),
-  total_num_tracks(num_tracks), local_num_tracks(0), offset(offset),
-  local_offset(0), setup(false), track_coords("local_coords", 0, 0),
-  pg(pg) {}
+                                               int num_tracks, int offset,
+                                               ParticleGroup pg)
+    : Diagnostics("diagnostis_bulk_track", filename, true),
+      total_num_tracks(num_tracks), local_num_tracks(0), offset(offset),
+      local_offset(0), setup(false), track_coords("local_coords", 0, 0),
+      pg(pg) {}
 
-  void Diagnostics_bulk_track::do_update(Bunch const &bunch) {
-    scoped_simple_timer("diag_bulk_track_update");
+void Diagnostics_bulk_track::do_update(Bunch const &bunch) {
+  scoped_simple_timer("diag_bulk_track_update");
 
-    auto const &ref = bunch.get_reference_particle();
+  auto const &ref = bunch.get_reference_particle();
 
-    if (!setup) {
-      ref_charge = ref.get_charge();
-      ref_mass = ref.get_four_momentum().get_mass();
-      ref_pz = ref.get_four_momentum().get_momentum();
+  if (!setup) {
+    ref_charge = ref.get_charge();
+    ref_mass = ref.get_four_momentum().get_mass();
+    ref_pz = ref.get_four_momentum().get_momentum();
 
-      auto const &comm = bunch.get_comm();
+    auto const &comm = bunch.get_comm();
 
-      local_num_tracks = decompose_1d_local(comm, total_num_tracks);
-      local_offset = decompose_1d_local(comm, offset);
+    local_num_tracks = decompose_1d_local(comm, total_num_tracks);
+    local_offset = decompose_1d_local(comm, offset);
 
-      if (local_num_tracks + local_offset > bunch.size(pg))
-        local_num_tracks = bunch.size(pg) - local_offset;
+    if (local_num_tracks + local_offset > bunch.size(pg))
+      local_num_tracks = bunch.size(pg) - local_offset;
 
-      setup = true;
-    }
-
-    pz = ref.get_momentum();
-    s = ref.get_s();
-    s_n = ref.get_s_n();
-    repetition = ref.get_repetition();
-
-    track_coords =
-      bunch.get_particles_in_range(local_offset, local_num_tracks, pg);
+    setup = true;
   }
+
+  pz = ref.get_momentum();
+  s = ref.get_s();
+  s_n = ref.get_s_n();
+  repetition = ref.get_repetition();
+
+  track_coords =
+      bunch.get_particles_in_range(local_offset, local_num_tracks, pg);
+}
 
 void Diagnostics_bulk_track::do_first_write(Hdf5_file &file) {
   file.write("charge", ref_charge);

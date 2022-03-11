@@ -14,11 +14,10 @@ target_link_libraries(minigia_foundation
     ${kokkos_libs}
     )
 
-target_include_directories(minigia_parallel_utils INTERFACE
+target_include_directories(minigia_foundation INTERFACE
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
   $<INSTALL_INTERFACE:include/>  # <prefix>/include/mylib
 )
-
 
 install(TARGETS minigia_foundation DESTINATION lib)
 

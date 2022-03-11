@@ -28,5 +28,5 @@ void Diagnostics_loss::do_write(Hdf5_file &file) {
   file.append("s_n", sn_ref_particle);
 
   file.write_collective("coordinates_" + std::to_string(s_ref_particle),
-      coords);
+                        coords);
 }

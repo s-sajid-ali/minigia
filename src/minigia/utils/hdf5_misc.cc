@@ -33,7 +33,6 @@ std::vector<hsize_t> syn::collect_dims(std::vector<hsize_t> const &dims,
                                        bool collective, Commxx const &comm,
                                        int root_rank) {
   const int mpi_size = comm.size();
-  const int mpi_rank = comm.rank();
 
   // parameter check
   if (collective && !dims.size()) {

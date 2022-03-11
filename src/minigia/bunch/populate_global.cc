@@ -12,75 +12,75 @@
 using mconstants::pi;
 
 namespace {
-  void fill_unit_6d(std::vector<pcg64> &rngs, HostParticles parts,
-      HostParticleMasks masks, HostParticleMasks valid,
-      const_karray2d_row covariances) {
-    const int np = valid.extent(0);
-    std::uniform_real_distribution<double> dist(0.0, 1.0);
+void fill_unit_6d(std::vector<pcg64> &rngs, HostParticles parts,
+                  HostParticleMasks masks, HostParticleMasks valid,
+                  const_karray2d_row covariances) {
+  const int np = valid.extent(0);
+  std::uniform_real_distribution<double> dist(0.0, 1.0);
 
-    for (int j = 0; j < 6; ++j) {
-      const double scale = sqrt(covariances(j, j));
+  for (int j = 0; j < 6; ++j) {
+    const double scale = sqrt(covariances(j, j));
 
-      for (int p = 0; p < np; ++p) {
-        if (masks(p) && !valid(p))
-          parts(p, j) = dist(rngs[p]) * scale;
-      }
+    for (int p = 0; p < np; ++p) {
+      if (masks(p) && !valid(p))
+        parts(p, j) = dist(rngs[p]) * scale;
     }
   }
+}
 
-  void fill_unit_6d(uint64_t seed, HostParticles parts, HostParticleMasks masks,
-      int np, const_karray2d_row covariances) {
-    std::uniform_real_distribution<double> dist(0.0, 1.0);
+void fill_unit_6d(uint64_t seed, HostParticles parts, HostParticleMasks masks,
+                  int np, const_karray2d_row covariances) {
+  std::uniform_real_distribution<double> dist(0.0, 1.0);
 
-    std::array<double, 6> scales;
+  std::array<double, 6> scales;
+  for (int j = 0; j < 6; ++j)
+    scales[j] = sqrt(covariances(j, j));
+
+  for (int p = 0; p < np; ++p) {
+    if (!masks(p))
+      continue;
+
+    pcg64 rng(seed, (uint64_t)parts(p, 6));
+
     for (int j = 0; j < 6; ++j)
-      scales[j] = sqrt(covariances(j, j));
+      parts(p, j) = dist(rng) * scales[j];
+  }
+}
 
-    for (int p = 0; p < np; ++p) {
-      if (!masks(p))
-        continue;
+inline bool good(ConstHostParticles parts, int index, const_karray1d limits) {
+  bool retval = true;
 
-      pcg64 rng(seed, (uint64_t)parts(p, 6));
+  for (int i = 0; i < 6; ++i) {
+    double val = parts(index, i);
+    double limit = limits[i];
 
-      for (int j = 0; j < 6; ++j)
-        parts(p, j) = dist(rng) * scales[j];
+    if ((limit > 0) && ((val > limit) or (val < -limit)))
+      retval = false;
+  }
+
+  return retval;
+}
+
+int strip_unit_6d(ConstHostParticles parts, HostParticleMasks masks,
+                  HostParticleMasks valid, const_karray1d limits) {
+  const int np = valid.extent(0);
+  int failed_num = 0;
+
+  for (int p = 0; p < np; ++p) {
+    if (masks(p) && !valid(p)) {
+      if (good(parts, p, limits))
+        valid(p) = 1;
+      else
+        ++failed_num;
     }
   }
 
-  inline bool good(ConstHostParticles parts, int index, const_karray1d limits) {
-    bool retval = true;
-
-    for (int i = 0; i < 6; ++i) {
-      double val = parts(index, i);
-      double limit = limits[i];
-
-      if ((limit > 0) && ((val > limit) or (val < -limit)))
-        retval = false;
-    }
-
-    return retval;
-  }
-
-  int strip_unit_6d(ConstHostParticles parts, HostParticleMasks masks,
-      HostParticleMasks valid, const_karray1d limits) {
-    const int np = valid.extent(0);
-    int failed_num = 0;
-
-    for (int p = 0; p < np; ++p) {
-      if (masks(p) && !valid(p)) {
-        if (good(parts, p, limits))
-          valid(p) = 1;
-        else
-          ++failed_num;
-      }
-    }
-
-    return failed_num;
-  }
+  return failed_num;
+}
 } // namespace
 
 void populate_global_6d(uint64_t seed, Bunch &bunch, const_karray1d means,
-    const_karray2d_row covariances) {
+                        const_karray2d_row covariances) {
   karray1d limits("limits", 6);
   for (int i = 0; i < 6; ++i)
     limits[i] = 0.0;
@@ -89,9 +89,9 @@ void populate_global_6d(uint64_t seed, Bunch &bunch, const_karray1d means,
 }
 
 void populate_global_6d_truncated(uint64_t seed, Bunch &bunch,
-    const_karray1d means,
-    const_karray2d_row covariances,
-    const_karray1d limits) {
+                                  const_karray1d means,
+                                  const_karray2d_row covariances,
+                                  const_karray1d limits) {
 #if 0
   multi_array_assert_size(means, 6, "populate_6d: means");
   multi_array_assert_size(covariances, 6, 6, "populate_6d: covariances");
@@ -118,9 +118,9 @@ void populate_global_6d_truncated(uint64_t seed, Bunch &bunch,
       truncated = true;
 
       double cutoff_integral =
-        (exp(-n * n / 2.0)) *
-        (sqrt(pi) * exp(n * n / 2.0) * erf(n / sqrt(2.0)) - sqrt(2.0) * n) /
-        (sqrt(pi));
+          (exp(-n * n / 2.0)) *
+          (sqrt(pi) * exp(n * n / 2.0) * erf(n / sqrt(2.0)) - sqrt(2.0) * n) /
+          (sqrt(pi));
 
       unit_covariances(i, i) = 1.0 / (cutoff_integral * cutoff_integral);
     } else {

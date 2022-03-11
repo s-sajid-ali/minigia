@@ -11,10 +11,10 @@
 #include <cereal/cereal.hpp>
 #include <cereal/types/complex.hpp>
 
-#include <minigia/utils/json.hpp>
-#include <synergia/utils/kokkos_types.hpp>
-#include <synergia/utils/multi_array_typedefs.hpp>
-#include <synergia/utils/simple_timer.hpp>
+#include <minigia/utils/kokkos_types.hpp>
+#include <minigia/utils/minigia_json.hpp>
+#include <minigia/utils/multi_array_typedefs.hpp>
+#include <minigia/utils/simple_timer.hpp>
 
 #include "trigon_traits.hpp"
 
@@ -140,19 +140,19 @@ indices() {
 #if 0
 template <unsigned int Power, unsigned int Dim>
 KOKKOS_INLINE_FUNCTION
-    std::enable_if_t<((Power == 1) || (Power == 0)), Indices_t<Power, Dim>>
+  std::enable_if_t<((Power == 1) || (Power == 0)), Indices_t<Power, Dim>>
 indices()
 {
-    Indices_t<Power, Dim> retval;
-    if (Power == 0) {
-        retval[0][0] = 0;
-    } else {
-        for (size_t i = 0; i < Dim; ++i) {
-            retval[i][0] = i;
-        }
+  Indices_t<Power, Dim> retval;
+  if (Power == 0) {
+    retval[0][0] = 0;
+  } else {
+    for (size_t i = 0; i < Dim; ++i) {
+      retval[i][0] = i;
     }
+  }
 
-    return retval;
+  return retval;
 }
 #endif
 
@@ -474,14 +474,14 @@ public:
       for (unsigned int j = 0; j < Trigon<double, P2, Dim>::count; ++j) {
 
 #if 0
-                            auto indices1(indices<P1, Dim>());
-                            Index_t<P1> index1(indices1[i]);
-                            auto indices2(indices<P2, Dim>());
-                            Index_t<P2> index2(indices2[j]);
+              auto indices1(indices<P1, Dim>());
+              Index_t<P1> index1(indices1[i]);
+              auto indices2(indices<P2, Dim>());
+              Index_t<P2> index2(indices2[j]);
 #endif
 #if 0
-                            Index_t<P1> index1 = canonical_to_index<P1, Dim>()[i];
-                            Index_t<P2> index2 = canonical_to_index<P2, Dim>()[j];
+              Index_t<P1> index1 = canonical_to_index<P1, Dim>()[i];
+              Index_t<P2> index2 = canonical_to_index<P2, Dim>()[j];
 #endif
 #if 1
         Index_t<P1> index1 = indices<P1, Dim>()[i];
@@ -506,23 +506,23 @@ public:
   }
 
 #if 0
-        template <unsigned int P1, unsigned int P2>
-            KOKKOS_INLINE_FUNCTION
-            unsigned int f(unsigned int i, unsigned j)
-            {
+    template <unsigned int P1, unsigned int P2>
+      KOKKOS_INLINE_FUNCTION
+      unsigned int f(unsigned int i, unsigned j)
+      {
 #if 1
-                static arr_t<
-                    arr_t<unsigned int, Trigon<double, P2, Dim>::count>,
-                    Trigon<double, P1, Dim>::count>
-                        mapping = calculate_f<P1, P2>();
-                return mapping[i][j];
+        static arr_t<
+          arr_t<unsigned int, Trigon<double, P2, Dim>::count>,
+          Trigon<double, P1, Dim>::count>
+            mapping = calculate_f<P1, P2>();
+        return mapping[i][j];
 #endif
 
 #if 0
-                auto mapping = calculate_f<P1, P2>();
-                return mapping[i][j];
+        auto mapping = calculate_f<P1, P2>();
+        return mapping[i][j];
 #endif
-            }
+      }
 #endif
 
   template <unsigned int P2>
@@ -1536,39 +1536,39 @@ KOKKOS_INLINE_FUNCTION Derivatives_t<T> atan_derivatives(T x,
   return Derivatives_t<T>();
 
 #if 0
-    Derivatives_t<T> retval;
-    retval[0] = std::atan(x);
-    T x2(x * x);
-    T invsqrt1mx2(1.0 / std::sqrt(1 - x2));
-    if (power > 0) {
-        retval[1] = invsqrt1mx2;
-    }
-    if (power > 1) {
-        retval[2] = qpow(invsqrt1mx2, 3) * x;
-    }
-    if (power > 2) {
-        retval[3] = 2 * qpow(invsqrt1mx2, 5) * x2 + qpow(invsqrt1mx2, 5);
-    }
-    if (power > 3) {
-        retval[4] =
-            6 * qpow(invsqrt1mx2, 7) * x * x2 + 9 * qpow(invsqrt1mx2, 7) * x;
-    }
-    if (power > 4) {
-        retval[5] = 24 * qpow(invsqrt1mx2, 9) * qpow(x2, 2) +
-            72 * qpow(invsqrt1mx2, 9) * x2 + 9 * qpow(invsqrt1mx2, 9);
-    }
-    if (power > 5) {
-        retval[6] = 120 * qpow(invsqrt1mx2, 11) * x * qpow(x2, 2) +
-            600 * qpow(invsqrt1mx2, 11) * x * x2 +
-            225 * qpow(invsqrt1mx2, 11) * x;
-    }
-    if (power > 6) {
-        retval[7] = 720 * qpow(invsqrt1mx2, 13) * qpow(x2, 3) +
-            5400 * qpow(invsqrt1mx2, 13) * qpow(x2, 2) +
-            4050 * qpow(invsqrt1mx2, 13) * x2 +
-            225 * qpow(invsqrt1mx2, 13);
-    }
-    return retval;
+  Derivatives_t<T> retval;
+  retval[0] = std::atan(x);
+  T x2(x * x);
+  T invsqrt1mx2(1.0 / std::sqrt(1 - x2));
+  if (power > 0) {
+    retval[1] = invsqrt1mx2;
+  }
+  if (power > 1) {
+    retval[2] = qpow(invsqrt1mx2, 3) * x;
+  }
+  if (power > 2) {
+    retval[3] = 2 * qpow(invsqrt1mx2, 5) * x2 + qpow(invsqrt1mx2, 5);
+  }
+  if (power > 3) {
+    retval[4] =
+      6 * qpow(invsqrt1mx2, 7) * x * x2 + 9 * qpow(invsqrt1mx2, 7) * x;
+  }
+  if (power > 4) {
+    retval[5] = 24 * qpow(invsqrt1mx2, 9) * qpow(x2, 2) +
+      72 * qpow(invsqrt1mx2, 9) * x2 + 9 * qpow(invsqrt1mx2, 9);
+  }
+  if (power > 5) {
+    retval[6] = 120 * qpow(invsqrt1mx2, 11) * x * qpow(x2, 2) +
+      600 * qpow(invsqrt1mx2, 11) * x * x2 +
+      225 * qpow(invsqrt1mx2, 11) * x;
+  }
+  if (power > 6) {
+    retval[7] = 720 * qpow(invsqrt1mx2, 13) * qpow(x2, 3) +
+      5400 * qpow(invsqrt1mx2, 13) * qpow(x2, 2) +
+      4050 * qpow(invsqrt1mx2, 13) * x2 +
+      225 * qpow(invsqrt1mx2, 13);
+  }
+  return retval;
 #endif
 }
 

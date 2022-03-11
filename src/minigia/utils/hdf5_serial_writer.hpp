@@ -6,9 +6,9 @@
 
 #include "hdf5.h"
 
-#include "synergia/utils/cereal.h"
-#include "synergia/utils/hdf5_misc.h"
-#include "synergia/utils/multi_array_typedefs.h"
+#include "cereal.hpp"
+#include "hdf5_misc.hpp"
+#include "multi_array_typedefs.hpp"
 
 class Hdf5_serial_writer {
 private:

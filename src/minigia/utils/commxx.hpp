@@ -1,10 +1,10 @@
 #ifndef COMMXX_H_
 #define COMMXX_H_
 
-#include "mpi.h"
-
 #include <memory>
 #include <vector>
+
+#include <mpi.h>
 
 #include <cereal/types/memory.hpp>
 

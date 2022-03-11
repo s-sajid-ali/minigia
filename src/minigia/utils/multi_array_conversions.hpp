@@ -2,7 +2,7 @@
 #define SYNERGIA_UTILS_MULTI_ARRAY_CONVERSIONS_H
 
 #include "Eigen/Eigen"
-#include "synergia/utils/multi_array_typedefs.h"
+#include "multi_array_typedefs.hpp"
 
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
     MatrixD;

@@ -30,6 +30,11 @@ target_link_libraries(minigia_bunch
     Eigen3::Eigen
     )
 
+target_include_directories(minigia_bunch INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
+  $<INSTALL_INTERFACE:include/>  # <prefix>/include/mylib
+)
+
 target_link_options(minigia_bunch
     PRIVATE ${LINKER_OPTIONS}
     )

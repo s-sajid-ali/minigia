@@ -5,9 +5,8 @@
 #include "core_diagnostics.hpp"
 #include "diagnostics_full2.hpp"
 
-
 void calculate_emittances(double *mom2, double &emitx, double &emity,
-    double &emitz, double &emitxy, double &emitxyz);
+                          double &emitz, double &emitxy, double &emitxyz);
 
 void Diagnostics_full2::do_update(Bunch const &bunch) {
   scoped_simple_timer timer("diag_full2_update");
