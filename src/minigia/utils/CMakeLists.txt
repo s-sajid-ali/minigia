@@ -22,7 +22,7 @@ target_link_libraries(minigia_serialization minigia_parallel_utils)
 
 add_library(minigia_hdf5_utils SHARED hdf5_file.cc hdf5_misc.cc)
 target_link_libraries(minigia_hdf5_utils 
-    ${HDF5_LIBRARIES} 
+    HDF5::HDF5
     minigia_parallel_utils
     ${kokkos_libs}
     )
@@ -59,6 +59,7 @@ install(FILES
     digits.hpp
     logger.hpp
     lsexpr.hpp
+    restrict_extension.hpp
     DESTINATION include/minigia/utils)
 
 add_subdirectory(tests)

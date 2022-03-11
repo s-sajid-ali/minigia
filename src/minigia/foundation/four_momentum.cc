@@ -118,13 +118,13 @@ bool Four_momentum::equal(Four_momentum const &four_momentum,
 
 #if 0
 template<class Archive>
-    void
+  void
 Four_momentum::serialize(Archive & ar, const unsigned int version)
 {
-    ar & CEREAL_NVP(mass)
-        & CEREAL_NVP(energy)
-        & CEREAL_NVP(momentum)
-        & CEREAL_NVP(gamma)
-        & CEREAL_NVP(beta);
+  ar & CEREAL_NVP(mass)
+    & CEREAL_NVP(energy)
+    & CEREAL_NVP(momentum)
+    & CEREAL_NVP(gamma)
+    & CEREAL_NVP(beta);
 }
 #endif

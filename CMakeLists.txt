@@ -28,6 +28,9 @@ set(kokkos_libs "Kokkos::kokkos")
 # Ceral
 find_package(cereal REQUIRED)
 
+# Eigen
+find_package(Eigen3 REQUIRED CONFIG)
+
 # HDF5
 set(HDF5_PREFER_PARALLEL true)
 find_package(HDF5)
@@ -39,7 +42,6 @@ if(HDF5_IS_PARALLEL)
 else(HDF5_IS_PARALLEL)
     message(STATUS "Using serial hdf5")
 endif()
-
 
 # GSL
 find_package(GSL REQUIRED)
