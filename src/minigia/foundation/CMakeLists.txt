@@ -1,5 +1,5 @@
 
-add_library(minigia_foundation 
+add_library(minigia_foundation SHARED 
     four_momentum.cc 
     reference_particle.cc
     distribution.cc 

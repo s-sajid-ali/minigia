@@ -4,7 +4,7 @@ if(${Kokkos_ENABLE_CUDA})
     set_source_files_properties(madx.cc PROPERTIES COMPILE_FLAGS --host-only)
 endif()
 
-add_library(minigia_lattice 
+add_library(minigia_lattice SHARED
     lattice_element.cc 
     lattice_element_processor.cc 
     lattice.cc
@@ -28,7 +28,7 @@ target_include_directories(minigia_lattice INTERFACE
   $<INSTALL_INTERFACE:include/>  # <prefix>/include/mylib
 )
 
-install(TARGETS minigia_lattice DESTINATION ${LIB_INSTALL_DIR})
+install(TARGETS minigia_lattice DESTINATION lib)
 
 install(FILES
     lattice_element.hpp
@@ -39,6 +39,6 @@ install(FILES
     mx_expr.hpp
     mx_parse.hpp
     mx_tree.hpp
-    DESTINATION ${INCLUDE_INSTALL_DIR}/minigia/lattice)
+    DESTINATION include/minigia/lattice)
 
 add_subdirectory(tests)

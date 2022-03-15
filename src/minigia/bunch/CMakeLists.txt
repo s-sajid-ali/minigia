@@ -3,7 +3,7 @@ if(${Kokkos_ENABLE_CUDA})
     set_source_files_properties(diagnostics_full2_host.cc PROPERTIES COMPILE_FLAGS --host-only)
 endif()
 
-add_library(minigia_bunch 
+add_library(minigia_bunch SHARED
     bunch_particles.cc
     bunch.cc
     bunch_train.cc

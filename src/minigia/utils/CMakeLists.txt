@@ -61,6 +61,7 @@ install(FILES
     logger.hpp
     lsexpr.hpp
     restrict_extension.hpp
+    string_utils.hpp
     DESTINATION include/minigia/utils)
 
 add_subdirectory(tests)

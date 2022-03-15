@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_approx.hpp>
 using Catch::Approx;
 
 #include <minigia/utils/cereal_files.hpp>
@@ -6,14 +7,14 @@ using Catch::Approx;
 #include "../madx_reader.hpp"
 #include "../mx_parse.hpp"
 
-TEST_CASE("print") {
-#if 0
+/*
+  TEST_CASE("print") {
   Dynamic_lattice dl;
   dl.set_variable("x", "1");
   dl.set_variable("a", "x+3");
-  //dl.print();
-#endif
-}
+  dl.print();
+  }
+  */
 
 TEST_CASE("dynamic lattice") {
   std::string str = R"(
@@ -49,14 +50,14 @@ TEST_CASE("dynamic lattice") {
 
   // original a->k1
   CHECK(lattice.get_elements().front().get_double_attribute("k1") ==
-        Approx(2.0).margin(1e-12));
+      Approx(2.0).margin(1e-12));
 
   // set x
   lattice.get_lattice_tree().set_variable("x", 3.0);
 
   // a->k1 after setting a new x
   CHECK(lattice.get_elements().front().get_double_attribute("k1") ==
-        Approx(4.0).margin(1e-12));
+      Approx(4.0).margin(1e-12));
 
   // find element d
   auto it = elms.end();
@@ -129,7 +130,7 @@ TEST_CASE("serialization") {
 
     lattice.get_lattice_tree().set_variable("x", 5.0);
     CHECK(lattice.get_elements().front().get_double_attribute("k1") ==
-          Approx(6.0).margin(1e-12));
+        Approx(6.0).margin(1e-12));
 
     std::cout << lattice.get_lattice_tree().mx.to_madx() << "\n";
     std::cout << lattice.as_string() << "\n";

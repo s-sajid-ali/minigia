@@ -1,45 +1,45 @@
-#include "synergia/lattice/lattice.h"
-#include "synergia/lattice/lattice_element_processor.h"
-#include "synergia/lattice/madx_reader.h"
-
-// for writing out deposited charge
-#include "synergia/utils/hdf5_file.h"
-
 #include <sstream>
 #include <stdexcept>
 #include <unordered_set>
 
+// for writing out deposited charge
+#include <minigia/utils/hdf5_file.hpp>
+
+#include "lattice.hpp"
+#include "lattice_element_processor.hpp"
+#include "madx_reader.hpp"
+
 Lattice::Lattice()
-    : name(""), reference_particle(), elements(), updated{true, true, true},
-      tree() {}
+  : name(""), reference_particle(), elements(), updated{true, true, true},
+  tree() {}
 
 Lattice::Lattice(std::string const &name)
-    : name(name), reference_particle(), elements(), updated{true, true, true},
-      tree() {}
+  : name(name), reference_particle(), elements(), updated{true, true, true},
+  tree() {}
 
 Lattice::Lattice(std::string const &name, Reference_particle const &ref)
-    : name(name), reference_particle(ref),
-      elements(), updated{true, true, true}, tree() {}
+  : name(name), reference_particle(ref),
+  elements(), updated{true, true, true}, tree() {}
 
 Lattice::Lattice(std::string const &name, Lattice_tree const &tree)
-    : name(name), reference_particle(), elements(), updated{true, true, true},
-      tree(tree) {}
+  : name(name), reference_particle(), elements(), updated{true, true, true},
+  tree(tree) {}
 
 Lattice::Lattice(Lattice const &o)
-    : name(o.name), reference_particle(o.reference_particle),
-      elements(o.elements), updated(o.updated), tree(o.tree) {
-  for (auto &e : elements)
-    e.set_lattice(*this);
-}
+  : name(o.name), reference_particle(o.reference_particle),
+  elements(o.elements), updated(o.updated), tree(o.tree) {
+    for (auto &e : elements)
+      e.set_lattice(*this);
+  }
 
 Lattice::Lattice(Lattice &&o) noexcept
-    : name(std::move(o.name)),
-      reference_particle(std::move(o.reference_particle)),
-      elements(std::move(o.elements)), updated(std::move(o.updated)),
-      tree(std::move(o.tree)) {
-  for (auto &e : elements)
-    e.set_lattice(*this);
-}
+: name(std::move(o.name)),
+  reference_particle(std::move(o.reference_particle)),
+  elements(std::move(o.elements)), updated(std::move(o.updated)),
+  tree(std::move(o.tree)) {
+    for (auto &e : elements)
+      e.set_lattice(*this);
+  }
 
 Lattice &Lattice::operator=(Lattice const &o) {
   name = o.name;
@@ -55,47 +55,47 @@ Lattice &Lattice::operator=(Lattice const &o) {
 }
 
 Lattice::Lattice(Lsexpr const &lsexpr)
-    : name(""), reference_particle(), elements(), updated{true, true, true},
-      tree() {
-  for (auto const &lse : lsexpr) {
-    if (lse.is_labeled()) {
-      if (lse.get_label() == "name") {
-        name = lse.get_string();
-      } else if (lse.get_label() == "reference_particle") {
-        reference_particle = Reference_particle(lse);
-      } else if (lse.get_label() == "elements") {
-        for (auto const &ele : lse) {
-          append(Lattice_element(ele));
+  : name(""), reference_particle(), elements(), updated{true, true, true},
+  tree() {
+    for (auto const &lse : lsexpr) {
+      if (lse.is_labeled()) {
+        if (lse.get_label() == "name") {
+          name = lse.get_string();
+        } else if (lse.get_label() == "reference_particle") {
+          reference_particle = Reference_particle(lse);
+        } else if (lse.get_label() == "elements") {
+          for (auto const &ele : lse) {
+            append(Lattice_element(ele));
+          }
         }
       }
     }
   }
-}
 
 #if 0
 Lsexpr
 Lattice::as_lsexpr() const
 {
-    Lsexpr retval;
+  Lsexpr retval;
 #if 0
-    retval.push_back(Lsexpr(name, "name"));
-    retval.push_back(Lsexpr(element_adaptor_map_sptr->get_label(),
-                            "type"));
-    if (reference_particle) {
-        Lsexpr ref_lsexpr(reference_particle->as_lsexpr());
-        ref_lsexpr.set_label("reference_particle");
-        retval.push_back(ref_lsexpr);
-    }
-    Lsexpr elements_lsexpr;
-    elements_lsexpr.set_label("elements");
-    for(Lattice_elements::const_iterator it = elements.begin();
-        it != elements.end(); ++it) {
-        Lsexpr element_lsexpr((*it)->as_lsexpr());
-        elements_lsexpr.push_back(element_lsexpr);
-    }
-    retval.push_back(elements_lsexpr);
+  retval.push_back(Lsexpr(name, "name"));
+  retval.push_back(Lsexpr(element_adaptor_map_sptr->get_label(),
+        "type"));
+  if (reference_particle) {
+    Lsexpr ref_lsexpr(reference_particle->as_lsexpr());
+    ref_lsexpr.set_label("reference_particle");
+    retval.push_back(ref_lsexpr);
+  }
+  Lsexpr elements_lsexpr;
+  elements_lsexpr.set_label("elements");
+  for(Lattice_elements::const_iterator it = elements.begin();
+      it != elements.end(); ++it) {
+    Lsexpr element_lsexpr((*it)->as_lsexpr());
+    elements_lsexpr.push_back(element_lsexpr);
+  }
+  retval.push_back(elements_lsexpr);
 #endif
-    return retval;
+  return retval;
 }
 #endif
 
@@ -119,38 +119,38 @@ void Lattice::append(Lattice_element const &element) {
 }
 
 #if 0
-void
+  void
 Lattice::derive_external_attributes()
 {
 #if 0
-    bool needed = false;
+  bool needed = false;
+  for (Lattice_elements::const_iterator it = elements.begin();
+      it != elements.end(); ++it) {
+    if ((*it)->get_needs_external_derive()) {
+      needed = true;
+    }
+  }
+  if (needed) {
+    if (!reference_particle_allocated) {
+      throw std::runtime_error(
+          "Lattice::derive_external_attributes requires a reference_particle");
+    }
+    double beta = reference_particle->get_beta();
+    double lattice_length = get_length();
     for (Lattice_elements::const_iterator it = elements.begin();
-            it != elements.end(); ++it) {
-        if ((*it)->get_needs_external_derive()) {
-            needed = true;
-        }
+        it != elements.end(); ++it) {
+      if ((*it)->get_needs_external_derive()) {
+        element_adaptor_map_sptr->get_adaptor((*it)->get_type())->set_derived_attributes_external(
+            *(*it), lattice_length, beta);
+      }
     }
-    if (needed) {
-        if (!reference_particle_allocated) {
-            throw std::runtime_error(
-                    "Lattice::derive_external_attributes requires a reference_particle");
-        }
-        double beta = reference_particle->get_beta();
-        double lattice_length = get_length();
-        for (Lattice_elements::const_iterator it = elements.begin();
-                it != elements.end(); ++it) {
-            if ((*it)->get_needs_external_derive()) {
-                element_adaptor_map_sptr->get_adaptor((*it)->get_type())->set_derived_attributes_external(
-                        *(*it), lattice_length, beta);
-            }
-        }
-    }
+  }
 #endif
 }
 #endif
 
 void Lattice::set_all_double_attribute(std::string const &name, double value,
-                                       bool increment_revision) {
+    bool increment_revision) {
   for (auto &e : elements)
     e.set_double_attribute(name, value, increment_revision);
 
@@ -158,8 +158,8 @@ void Lattice::set_all_double_attribute(std::string const &name, double value,
 }
 
 void Lattice::set_all_string_attribute(std::string const &name,
-                                       std::string const &value,
-                                       bool increment_revision) {
+    std::string const &value,
+    bool increment_revision) {
   for (auto &e : elements)
     e.set_string_attribute(name, value, increment_revision);
 
@@ -225,7 +225,7 @@ void Lattice::export_madx_file(std::string const &filename) const {
 
   // "{{name}}: sequence, refer=entry"
   mxfile << "\n"
-         << name << ": sequence, l = " << get_length() << ", refer = entry;\n";
+    << name << ": sequence, l = " << get_length() << ", refer = entry;\n";
 
   // "{{element_label}} : {{element}}, at={{pos}}..."
   for (auto const &e : elements) {
@@ -251,12 +251,12 @@ void Lattice::export_madx_file(std::string const &filename) const {
 }
 
 Lattice Lattice::import_madx_file(std::string const &filename,
-                                  std::string const &line) {
+    std::string const &line) {
   return MadX_reader().get_lattice(line, filename);
 }
 
 void Lattice::save_deposited_charge(std::string const &fname, int bunch_idx,
-                                    int train_idx) const {
+    int train_idx) const {
   static bool first_write = true;
   static std::unique_ptr<Hdf5_file> file(
       new Hdf5_file(fname, Hdf5_file::Flag::truncate, Commxx()));
@@ -288,7 +288,7 @@ void Lattice::save_deposited_charge(std::string const &fname, int bunch_idx,
     values[idx++] = elm.get_deposited_charge(bunch_idx, train_idx);
 
   MPI_Allreduce(MPI_IN_PLACE, values.data(), elements.size(), MPI_DOUBLE,
-                MPI_SUM, MPI_COMM_WORLD);
+      MPI_SUM, MPI_COMM_WORLD);
 
   file->append_single("deposited_charge", values);
   file->flush();

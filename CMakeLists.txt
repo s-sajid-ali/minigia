@@ -10,6 +10,8 @@ enable_testing()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 # create the add_mpi_test macro
 include(MPITest)
+# create copy_file
+include(CopyFile)
 
 # MPI
 find_package(MPI REQUIRED COMPONENTS C)

@@ -1,4 +1,6 @@
+#include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
+using Catch::Approx;
 
 #include <boost/math/constants/constants.hpp>
 #include <iostream>
@@ -242,26 +244,26 @@ TEST_CASE("keyword_leading_values") {
 
 TEST_CASE("mad_constants") {
   string str = "a = pi; b = twopi; c = degrad; d = raddeg; ee = e; "
-               "f = emass; g = pmass; h = mumass; i = clight; j = qelect; ";
+    "f = emass; g = pmass; h = mumass; i = clight; j = qelect; ";
   MadX mx;
 
   CHECK_NOTHROW(parse_madx(str, mx));
 
   CHECK(mx.variable_as_number("a") ==
-        Approx(boost::math::constants::pi<double>()).margin(tolerance));
+      Approx(boost::math::constants::pi<double>()).margin(tolerance));
   CHECK(mx.variable_as_number("b") ==
-        Approx(boost::math::constants::two_pi<double>()).margin(tolerance));
+      Approx(boost::math::constants::two_pi<double>()).margin(tolerance));
   CHECK(mx.variable_as_number("c") ==
-        Approx(180.0 / boost::math::constants::pi<double>()).margin(tolerance));
+      Approx(180.0 / boost::math::constants::pi<double>()).margin(tolerance));
   CHECK(mx.variable_as_number("d") ==
-        Approx(boost::math::constants::pi<double>() / 180.0).margin(tolerance));
+      Approx(boost::math::constants::pi<double>() / 180.0).margin(tolerance));
   CHECK(mx.variable_as_number("ee") ==
-        Approx(boost::math::constants::e<double>()).margin(tolerance));
+      Approx(boost::math::constants::e<double>()).margin(tolerance));
 
   CHECK(mx.variable_as_number("f") == Approx(pconstants::me).margin(tolerance));
   CHECK(mx.variable_as_number("g") == Approx(pconstants::mp).margin(tolerance));
   CHECK(mx.variable_as_number("h") ==
-        Approx(pconstants::mmu).margin(tolerance));
+      Approx(pconstants::mmu).margin(tolerance));
   CHECK(mx.variable_as_number("i") == Approx(pconstants::c).margin(tolerance));
   CHECK(mx.variable_as_number("j") == Approx(pconstants::e).margin(tolerance));
 }
@@ -287,7 +289,7 @@ TEST_CASE("semicolon_separation") {
 TEST_CASE("floating_point") {
   // 7/32 has an exact floating point representation
   string str =
-      "x=1.234;y=0.21875; ze2=.21875e2; wep2=.21875E2; wep02=.21875e+02;";
+    "x=1.234;y=0.21875; ze2=.21875e2; wep2=.21875E2; wep02=.21875e+02;";
   MadX mx;
 
   CHECK_NOTHROW(parse_madx(str, mx));
@@ -304,8 +306,8 @@ TEST_CASE("variable_assignment_expression") {
 
   CHECK_NOTHROW(parse_madx(str, mx));
   CHECK(mx.variable_as_number("foo.bar") ==
-        Approx(boost::math::constants::pi<double>() * pow(sin(1.2e-4), 0.69))
-            .margin(tolerance));
+      Approx(boost::math::constants::pi<double>() * pow(sin(1.2e-4), 0.69))
+      .margin(tolerance));
 }
 
 TEST_CASE("caps_variable_assignment") {
@@ -458,7 +460,7 @@ TEST_CASE("command_omitted_comma") {
 
 TEST_CASE("command_beam_particle") {
   string str = " BEAM, PARTICLE=Proton, MASS=0.93827, CHARGE=1., "
-               "ENERGY=0.93827 + 0.160;";
+    "ENERGY=0.93827 + 0.160;";
   MadX mx;
 
   CHECK_NOTHROW(parse_madx(str, mx));
@@ -473,7 +475,7 @@ TEST_CASE("command_beam_particle") {
 
 TEST_CASE("command_beam_particle_abbreviate") {
   string str =
-      " BEAM, PARTICLE=Prot, MASS=0.93827, CHARGE=1., ENERGY=0.93827 + 0.160;";
+    " BEAM, PARTICLE=Prot, MASS=0.93827, CHARGE=1., ENERGY=0.93827 + 0.160;";
   MadX mx;
 
   CHECK_NOTHROW(parse_madx(str, mx));
@@ -611,8 +613,8 @@ TEST_CASE("parse_file") {
 
 TEST_CASE("matrix") {
   string str = "m1: matrix, type=abc, L=1.2, kick1=0.001, kick2=0.001, "
-               "kick3=0.002, kick4=0.002, kick5=0.003, kick6=0.003, rm11=1.1, "
-               "rm12=1.2, rm32=3.2, rm54=5.4, tm111=1.11, tm321=3.21;";
+    "kick3=0.002, kick4=0.002, kick5=0.003, kick6=0.003, rm11=1.1, "
+    "rm12=1.2, rm32=3.2, rm54=5.4, tm111=1.11, tm321=3.21;";
 
   MadX mx;
 
