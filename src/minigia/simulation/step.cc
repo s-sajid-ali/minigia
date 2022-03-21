@@ -35,8 +35,8 @@ namespace
 
 Step::Step(double length)
   : operators()
-  , step_betas()
-    , length(length)
+  , length(length)
+    , step_betas()
 {
 }
 

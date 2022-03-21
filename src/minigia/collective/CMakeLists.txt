@@ -1,11 +1,17 @@
 add_library(minigia_collective SHARED
-    deposit.cc 
+    space_charge_3d_fd.cc
     )
 
 target_link_libraries(minigia_collective 
     minigia_bunch
     minigia_parallel_utils
+    PkgConfig::PETSC
     )
+
+target_include_directories(minigia_foundation INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
+  $<INSTALL_INTERFACE:include/>  # <prefix>/include/mylib
+  )
 
 install(TARGETS minigia_collective DESTINATION lib)
 install(FILES

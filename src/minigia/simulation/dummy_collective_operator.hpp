@@ -13,8 +13,7 @@ struct Dummy_CO_options
     ar(cereal::base_class<CO_base_options>(this));
   }
 };
-
-CEREAL_REGISTER_TYPE(Dummy_CO_options)
+CEREAL_REGISTER_TYPE(Dummy_CO_options);
 
 class Dummy_collective_operator : public Collective_operator {
 private:

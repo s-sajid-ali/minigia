@@ -48,23 +48,12 @@ endif()
 # GSL
 find_package(GSL REQUIRED)
 
-# Catch2-v3
-if(USE_EXTERNAL_CATCH2)
-    find_package(Catch2 3 REQUIRED CONFIG)
-    message(STATUS "Using external catch2-v3")
-else()
-    Include(FetchContent)
-    FetchContent_Declare(
-	Catch2
-	GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-	GIT_TAG        v3.0.0-preview4
-	)
-    FetchContent_MakeAvailable(Catch2)
-endif()
-
-
-# GSL
-find_package(GSL REQUIRED)
+# PETSc
+# set root of location to find PETSc's pkg-config
+set(PETSC $ENV{PETSC_DIR}/$ENV{PETSC_ARCH})
+set(ENV{PKG_CONFIG_PATH} ${PETSC}/lib/pkgconfig)
+find_package(PkgConfig REQUIRED)
+pkg_search_module(PETSC REQUIRED IMPORTED_TARGET PETSc)
 
 # GSVector settings
 if(GSV STREQUAL "SSE")
@@ -81,9 +70,24 @@ else()
 endif()
 
 
+# Catch2-v3
+if(USE_EXTERNAL_CATCH2)
+    find_package(Catch2 3 REQUIRED CONFIG)
+    message(STATUS "Using external catch2-v3")
+else()
+    Include(FetchContent)
+    FetchContent_Declare(
+	Catch2
+	GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+	GIT_TAG        v3.0.0-preview4
+	)
+    FetchContent_MakeAvailable(Catch2)
+endif()
 set(testing_libs "Catch2::Catch2;${kokkos_libs};MPI::MPI_C")
 set(test_main "${CMAKE_SOURCE_DIR}/src/minigia/utils/catch_test_main.cc")
 enable_testing()
+
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 add_subdirectory(src)
 add_subdirectory(examples)

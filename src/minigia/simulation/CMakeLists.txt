@@ -27,8 +27,13 @@ target_link_libraries(minigia_simulation
     minigia_libff
     )
 
+  target_include_directories(minigia_foundation INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
+  $<INSTALL_INTERFACE:include/>  # <prefix>/include/mylib
+  )
+
 install(TARGETS minigia_simulation 
-    DESTINATION ${LIB_INSTALL_DIR})
+    DESTINATION lib)
 
 install(FILES
     aperure.hpp
@@ -52,7 +57,7 @@ install(FILES
     split_operator_stepper_elements.hpp
     step.hpp
     stepper.hpp
-    DESTINATION ${INCLUDE_INSTALL_DIR}/minigia/simulation
+    DESTINATION include/minigia/simulation
     )
 
 add_subdirectory(tests)

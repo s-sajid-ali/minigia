@@ -1,7 +1,6 @@
 #ifndef COLLECTIVE_OPERATOR_OPTIONS_H
 #define COLLECTIVE_OPERATOR_OPTIONS_H
 
-#include <cereal/archives/json.hpp>
 #include <cereal/types/polymorphic.hpp>
 
 class Collective_operator;
@@ -28,5 +27,7 @@ struct CO_base_options : public CO_options {
     ar(cereal::base_class<CO_options>(this));
   }
 };
+
+#include <cereal/archives/json.hpp>
 
 #endif

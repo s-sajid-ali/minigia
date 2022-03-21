@@ -1,0 +1,50 @@
+#ifndef SPACE_CHARGE_3D_FD_H_
+#define SPACE_CHARGE_3D_FD_H_
+
+#include <minigia/simulation/collective_operator_options.hpp>
+#include <minigia/simulation/operator.hpp>
+
+#include "fd_3d_impl.hpp"
+
+class Space_charge_3d_fd;
+
+struct Space_charge_3d_fd_options
+    : public CO_base_options<Space_charge_3d_fd_options, Space_charge_3d_fd> {
+  std::array<int, 3> shape;
+  bool domain_fixed;
+  int comm_group_size;
+
+  Space_charge_3d_fd_options(int gridx = 32, int gridy = 32, int gridz = 64)
+      : shape{gridx, gridy, gridz}, domain_fixed(false), comm_group_size(1) {}
+
+  template <class Archive> void serialize(Archive &ar) {
+    ar(cereal::base_class<CO_base_options>(this));
+    ar(shape);
+    ar(comm_group_size);
+  }
+};
+
+CEREAL_REGISTER_TYPE(Space_charge_3d_fd_options);
+
+/// Note: internal grid is stored in [z][y][x] order, but
+/// grid shape expects [x][y][z] order.
+class Space_charge_3d_fd : public Collective_operator {
+private:
+  const Space_charge_3d_fd_options options;
+  std::string bunch_sim_id;
+  bool use_fixed_domain;
+  LocalCtx lctx;
+
+private:
+  void apply_impl(Bunch_simulator &simulator, double time_step, Logger &logger);
+
+  void apply_bunch(Bunch &bunch, double time_step, Logger &logger);
+
+  void construct_workspaces(Bunch_simulator const &sim);
+
+  void update_domain(Bunch const &bunch);
+
+public:
+  Space_charge_3d_fd(Space_charge_3d_fd_options const &ops);
+};
+#endif /* SPACE_CHARGE_3D_FD_H_ */
