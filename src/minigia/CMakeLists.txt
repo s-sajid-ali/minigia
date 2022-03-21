@@ -10,3 +10,6 @@ add_subdirectory(lattice)
 add_subdirectory(libff)
 
 add_subdirectory(simulation)
+
+add_subdirectory(collective)
+

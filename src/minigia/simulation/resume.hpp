@@ -5,63 +5,47 @@
 
 #include "propagator.hpp"
 
-class Resume
-{
-  public:
-    struct Content
-    {
-      Bunch_sptr bunch_sptr;
-      Stepper_sptr stepper_sptr;
-      Lattice_sptr lattice_sptr;
-      Content(Bunch_simulator * bunch_simulator_ptr,
-          Stepper_sptr stepper_sptr);
-    };
+class Resume {
+public:
+  struct Content {
+    Bunch_sptr bunch_sptr;
+    Stepper_sptr stepper_sptr;
+    Lattice_sptr lattice_sptr;
+    Content(Bunch_simulator *bunch_simulator_ptr, Stepper_sptr stepper_sptr);
+  };
 
-  private:
-    std::string checkpoint_dir;
-    Propagator propagator;
-  public:
-    Resume(
-        std::string const& checkpoint_dir =
-        Propagator::default_checkpoint_dir);
+private:
+  std::string checkpoint_dir;
+  Propagator propagator;
 
-    void
-      set_checkpoint_period(int period);
+public:
+  Resume(
+      std::string const &checkpoint_dir = Propagator::default_checkpoint_dir);
 
-    int
-      get_checkpoint_period() const;
+  void set_checkpoint_period(int period);
 
-    void
-      set_new_checkpoint_dir(std::string const& directory_name);
+  int get_checkpoint_period() const;
 
-    std::string const&
-      get_new_checkpoint_dir() const;
+  void set_new_checkpoint_dir(std::string const &directory_name);
 
-    void
-      set_checkpoint_with_xml(bool with_xml);
+  std::string const &get_new_checkpoint_dir() const;
 
-    bool
-      get_checkpoint_with_xml() const;
+  void set_checkpoint_with_xml(bool with_xml);
 
-    void
-      set_final_checkpoint(bool final_checkpoint);
+  bool get_checkpoint_with_xml() const;
 
-    bool
-      get_final_checkpoint() const;
+  void set_final_checkpoint(bool final_checkpoint);
 
-    void
-      set_concurrent_io(int max);
+  bool get_final_checkpoint() const;
 
-    int
-      get_concurrent_io() const;
+  void set_concurrent_io(int max);
 
-    Content
-      get_content();
+  int get_concurrent_io() const;
 
-    void
-      propagate(bool new_num_turns, int num_turns, bool new_max_turns, int max_turns, bool new_verbosity,
-          int verbosity);
+  Content get_content();
 
+  void propagate(bool new_num_turns, int num_turns, bool new_max_turns,
+                 int max_turns, bool new_verbosity, int verbosity);
 };
 
 #endif /* RESUME_H_ */

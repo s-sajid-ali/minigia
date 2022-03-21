@@ -3,52 +3,47 @@
 
 #include <minigia/utils/logger.hpp>
 
-#include "operator.hpp"
-#include "collective_operator_options.hpp"
 #include "bunch_simulator.hpp"
+#include "collective_operator_options.hpp"
+#include "operator.hpp"
 
 class Propagator;
 
-class Step
-{
+class Step {
 
-  private:
+private:
+  std::vector<std::shared_ptr<Operator>> operators;
 
-    std::vector<std::shared_ptr<Operator>> operators;
+  double length;
+  std::vector<double> step_betas;
 
-    double length;
-    std::vector<double> step_betas;
+public:
+  explicit Step(double length);
 
-  public:
+  template <class... Args>
+  Independent_operator &append_independent(Args &&...args) {
+    operators.emplace_back(
+        std::make_shared<Independent_operator>(std::forward<Args>(args)...));
+    return *(dynamic_cast<Independent_operator *>(operators.back().get()));
+  }
 
-    explicit Step(double length);
+  void append_collective(std::unique_ptr<CO_options> const &co_ops) {
+    operators.emplace_back(co_ops->create_operator());
+  }
 
-    template<class... Args>
-      Independent_operator & append_independent(Args &&... args)
-      {
-        operators.emplace_back(
-            std::make_shared<Independent_operator>(std::forward<Args>(args)...) );
-        return *(dynamic_cast<Independent_operator*>(operators.back().get()));
-      }
+  void append(std::shared_ptr<Operator> col_op) { operators.push_back(col_op); }
 
-    void append_collective(std::unique_ptr<CO_options> const & co_ops)
-    { operators.emplace_back(co_ops->create_operator()); }
+  void apply(Bunch_simulator &simulator, Logger &logger) const;
+  void create_operations(Lattice const &lattice);
 
-    void append(std::shared_ptr<Operator> col_op)
-    { operators.push_back(col_op); }
+  double get_length() const { return length; }
 
-    void apply(Bunch_simulator & simulator, Logger & logger) const;
-    void create_operations(Lattice const & lattice);
-
-    double get_length() const
-    { return length; }
-
-    void print(Logger & logger) const
-    {
-      logger(LoggerV::DEBUG) << "step length = " << length << "\n";
-      for(auto const & opr : operators) opr->print(logger);
-      logger(LoggerV::DEBUG) << "\n";
-    }
+  void print(Logger &logger) const {
+    logger(LoggerV::DEBUG) << "step length = " << length << "\n";
+    for (auto const &opr : operators)
+      opr->print(logger);
+    logger(LoggerV::DEBUG) << "\n";
+  }
 
 #if 0
     void set_betas(double betax, double betay);
@@ -60,7 +55,7 @@ class Step
       void serialize(Archive & ar, const unsigned int version);
 #endif
 
-    friend class Propagator;
+  friend class Propagator;
 };
 
 #endif /* STEP_H_ */

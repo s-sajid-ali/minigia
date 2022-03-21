@@ -6,34 +6,27 @@
 /// The Independent_stepper_elements class generates a constant number of
 /// Independent_operator steps per thick element. Thin elements are assigned
 /// a single step each. No collective effects are included.
-class Independent_stepper_elements : public Stepper
-{
-  private:
+class Independent_stepper_elements : public Stepper {
+private:
+  int steps_per_element;
 
-    int steps_per_element;
+  std::vector<Step> apply_impl(Lattice const &lattice) const override;
 
-    std::vector<Step>
-      apply_impl(Lattice const & lattice) const override;
+public:
+  Independent_stepper_elements(int steps_per_element = 1)
+      : steps_per_element(steps_per_element) {}
 
-  public:
+  std::unique_ptr<Stepper> clone() const override {
+    return std::make_unique<Independent_stepper_elements>(*this);
+  }
 
-    Independent_stepper_elements(int steps_per_element = 1)
-      : steps_per_element(steps_per_element)
-    { }
+private:
+  friend class cereal::access;
 
-    std::unique_ptr<Stepper> clone() const override
-    { return std::make_unique<Independent_stepper_elements>(*this); }
-
-  private:
-
-    friend class cereal::access;
-
-    template<class Archive>
-      void serialize(Archive & ar)
-      {
-        ar(cereal::virtual_base_class<Stepper>(this));
-        ar(steps_per_element);
-      }
+  template <class Archive> void serialize(Archive &ar) {
+    ar(cereal::virtual_base_class<Stepper>(this));
+    ar(steps_per_element);
+  }
 };
 
 CEREAL_REGISTER_TYPE(Independent_stepper_elements)
