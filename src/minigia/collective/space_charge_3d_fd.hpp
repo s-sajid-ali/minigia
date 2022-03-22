@@ -4,7 +4,7 @@
 #include <minigia/simulation/collective_operator_options.hpp>
 #include <minigia/simulation/operator.hpp>
 
-#include "fd_3d_impl.hpp"
+#include "space_charge_3d_fd_impl.hpp"
 
 class Space_charge_3d_fd;
 
@@ -33,6 +33,8 @@ private:
   const Space_charge_3d_fd_options options;
   std::string bunch_sim_id;
   bool use_fixed_domain;
+  bool allocated;
+
   LocalCtx lctx;
 
 private:
@@ -40,11 +42,14 @@ private:
 
   void apply_bunch(Bunch &bunch, double time_step, Logger &logger);
 
-  void construct_workspaces(Bunch_simulator const &sim);
+  void allocate_sc3d_fd(Space_charge_3d_fd_options const &ops);
+
+  void destroy_sc3d_fd();
 
   void update_domain(Bunch const &bunch);
 
 public:
   Space_charge_3d_fd(Space_charge_3d_fd_options const &ops);
+  ~Space_charge_3d_fd();
 };
 #endif /* SPACE_CHARGE_3D_FD_H_ */

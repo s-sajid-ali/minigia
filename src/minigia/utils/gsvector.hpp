@@ -15,16 +15,16 @@
 
 // helper
 namespace detail {
-  template <class T, class E = void> struct VectorHelper {
-    KOKKOS_INLINE_FUNCTION
-      static constexpr int size() { return 1; }
+template <class T, class E = void> struct VectorHelper {
+  KOKKOS_INLINE_FUNCTION
+  static constexpr int size() { return 1; }
 
-    KOKKOS_INLINE_FUNCTION
-      static T ld(const double *p) { return *p; }
+  KOKKOS_INLINE_FUNCTION
+  static T ld(const double *p) { return *p; }
 
-    KOKKOS_INLINE_FUNCTION
-      static void st(double *p, const T &v) { *p = v; }
-  };
+  KOKKOS_INLINE_FUNCTION
+  static void st(double *p, const T &v) { *p = v; }
+};
 } // namespace detail
 
 // expression class
@@ -32,13 +32,13 @@ template <typename E, class T> struct VecExpr {
   typedef T vec_t;
 
   KOKKOS_INLINE_FUNCTION
-    vec_t cal() const { return static_cast<E const &>(*this).cal(); }
+  vec_t cal() const { return static_cast<E const &>(*this).cal(); }
 
   KOKKOS_INLINE_FUNCTION
-    operator E &() { return static_cast<E &>(*this); }
+  operator E &() { return static_cast<E &>(*this); }
 
   KOKKOS_INLINE_FUNCTION
-    operator E const &() const { return reinterpret_cast<const E &>(*this); }
+  operator E const &() const { return reinterpret_cast<const E &>(*this); }
   //{ return static_cast<const E &>(*this); }
 };
 
@@ -49,36 +49,36 @@ template <class T> struct GSVec : public VecExpr<GSVec<T>, T> {
   T data;
 
   KOKKOS_INLINE_FUNCTION
-    static constexpr int size() { return detail::VectorHelper<T>::size(); }
+  static constexpr int size() { return detail::VectorHelper<T>::size(); }
 
   template <typename U = T>
-    KOKKOS_INLINE_FUNCTION
-    GSVec(const T *t, typename std::enable_if<is_trigon<U>::value>::type * = 0)
-    : data(*t) {}
+  KOKKOS_INLINE_FUNCTION
+  GSVec(const T *t, typename std::enable_if<is_trigon<U>::value>::type * = 0)
+      : data(*t) {}
 
   KOKKOS_INLINE_FUNCTION
-    GSVec(const double d) : data(d) {}
+  GSVec(const double d) : data(d) {}
 
   KOKKOS_INLINE_FUNCTION
-    GSVec(const double *p) : data(detail::VectorHelper<T>::ld(p)) {}
+  GSVec(const double *p) : data(detail::VectorHelper<T>::ld(p)) {}
 
   KOKKOS_INLINE_FUNCTION
-    void load(const double *p) { data = detail::VectorHelper<T>::ld(p); }
+  void load(const double *p) { data = detail::VectorHelper<T>::ld(p); }
 
   KOKKOS_INLINE_FUNCTION
-    void store(double *p) const { detail::VectorHelper<T>::st(p, data); }
+  void store(double *p) const { detail::VectorHelper<T>::st(p, data); }
 
   template <typename U = T>
-    KOKKOS_INLINE_FUNCTION void
-    store(T *p, typename std::enable_if<is_trigon<U>::value>::type * = 0) const {
-      *p = data;
-    }
+  KOKKOS_INLINE_FUNCTION void
+  store(T *p, typename std::enable_if<is_trigon<U>::value>::type * = 0) const {
+    *p = data;
+  }
 
   KOKKOS_INLINE_FUNCTION
-    T &cal() { return data; }
+  T &cal() { return data; }
 
   KOKKOS_INLINE_FUNCTION
-    T cal() const { return data; }
+  T cal() const { return data; }
 
   template <typename E> KOKKOS_INLINE_FUNCTION GSVec(VecExpr<E, T> const &vec) {
     E const &v = vec;
@@ -119,12 +119,12 @@ struct VecAdd : public VecExpr<VecAdd<E1, E2, T>, T> {
   E2 const &_v;
 
   KOKKOS_INLINE_FUNCTION
-    VecAdd(VecExpr<E1, T> const &u, VecExpr<E2, T> const &v) : _u(u), _v(v) {}
+  VecAdd(VecExpr<E1, T> const &u, VecExpr<E2, T> const &v) : _u(u), _v(v) {}
 
   KOKKOS_INLINE_FUNCTION
-    typename VecExpr<VecAdd<E1, E2, T>, T>::vec_t cal() const {
-      return _u.cal() + _v.cal();
-    }
+  typename VecExpr<VecAdd<E1, E2, T>, T>::vec_t cal() const {
+    return _u.cal() + _v.cal();
+  }
 };
 
 template <typename E1, typename E2, class T>
@@ -133,12 +133,12 @@ struct VecSub : public VecExpr<VecSub<E1, E2, T>, T> {
   E2 const &_v;
 
   KOKKOS_INLINE_FUNCTION
-    VecSub(VecExpr<E1, T> const &u, VecExpr<E2, T> const &v) : _u(u), _v(v) {}
+  VecSub(VecExpr<E1, T> const &u, VecExpr<E2, T> const &v) : _u(u), _v(v) {}
 
   KOKKOS_INLINE_FUNCTION
-    typename VecExpr<VecSub<E1, E2, T>, T>::vec_t cal() const {
-      return _u.cal() - _v.cal();
-    }
+  typename VecExpr<VecSub<E1, E2, T>, T>::vec_t cal() const {
+    return _u.cal() - _v.cal();
+  }
 };
 
 template <typename E1, typename E2, class T>
@@ -147,12 +147,12 @@ struct VecMul : public VecExpr<VecMul<E1, E2, T>, T> {
   E2 const &_v;
 
   KOKKOS_INLINE_FUNCTION
-    VecMul(VecExpr<E1, T> const &u, VecExpr<E2, T> const &v) : _u(u), _v(v) {}
+  VecMul(VecExpr<E1, T> const &u, VecExpr<E2, T> const &v) : _u(u), _v(v) {}
 
   KOKKOS_INLINE_FUNCTION
-    typename VecExpr<VecMul<E1, E2, T>, T>::vec_t cal() const {
-      return _u.cal() * _v.cal();
-    }
+  typename VecExpr<VecMul<E1, E2, T>, T>::vec_t cal() const {
+    return _u.cal() * _v.cal();
+  }
 };
 
 template <typename E1, typename E2, class T>
@@ -161,23 +161,22 @@ struct VecDiv : public VecExpr<VecDiv<E1, E2, T>, T> {
   E2 const &_v;
 
   KOKKOS_INLINE_FUNCTION
-    VecDiv(VecExpr<E1, T> const &u, VecExpr<E2, T> const &v) : _u(u), _v(v) {}
+  VecDiv(VecExpr<E1, T> const &u, VecExpr<E2, T> const &v) : _u(u), _v(v) {}
 
   KOKKOS_INLINE_FUNCTION
-    typename VecExpr<VecDiv<E1, E2, T>, T>::vec_t cal() const {
-      return _u.cal() / _v.cal();
-    }
+  typename VecExpr<VecDiv<E1, E2, T>, T>::vec_t cal() const {
+    return _u.cal() / _v.cal();
+  }
 };
-
 
 template <typename E, class T> struct VecNeg : public VecExpr<VecNeg<E, T>, T> {
   E const &_u;
 
   KOKKOS_INLINE_FUNCTION
-    VecNeg(VecExpr<E, T> const &u) : _u(u) {}
+  VecNeg(VecExpr<E, T> const &u) : _u(u) {}
 
   KOKKOS_INLINE_FUNCTION
-    typename VecExpr<VecNeg<E, T>, T>::vec_t cal() const { return -(_u.cal()); }
+  typename VecExpr<VecNeg<E, T>, T>::vec_t cal() const { return -(_u.cal()); }
 };
 
 template <typename E, class T>
@@ -185,52 +184,58 @@ struct VecSqrt : public VecExpr<VecSqrt<E, T>, T> {
   E const &_u;
 
   KOKKOS_INLINE_FUNCTION
-    VecSqrt(VecExpr<E, T> const &u) : _u(u) {}
+  VecSqrt(VecExpr<E, T> const &u) : _u(u) {}
 
   KOKKOS_INLINE_FUNCTION
-    typename VecExpr<VecSqrt<E, T>, T>::vec_t cal() const {
-      return sqrt(_u.cal());
-    }
+  typename VecExpr<VecSqrt<E, T>, T>::vec_t cal() const {
+    return sqrt(_u.cal());
+  }
 };
 
-template <typename E, class T> struct GSVecLog : public VecExpr<GSVecLog<E, T>, T> {
+template <typename E, class T>
+struct GSVecLog : public VecExpr<GSVecLog<E, T>, T> {
   E const &_u;
 
   KOKKOS_INLINE_FUNCTION
-    GSVecLog(VecExpr<E, T> const &u) : _u(u) {}
+  GSVecLog(VecExpr<E, T> const &u) : _u(u) {}
 
   KOKKOS_INLINE_FUNCTION
-    typename VecExpr<GSVecLog<E, T>, T>::vec_t cal() const { return log(_u.cal()); }
+  typename VecExpr<GSVecLog<E, T>, T>::vec_t cal() const {
+    return log(_u.cal());
+  }
 };
 
-template <typename E, class T> struct GSVecExp : public VecExpr<GSVecExp<E, T>, T> {
+template <typename E, class T>
+struct GSVecExp : public VecExpr<GSVecExp<E, T>, T> {
   E const &_u;
 
   KOKKOS_INLINE_FUNCTION
-    GSVecExp(VecExpr<E, T> const &u) : _u(u) {}
+  GSVecExp(VecExpr<E, T> const &u) : _u(u) {}
 
   KOKKOS_INLINE_FUNCTION
-    typename VecExpr<GSVecExp<E, T>, T>::vec_t cal() const { return exp(_u.cal()); }
+  typename VecExpr<GSVecExp<E, T>, T>::vec_t cal() const {
+    return exp(_u.cal());
+  }
 };
 
 template <typename E, class T> struct VecSin : public VecExpr<VecSin<E, T>, T> {
   E const &_u;
 
   KOKKOS_INLINE_FUNCTION
-    VecSin(VecExpr<E, T> const &u) : _u(u) {}
+  VecSin(VecExpr<E, T> const &u) : _u(u) {}
 
   KOKKOS_INLINE_FUNCTION
-    typename VecExpr<VecSin<E, T>, T>::vec_t cal() const { return sin(_u.cal()); }
+  typename VecExpr<VecSin<E, T>, T>::vec_t cal() const { return sin(_u.cal()); }
 };
 
 template <typename E, class T> struct VecCos : public VecExpr<VecCos<E, T>, T> {
   E const &_u;
 
   KOKKOS_INLINE_FUNCTION
-    VecCos(VecExpr<E, T> const &u) : _u(u) {}
+  VecCos(VecExpr<E, T> const &u) : _u(u) {}
 
   KOKKOS_INLINE_FUNCTION
-    typename VecExpr<VecCos<E, T>, T>::vec_t cal() const { return cos(_u.cal()); }
+  typename VecExpr<VecCos<E, T>, T>::vec_t cal() const { return cos(_u.cal()); }
 };
 
 template <typename E, class T>
@@ -238,12 +243,12 @@ struct VecAsin : public VecExpr<VecAsin<E, T>, T> {
   E const &_u;
 
   KOKKOS_INLINE_FUNCTION
-    VecAsin(VecExpr<E, T> const &u) : _u(u) {}
+  VecAsin(VecExpr<E, T> const &u) : _u(u) {}
 
   KOKKOS_INLINE_FUNCTION
-    typename VecExpr<VecAsin<E, T>, T>::vec_t cal() const {
-      return asin(_u.cal());
-    }
+  typename VecExpr<VecAsin<E, T>, T>::vec_t cal() const {
+    return asin(_u.cal());
+  }
 };
 
 template <typename E, class T>
@@ -251,12 +256,12 @@ struct VecAtan : public VecExpr<VecAtan<E, T>, T> {
   E const &_u;
 
   KOKKOS_INLINE_FUNCTION
-    VecAtan(VecExpr<E, T> const &u) : _u(u) {}
+  VecAtan(VecExpr<E, T> const &u) : _u(u) {}
 
   KOKKOS_INLINE_FUNCTION
-    typename VecExpr<VecAtan<E, T>, T>::vec_t cal() const {
-      return atan(_u.cal());
-    }
+  typename VecExpr<VecAtan<E, T>, T>::vec_t cal() const {
+    return atan(_u.cal());
+  }
 };
 
 // overload operators
@@ -354,72 +359,72 @@ class vector4double;
 #endif
 
 namespace detail {
-  // specialization of helper class
-  template <class T>
-    struct VectorHelper<
+// specialization of helper class
+template <class T>
+struct VectorHelper<
     T, typename std::enable_if<std::is_same<T, Vec2d>::value>::type> {
-      KOKKOS_INLINE_FUNCTION
-        static constexpr int size() { return 2; }
+  KOKKOS_INLINE_FUNCTION
+  static constexpr int size() { return 2; }
 
-      KOKKOS_INLINE_FUNCTION
-        static T ld(const double *p) {
-          T t;
-          t.load_a(p);
-          return t;
-        }
+  KOKKOS_INLINE_FUNCTION
+  static T ld(const double *p) {
+    T t;
+    t.load_a(p);
+    return t;
+  }
 
-      KOKKOS_INLINE_FUNCTION
-        static void st(double *p, const T &v) { v.store_a(p); }
-    };
+  KOKKOS_INLINE_FUNCTION
+  static void st(double *p, const T &v) { v.store_a(p); }
+};
 
-  template <class T>
-    struct VectorHelper<
+template <class T>
+struct VectorHelper<
     T, typename std::enable_if<std::is_same<T, Vec4d>::value>::type> {
-      KOKKOS_INLINE_FUNCTION
-        static constexpr int size() { return 4; }
+  KOKKOS_INLINE_FUNCTION
+  static constexpr int size() { return 4; }
 
-      KOKKOS_INLINE_FUNCTION
-        static T ld(const double *p) {
-          T t;
-          t.load_a(p);
-          return t;
-        }
+  KOKKOS_INLINE_FUNCTION
+  static T ld(const double *p) {
+    T t;
+    t.load_a(p);
+    return t;
+  }
 
-      KOKKOS_INLINE_FUNCTION
-        static void st(double *p, const T &v) { v.store_a(p); }
-    };
+  KOKKOS_INLINE_FUNCTION
+  static void st(double *p, const T &v) { v.store_a(p); }
+};
 
-  template <class T>
-    struct VectorHelper<
+template <class T>
+struct VectorHelper<
     T, typename std::enable_if<std::is_same<T, Vec8d>::value>::type> {
-      KOKKOS_INLINE_FUNCTION
-        static constexpr int size() { return 8; }
+  KOKKOS_INLINE_FUNCTION
+  static constexpr int size() { return 8; }
 
-      KOKKOS_INLINE_FUNCTION
-        static T ld(const double *p) {
-          T t;
-          t.load_a(p);
-          return t;
-        }
+  KOKKOS_INLINE_FUNCTION
+  static T ld(const double *p) {
+    T t;
+    t.load_a(p);
+    return t;
+  }
 
-      KOKKOS_INLINE_FUNCTION
-        static void st(double *p, const T &v) { v.store_a(p); }
-    };
+  KOKKOS_INLINE_FUNCTION
+  static void st(double *p, const T &v) { v.store_a(p); }
+};
 } // namespace detail
 
 // operations
 template <typename E1, typename E2, class T>
 struct VecAdd<
-E1, E2, T,
-  typename std::enable_if<std::is_same<T, vector4double>::value>::type>
-  : public VecExpr<VecAdd<E1, E2, T>, T> {
-    E1 const &_u;
-    E2 const &_v;
-    VecAdd(VecExpr<E1, T> const &u, VecExpr<E2, T> const &v) : _u(u), _v(v) {}
-    typename VecExpr<VecAdd<E1, E2, T>, T>::vec_t cal() const {
-      return vec_add(_u.cal(), _v.cal());
-    }
-  };
+    E1, E2, T,
+    typename std::enable_if<std::is_same<T, vector4double>::value>::type>
+    : public VecExpr<VecAdd<E1, E2, T>, T> {
+  E1 const &_u;
+  E2 const &_v;
+  VecAdd(VecExpr<E1, T> const &u, VecExpr<E2, T> const &v) : _u(u), _v(v) {}
+  typename VecExpr<VecAdd<E1, E2, T>, T>::vec_t cal() const {
+    return vec_add(_u.cal(), _v.cal());
+  }
+};
 
 // stream operator
 template <class T>
@@ -446,7 +451,7 @@ template <class T>
 inline std::enable_if_t<std::is_same<T, Vec8d>::value, std::ostream &>
 operator<<(std::ostream &out, T const &v) {
   out << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << ", " << v[4]
-    << ", " << v[5] << ", " << v[6] << ", " << v[7];
+      << ", " << v[5] << ", " << v[6] << ", " << v[7];
   return out;
 }
 
@@ -462,6 +467,5 @@ typedef GSVec<vector4double> GSVector;
 #else
 typedef GSVec<double> GSVector;
 #endif
-
 
 #endif

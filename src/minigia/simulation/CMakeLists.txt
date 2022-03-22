@@ -1,8 +1,3 @@
-if(${Kokkos_ENABLE_CUDA})
-    set_source_files_properties(checkpoint_json.cc PROPERTIES COMPILE_FLAGS --host-only)
-    set_source_files_properties(lattice_simulator_host.cc PROPERTIES COMPILE_FLAGS --host-only)
-endif()
-
 add_library(minigia_simulation SHARED
     operator.cc 
     step.cc 
@@ -12,8 +7,8 @@ add_library(minigia_simulation SHARED
     split_operator_stepper_elements.cc
     propagator.cc
     independent_operation.cc
-    lattice_simulator.cc 
-    lattice_simulator_host.cc 
+    lattice_simulator.cc
+    lattice_simulator_host.cc
     operation_extractor.cc 
     bunch_simulator.cc
     checkpoint.cc
@@ -27,7 +22,7 @@ target_link_libraries(minigia_simulation
     minigia_libff
     )
 
-  target_include_directories(minigia_foundation INTERFACE
+target_include_directories(minigia_foundation INTERFACE
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
   $<INSTALL_INTERFACE:include/>  # <prefix>/include/mylib
   )
@@ -47,6 +42,7 @@ install(FILES
     independent_operation.hpp
     independent_stepper_elements.hpp
     lattice_simulator.hpp
+    lattice_simulator_host.hpp
     operation_extractor.hpp
     operator.hpp
     populate_stationary.hpp

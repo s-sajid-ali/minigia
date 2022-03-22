@@ -7,9 +7,11 @@
 #include <unordered_map>
 
 #include <Eigen/Eigen>
-#include <Kokkos_Core.hpp>
 #include <cereal/cereal.hpp>
 #include <cereal/types/complex.hpp>
+
+#include <Kokkos_Core.hpp>
+#include <Kokkos_Macros.hpp>
 
 #include <minigia/utils/kokkos_types.hpp>
 #include <minigia/utils/minigia_json.hpp>
@@ -527,15 +529,15 @@ public:
 
   template <unsigned int P2>
   KOKKOS_INLINE_FUNCTION unsigned int f(unsigned int i, unsigned j) {
-#ifdef KOKKOS_IF_ON_DEVICE
-    return 0;
-#else
-    static arr_t<arr_t<unsigned int, Trigon<double, P2, Dim>::count>,
-                 Trigon<double, Power, Dim>::count>
-        mapping = calculate_f<Power, P2>();
-    return mapping[i][j];
-#endif
-  }
+
+    KOKKOS_IF_ON_DEVICE((return 0;))
+    KOKKOS_IF_ON_HOST((
+
+        static arr_t<arr_t<unsigned int, Trigon<double, P2, Dim>::count>,
+                     Trigon<double, Power, Dim>::count>
+            mapping = calculate_f<Power, P2>();
+        return mapping[i][j];))
+  };
 
   template <unsigned int New_power, typename Mult_trigon_t, typename Array_t>
   KOKKOS_INLINE_FUNCTION void collect_products(Mult_trigon_t const &t,
@@ -721,24 +723,18 @@ public:
     return val;
   };
 
-#ifdef KOKKOS_IF_ON_DEVICE
+  decltype(auto) to_json() const {
+    KOKKOS_IF_ON_DEVICE((return syn::dummy_json{};))
+    KOKKOS_IF_ON_HOST((syn::json val = {{"dim", Dim},
+                                        {"power", Power},
+                                        {"terms", syn::json::array()}};
 
-  syn::dummy_json to_json() const { return syn::dummy_json{}; }
+                       syn::json terms{}; to_json_impl(terms);
 
-#else
+                       val["terms"] = std::move(terms);
 
-  syn::json to_json() const {
-    syn::json val = {
-        {"dim", Dim}, {"power", Power}, {"terms", syn::json::array()}};
-
-    syn::json terms{};
-    to_json_impl(terms);
-
-    val["terms"] = std::move(terms);
-
-    return val;
-  }
-
+                       return val;))
+  };
   void to_json_impl(syn::json &val) const {
     // lower power
     lower.to_json_impl(val);
@@ -764,9 +760,7 @@ public:
     }
 
     val.emplace_back(std::move(v));
-  }
-
-#endif
+  };
 
   friend std::ostream &operator<<(std::ostream &os,
                                   Trigon<T, Power, Dim> const &t) {
@@ -999,21 +993,21 @@ public:
     return os;
   }
 
-#ifdef KOKKOS_IF_ON_DEVICE
+  decltype(auto) to_json() const {
 
-  syn::dummy_json to_json() const { return syn::dummy_json{}; }
+    KOKKOS_IF_ON_DEVICE((return syn::dummy_json{};))
 
-#else
+    KOKKOS_IF_ON_HOST((
 
-  syn::json to_json() const {
-    syn::json val = {{"dim", Dim}, {"power", 0}, {"terms", syn::json::array()}};
+        syn::json val = {{"dim", Dim},
+                         {"power", 0},
+                         {"terms", syn::json::array()}};
 
-    syn::json terms{};
-    to_json_impl(terms);
+        syn::json terms{}; to_json_impl(terms);
 
-    val["terms"] = std::move(terms);
+        val["terms"] = std::move(terms);
 
-    return val;
+        return val;))
   }
 
   void to_json_impl(syn::json &val) const {
@@ -1028,8 +1022,6 @@ public:
 
     val.emplace_back(std::move(v));
   }
-
-#endif
 
   template <class AR> void serialize(AR &ar) { ar(terms); }
 };
@@ -1737,16 +1729,13 @@ template <typename TRIGON> struct TMapping {
     return ret;
   }
 
-#ifdef KOKKOS_IF_ON_DEVICE
-  syn::dummy_json to_json() const { return syn::dummy_json{}; }
-#else
-  syn::json to_json() const {
-    syn::json val = syn::json::array();
-    for (auto const &t : comp)
-      val.emplace_back(t.to_json());
-    return val;
+  decltype(auto) to_json() const {
+    KOKKOS_IF_ON_HOST((syn::json val = syn::json::array();
+                       for (auto const &t
+                            : comp) val.emplace_back(t.to_json());
+                       return val;))
+    KOKKOS_IF_ON_DEVICE((return syn::dummy_json{};))
   }
-#endif
 
   template <class AR> void serialize(AR &ar) { ar(comp); }
 };

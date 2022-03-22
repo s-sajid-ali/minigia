@@ -1,9 +1,3 @@
-if(${Kokkos_ENABLE_CUDA})
-    set_source_files_properties(mx_parse.cc PROPERTIES COMPILE_FLAGS --host-only)
-    set_source_files_properties(mx_tree.cc PROPERTIES COMPILE_FLAGS --host-only)
-    set_source_files_properties(madx.cc PROPERTIES COMPILE_FLAGS --host-only)
-endif()
-
 add_library(minigia_lattice SHARED
     lattice_element.cc 
     lattice_element_processor.cc 

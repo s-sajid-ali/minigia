@@ -1,5 +1,5 @@
-#include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
+#include <catch2/catch_test_macros.hpp>
 using Catch::Approx;
 
 #include <minigia/foundation/math_constants.hpp>
@@ -62,7 +62,7 @@ TEST_CASE("append_fodo") {
   CHECK(it->get_name() == "o");
   CHECK(it->get_type_name() == "drift");
   CHECK(it->get_double_attribute("l") ==
-      Approx(drift_length).margin(tolerance));
+        Approx(drift_length).margin(tolerance));
   ++it;
 
   CHECK(it->get_name() == "d");
@@ -73,7 +73,7 @@ TEST_CASE("append_fodo") {
   CHECK(it->get_name() == "o");
   CHECK(it->get_type_name() == "drift");
   CHECK(it->get_double_attribute("l") ==
-      Approx(drift_length).margin(tolerance));
+        Approx(drift_length).margin(tolerance));
 }
 
 #if 0
@@ -110,7 +110,7 @@ TEST_CASE("get_length") {
   lattice.append(o);
 
   CHECK(lattice.get_length() ==
-      Approx(2 * quad_length + 2 * drift_length).margin(tolerance));
+        Approx(2 * quad_length + 2 * drift_length).margin(tolerance));
 }
 
 TEST_CASE("get_total_angle1") {
@@ -165,7 +165,7 @@ TEST_CASE("lattice_from_lattice_element") {
   Lattice lattice(name);
   lattice.append(f);
   for (auto it = lattice.get_elements().begin();
-      it != lattice.get_elements().end(); ++it) {
+       it != lattice.get_elements().end(); ++it) {
     CHECK(it->has_lattice());
     CHECK(&(it->get_lattice()) == &lattice);
   }
@@ -184,15 +184,15 @@ TEST_CASE("copy_lattice") {
 
   CHECK(lattice.get_elements().size() == copied_lattice.get_elements().size());
   CHECK(lattice.get_elements().begin()->get_name() ==
-      copied_lattice.get_elements().begin()->get_name());
+        copied_lattice.get_elements().begin()->get_name());
 
   CHECK(lattice.get_elements().begin()->get_length() ==
-      Approx(foo_length).margin(tolerance));
+        Approx(foo_length).margin(tolerance));
   CHECK(copied_lattice.get_elements().begin()->get_length() ==
-      Approx(foo_length).margin(tolerance));
+        Approx(foo_length).margin(tolerance));
 
   for (auto it = copied_lattice.get_elements().begin();
-      it != copied_lattice.get_elements().end(); ++it) {
+       it != copied_lattice.get_elements().end(); ++it) {
     CHECK(it->has_lattice());
     CHECK(&(it->get_lattice()) == &copied_lattice);
   }
@@ -201,17 +201,17 @@ TEST_CASE("copy_lattice") {
   copied_lattice.get_elements().begin()->set_double_attribute("l", new_length);
 
   CHECK(lattice.get_elements().begin()->get_length() ==
-      Approx(foo_length).margin(tolerance));
+        Approx(foo_length).margin(tolerance));
   CHECK(copied_lattice.get_elements().begin()->get_length() ==
-      Approx(new_length).margin(tolerance));
+        Approx(new_length).margin(tolerance));
 
   const double new_energy = 2 * total_energy;
   Reference_particle new_reference_particle(charge, mass, new_energy);
   copied_lattice.set_reference_particle(new_reference_particle);
   CHECK(lattice.get_reference_particle().get_total_energy() ==
-      Approx(total_energy).margin(tolerance));
+        Approx(total_energy).margin(tolerance));
   CHECK(copied_lattice.get_reference_particle().get_total_energy() ==
-      Approx(new_energy).margin(tolerance));
+        Approx(new_energy).margin(tolerance));
 }
 
 TEST_CASE("copy_lattice2") {
@@ -237,15 +237,15 @@ TEST_CASE("copy_lattice_from_lattice_sptr") {
 
   CHECK(lattice.get_elements().size() == copied_lattice.get_elements().size());
   CHECK(lattice.get_elements().begin()->get_name() ==
-      copied_lattice.get_elements().begin()->get_name());
+        copied_lattice.get_elements().begin()->get_name());
 
   CHECK(lattice.get_elements().begin()->get_length() ==
-      Approx(foo_length).margin(tolerance));
+        Approx(foo_length).margin(tolerance));
   CHECK(copied_lattice.get_elements().begin()->get_length() ==
-      Approx(foo_length).margin(tolerance));
+        Approx(foo_length).margin(tolerance));
 
   for (auto it = copied_lattice.get_elements().begin();
-      it != copied_lattice.get_elements().end(); ++it) {
+       it != copied_lattice.get_elements().end(); ++it) {
     CHECK(it->has_lattice());
     CHECK(&(it->get_lattice()) == &copied_lattice);
   }
@@ -322,7 +322,7 @@ TEST_CASE("test_serialize1") {
   CHECK(it->get_name() == "o");
   CHECK(it->get_type_name() == "drift");
   CHECK(it->get_double_attribute("l") ==
-      Approx(drift_length).margin(tolerance));
+        Approx(drift_length).margin(tolerance));
   ++it;
 
   CHECK(it->get_name() == "d");
@@ -333,7 +333,7 @@ TEST_CASE("test_serialize1") {
   CHECK(it->get_name() == "o");
   CHECK(it->get_type_name() == "drift");
   CHECK(it->get_double_attribute("l") ==
-      Approx(drift_length).margin(tolerance));
+        Approx(drift_length).margin(tolerance));
 }
 
 TEST_CASE("test_serialize2") {

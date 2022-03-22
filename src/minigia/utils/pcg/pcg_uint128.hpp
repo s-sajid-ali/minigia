@@ -215,13 +215,9 @@ public:
 
   constexpr uint_x4(UInt v3, UInt v2, UInt v1, UInt v0)
 #if PCG_LITTLE_ENDIAN
-      : w {
-    v0, v1, v2, v3
-  }
+      : w{v0, v1, v2, v3}
 #else
-      : w {
-    v3, v2, v1, v0
-  }
+      : w{v3, v2, v1, v0}
 #endif
   {
     // Nothing (else) to do
@@ -229,13 +225,9 @@ public:
 
   constexpr uint_x4(UIntX2 v23, UIntX2 v01)
 #if PCG_LITTLE_ENDIAN
-      : d {
-    v01, v23
-  }
+      : d{v01, v23}
 #else
-      : d {
-    v23, v01
-  }
+      : d{v23, v01}
 #endif
   {
     // Nothing (else) to do
@@ -247,13 +239,9 @@ public:
                 * = nullptr>
   constexpr uint_x4(Integral v01)
 #if PCG_LITTLE_ENDIAN
-      : d {
-    UIntX2(v01), 0UL
-  }
+      : d{UIntX2(v01), 0UL}
 #else
-      : d {
-    0UL, UIntX2(v01)
-  }
+      : d{0UL, UIntX2(v01)}
 #endif
   {
     // Nothing (else) to do

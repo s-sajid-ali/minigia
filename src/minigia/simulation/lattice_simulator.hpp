@@ -1,4 +1,3 @@
-
 #ifndef SYNERGIA_SIMULATION_LATTICE_SIMULATOR_H
 #define SYNERGIA_SIMULATION_LATTICE_SIMULATOR_H
 
@@ -112,14 +111,13 @@ void adjust_chromaticities(Lattice &lattice, double horizontal_chromaticity,
 
 } // namespace Lattice_simulator
 
-#ifdef __CUDA_ARCH__
-
-// no implementations for CUDA arch
-
-#else
+#ifdef KOKKOS_ENABLE_OPENMP
 
 // implementations
 namespace Lattice_simulator {
+
+std::array<double, 2> filter_transverse_tunes(double const *jac);
+
 template <unsigned int order>
 TMapping<Trigon<double, order, 6>> get_one_turn_map(Lattice const &lattice,
                                                     double dpp) {
@@ -454,6 +452,6 @@ template <class ELMS> void calc_dispersions_impl(Lattice &lattice, ELMS &elms) {
 
 } // namespace Lattice_simulator
 
-#endif // __CUDA_ARCH
+#endif // KOKKOS_ENABLE_OPENMP
 
 #endif // LATTICE_SIMULATOR_H

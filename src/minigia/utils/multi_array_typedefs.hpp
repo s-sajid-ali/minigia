@@ -44,11 +44,11 @@ typedef karray3d_row_hst karray3d_row;
 
 // row major, const arrays
 typedef Kokkos::View<const double *, Kokkos::LayoutRight>
-const_karray1d_row_dev;
+    const_karray1d_row_dev;
 typedef Kokkos::View<const double **, Kokkos::LayoutRight>
-const_karray2d_row_dev;
+    const_karray2d_row_dev;
 typedef Kokkos::View<const double ***, Kokkos::LayoutRight>
-const_karray3d_row_dev;
+    const_karray3d_row_dev;
 
 typedef const_karray1d_row_dev::HostMirror const_karray1d_row_hst;
 typedef const_karray2d_row_dev::HostMirror const_karray2d_row_hst;
@@ -73,11 +73,11 @@ typedef karray3i_row_hst karray3i_row;
 
 // row major, non-const complex arrays
 typedef Kokkos::View<Kokkos::complex<double> *, Kokkos::LayoutRight>
-karray1dc_row_dev;
+    karray1dc_row_dev;
 typedef Kokkos::View<Kokkos::complex<double> **, Kokkos::LayoutRight>
-karray2dc_row_dev;
+    karray2dc_row_dev;
 typedef Kokkos::View<Kokkos::complex<double> ***, Kokkos::LayoutRight>
-karray3dc_row_dev;
+    karray3dc_row_dev;
 
 typedef karray1dc_row_dev::HostMirror karray1dc_row_hst;
 typedef karray2dc_row_dev::HostMirror karray2dc_row_hst;
@@ -89,7 +89,7 @@ typedef karray3dc_row_hst karray3dc_row;
 
 // atomic arrays
 typedef Kokkos::View<double *, Kokkos::LayoutLeft,
-        Kokkos::MemoryTraits<Kokkos::Atomic>>
-        karray1d_atomic_dev;
+                     Kokkos::MemoryTraits<Kokkos::Atomic>>
+    karray1d_atomic_dev;
 
 #endif /* MULTI_ARRAY_TYPEDEFS_H_ */

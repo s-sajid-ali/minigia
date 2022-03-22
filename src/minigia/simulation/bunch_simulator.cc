@@ -5,240 +5,166 @@
 #include <minigia/bunch/populate_global.hpp>
 
 #include "bunch_simulator.hpp"
-#include "operator.hpp"
 #include "independent_operation.hpp"
+#include "operator.hpp"
 
 namespace impl {
 
-  static std::random_device              rd;
-  static std::mt19937                    gen(rd());
-  static std::uniform_int_distribution<> dis(0, 15);
-  static std::uniform_int_distribution<> dis2(8, 11);
+static std::random_device rd;
+static std::mt19937 gen(rd());
+static std::uniform_int_distribution<> dis(0, 15);
+static std::uniform_int_distribution<> dis2(8, 11);
 
-  std::string generate_uuid_v4() {
-    std::stringstream ss;
-    int i;
-    ss << std::hex;
-    for (i = 0; i < 8; i++) {
-      ss << dis(gen);
+std::string generate_uuid_v4() {
+  std::stringstream ss;
+  int i;
+  ss << std::hex;
+  for (i = 0; i < 8; i++) {
+    ss << dis(gen);
+  }
+  ss << "-";
+  for (i = 0; i < 4; i++) {
+    ss << dis(gen);
+  }
+  ss << "-4";
+  for (i = 0; i < 3; i++) {
+    ss << dis(gen);
+  }
+  ss << "-";
+  ss << dis2(gen);
+  for (i = 0; i < 3; i++) {
+    ss << dis(gen);
+  }
+  ss << "-";
+  for (i = 0; i < 12; i++) {
+    ss << dis(gen);
+  };
+  return ss.str();
+}
+
+void divide_bunches(int size, size_t num_bunches_pri, size_t num_bunches_sec,
+                    std::vector<int> &p_ranks, std::vector<int> &s_ranks) {
+  assert(size > 0);
+
+  const size_t num_bunches = num_bunches_pri + num_bunches_sec;
+  size_t st_start_rank = 0;
+
+  if (num_bunches == 0) {
+    // no bunch at all
+    p_ranks.resize(0);
+    s_ranks.resize(0);
+    st_start_rank = 0;
+  } else if (size == 1) {
+    // all bunches on a single rank
+    p_ranks.resize(num_bunches_pri ? 1 : 0);
+    s_ranks.resize(num_bunches_sec ? 1 : 0);
+    st_start_rank = 0;
+  } else if (size < num_bunches) {
+    // multiple ranks, each rank stores 1 train at max
+    if (num_bunches % size != 0) {
+      throw std::runtime_error(
+          "Bunch_simulator::create_bunch_train_simulator() "
+          "the number of bunches must be divisible by the number of ranks");
     }
-    ss << "-";
-    for (i = 0; i < 4; i++) {
-      ss << dis(gen);
+
+    int const bunch_per_rank = num_bunches / size;
+
+    if (num_bunches_pri % bunch_per_rank != 0 ||
+        num_bunches_sec % bunch_per_rank != 0) {
+      throw std::runtime_error(
+          "Bunch_simulator::create_bunch_train_simulator() "
+          "the number of bunches in primary or secondary train must be "
+          "divisible by the number of bunches per rank");
     }
-    ss << "-4";
-    for (i = 0; i < 3; i++) {
-      ss << dis(gen);
+
+    p_ranks.resize(num_bunches_pri / bunch_per_rank);
+    s_ranks.resize(num_bunches_sec / bunch_per_rank);
+    st_start_rank = p_ranks.size();
+  } else {
+    // now size >= num_bunches, one bunch (or a fraciton of a bunch) per rank
+    if (size % num_bunches != 0) {
+      throw std::runtime_error(
+          "Bunch_simulator::create_bunch_train_simulator() "
+          "the number of ranks must be divisible by the number of bunches");
     }
-    ss << "-";
-    ss << dis2(gen);
-    for (i = 0; i < 3; i++) {
-      ss << dis(gen);
-    }
-    ss << "-";
-    for (i = 0; i < 12; i++) {
-      ss << dis(gen);
-    };
-    return ss.str();
+
+    int const rank_per_bunch = size / num_bunches;
+
+    p_ranks.resize(rank_per_bunch * num_bunches_pri);
+    s_ranks.resize(rank_per_bunch * num_bunches_sec);
+    st_start_rank = p_ranks.size();
   }
 
-  void divide_bunches(int size,
-      size_t num_bunches_pri,
-      size_t num_bunches_sec,
-      std::vector<int> & p_ranks,
-      std::vector<int> & s_ranks )
-  {
-    assert(size > 0);
+  std::iota(p_ranks.begin(), p_ranks.end(), 0);
+  std::iota(s_ranks.begin(), s_ranks.end(), st_start_rank);
 
-    const size_t num_bunches = num_bunches_pri + num_bunches_sec;
-    size_t st_start_rank = 0;
-
-    if ( num_bunches == 0 )
-    {
-      // no bunch at all
-      p_ranks.resize(0);
-      s_ranks.resize(0);
-      st_start_rank = 0;
-    }
-    else if ( size == 1 )
-    {
-      // all bunches on a single rank
-      p_ranks.resize(num_bunches_pri ? 1 : 0);
-      s_ranks.resize(num_bunches_sec ? 1 : 0);
-      st_start_rank = 0;
-    }
-    else if ( size < num_bunches )
-    {
-      // multiple ranks, each rank stores 1 train at max
-      if (num_bunches % size != 0)
-      {
-        throw std::runtime_error(
-            "Bunch_simulator::create_bunch_train_simulator() "
-            "the number of bunches must be divisible by the number of ranks" );
-      }
-
-      int const bunch_per_rank = num_bunches / size;
-
-      if (num_bunches_pri % bunch_per_rank != 0
-          || num_bunches_sec % bunch_per_rank != 0 )
-      {
-        throw std::runtime_error(
-            "Bunch_simulator::create_bunch_train_simulator() "
-            "the number of bunches in primary or secondary train must be "
-            "divisible by the number of bunches per rank" );
-      }
-
-      p_ranks.resize(num_bunches_pri/bunch_per_rank);
-      s_ranks.resize(num_bunches_sec/bunch_per_rank);
-      st_start_rank = p_ranks.size();
-    }
-    else
-    {
-      // now size >= num_bunches, one bunch (or a fraciton of a bunch) per rank
-      if (size % num_bunches != 0)
-      {
-        throw std::runtime_error(
-            "Bunch_simulator::create_bunch_train_simulator() "
-            "the number of ranks must be divisible by the number of bunches" );
-      }
-
-      int const rank_per_bunch = size / num_bunches;
-
-      p_ranks.resize(rank_per_bunch * num_bunches_pri);
-      s_ranks.resize(rank_per_bunch * num_bunches_sec);
-      st_start_rank = p_ranks.size();
-    }
-
-    std::iota(p_ranks.begin(), p_ranks.end(), 0);
-    std::iota(s_ranks.begin(), s_ranks.end(), st_start_rank);
-
-    return;
-  }
-
+  return;
 }
 
-  Bunch_simulator
-Bunch_simulator::create_empty_bunch_simulator()
-{
-  return construct( Reference_particle(),
-      Reference_particle(),
-      0,    // num_part
-      0,    // num_spectator
-      1.0,  // num_real_particle
-      0,    // primary bunch
-      0,    // secondary bunch
-      1.0, 1.0,  // spacing
-      Commxx() );
+} // namespace impl
+
+Bunch_simulator Bunch_simulator::create_empty_bunch_simulator() {
+  return construct(Reference_particle(), Reference_particle(),
+                   0,        // num_part
+                   0,        // num_spectator
+                   1.0,      // num_real_particle
+                   0,        // primary bunch
+                   0,        // secondary bunch
+                   1.0, 1.0, // spacing
+                   Commxx());
 }
 
-  Bunch_simulator
-Bunch_simulator::create_single_bunch_simulator(
-    Reference_particle const& ref,
-    size_t num_particles,
-    double num_real_particles,
-    Commxx const& comm,
-    size_t num_spectators)
-{
-  return construct( ref, ref,
-      num_particles,
-      num_spectators,
-      num_real_particles,
-      1,   0,   // num_bunches
-      1.0, 1.0, // spacing
-      comm );
+Bunch_simulator Bunch_simulator::create_single_bunch_simulator(
+    Reference_particle const &ref, size_t num_particles,
+    double num_real_particles, Commxx const &comm, size_t num_spectators) {
+  return construct(ref, ref, num_particles, num_spectators, num_real_particles,
+                   1, 0,     // num_bunches
+                   1.0, 1.0, // spacing
+                   comm);
 }
 
-
-  Bunch_simulator
-Bunch_simulator::create_bunch_train_simulator(
-    Reference_particle const& ref,
-    size_t num_particles,
-    double num_real_particles,
-    size_t num_bunches,
-    double spacing,
-    Commxx const& comm,
-    size_t num_spectators)
-{
-  return construct( ref, ref,
-      num_particles,
-      num_spectators,
-      num_real_particles,
-      num_bunches, 0, // num_bunches
-      spacing, 1.0,   // spacing
-      comm );
+Bunch_simulator Bunch_simulator::create_bunch_train_simulator(
+    Reference_particle const &ref, size_t num_particles,
+    double num_real_particles, size_t num_bunches, double spacing,
+    Commxx const &comm, size_t num_spectators) {
+  return construct(ref, ref, num_particles, num_spectators, num_real_particles,
+                   num_bunches, 0, // num_bunches
+                   spacing, 1.0,   // spacing
+                   comm);
 }
 
-  Bunch_simulator
-Bunch_simulator::create_two_trains_simulator(
-    Reference_particle const& ref_pri,
-    Reference_particle const& ref_sec,
-    size_t num_particles,
-    double num_real_particles,
-    size_t num_bunches_pri,
-    size_t num_bunches_sec,
-    double spacing_pri,
-    double spacing_sec,
-    Commxx const& comm,
-    size_t num_spectators)
-{
-  return construct( ref_pri, ref_sec,
-      num_particles,
-      num_spectators,
-      num_real_particles,
-      num_bunches_pri,
-      num_bunches_sec,
-      spacing_pri,
-      spacing_sec,
-      comm );
+Bunch_simulator Bunch_simulator::create_two_trains_simulator(
+    Reference_particle const &ref_pri, Reference_particle const &ref_sec,
+    size_t num_particles, double num_real_particles, size_t num_bunches_pri,
+    size_t num_bunches_sec, double spacing_pri, double spacing_sec,
+    Commxx const &comm, size_t num_spectators) {
+  return construct(ref_pri, ref_sec, num_particles, num_spectators,
+                   num_real_particles, num_bunches_pri, num_bunches_sec,
+                   spacing_pri, spacing_sec, comm);
 }
 
-
-  Bunch_simulator
-Bunch_simulator::construct(
-    Reference_particle const& ref_pri,
-    Reference_particle const& ref_sec,
-    size_t num_part,
-    size_t num_spec,
-    double num_real_part,
-    size_t num_bunches_pri,
-    size_t num_bunches_sec,
-    double spacing_pri,
-    double spacing_sec,
-    Commxx const& comm)
-{
+Bunch_simulator Bunch_simulator::construct(
+    Reference_particle const &ref_pri, Reference_particle const &ref_sec,
+    size_t num_part, size_t num_spec, double num_real_part,
+    size_t num_bunches_pri, size_t num_bunches_sec, double spacing_pri,
+    double spacing_sec, Commxx const &comm) {
   auto comm_ptr = std::make_shared<Commxx>(comm);
 
   std::vector<int> p_ranks;
   std::vector<int> s_ranks;
 
-  impl::divide_bunches( comm.size(),
-      num_bunches_pri,
-      num_bunches_sec,
-      p_ranks,
-      s_ranks );
+  impl::divide_bunches(comm.size(), num_bunches_pri, num_bunches_sec, p_ranks,
+                       s_ranks);
 
   auto comm_pri = comm_ptr->group(p_ranks);
   auto comm_sec = comm_ptr->group(s_ranks);
 
-  return Bunch_simulator( Bunch_train( ref_pri,
-        num_bunches_pri,
-        num_part,
-        num_real_part,
-        spacing_pri,
-        comm_pri,
-        num_spec,
-        0 ),
-      Bunch_train( ref_sec,
-        num_bunches_sec,
-        num_part,
-        num_real_part,
-        spacing_sec,
-        comm_sec,
-        num_spec,
-        1 ),
-      comm_ptr );
-
-
+  return Bunch_simulator(
+      Bunch_train(ref_pri, num_bunches_pri, num_part, num_real_part,
+                  spacing_pri, comm_pri, num_spec, 0),
+      Bunch_train(ref_sec, num_bunches_sec, num_part, num_real_part,
+                  spacing_sec, comm_sec, num_spec, 1),
+      comm_ptr);
 
   // A more general approach to the above logic could be like:
   //
@@ -328,263 +254,196 @@ Bunch_simulator::construct(
   //
 }
 
+Bunch_simulator::Bunch_simulator(Bunch_train &&pt, Bunch_train &&st,
+                                 std::shared_ptr<Commxx> const &comm)
+    : uuid(impl::generate_uuid_v4()),
+      comm(std::move(comm)), trains{std::move(pt), std::move(st)},
+      diags_step_period(), diags_turn_listed(), diags_element(), prop_actions(),
+      prop_actions_step_end(), prop_actions_turn_end() {}
 
-Bunch_simulator::Bunch_simulator(
-    Bunch_train && pt,
-    Bunch_train && st,
-    std::shared_ptr<Commxx> const& comm )
-  : uuid(impl::generate_uuid_v4())
-  , comm(std::move(comm))
-    , trains{std::move(pt), std::move(st)}
-  , diags_step_period()
-  , diags_turn_listed()
-  , diags_element()
-  , prop_actions()
-  , prop_actions_step_end()
-, prop_actions_turn_end()
-{
-}
-
-int
-Bunch_simulator::get_bunch_array_idx(int train, int bunch) const
-{
-  if (train > 1) return -1;
-  if (bunch >= trains[train].get_num_bunches()) return -1;
+int Bunch_simulator::get_bunch_array_idx(int train, int bunch) const {
+  if (train > 1)
+    return -1;
+  if (bunch >= trains[train].get_num_bunches())
+    return -1;
 
   return trains[train].get_array_idx_of_bunch(bunch);
 }
 
-bool
-Bunch_simulator::has_local_bunch(size_t train, size_t bunch) const
-{
+bool Bunch_simulator::has_local_bunch(size_t train, size_t bunch) const {
   return get_bunch_array_idx(train, bunch) != -1;
 }
 
-  Bunch &
-Bunch_simulator::get_bunch(size_t train, size_t bunch)
-{
+Bunch &Bunch_simulator::get_bunch(size_t train, size_t bunch) {
   auto idx = get_bunch_array_idx(train, bunch);
-  if (idx == -1) throw std::runtime_error("bunch not avaialble on the rank");
+  if (idx == -1)
+    throw std::runtime_error("bunch not avaialble on the rank");
   return trains[train][idx];
 }
 
-Bunch const&
-Bunch_simulator::get_bunch(size_t train, size_t bunch) const
-{
+Bunch const &Bunch_simulator::get_bunch(size_t train, size_t bunch) const {
   auto idx = get_bunch_array_idx(train, bunch);
-  if (idx == -1) throw std::runtime_error("bunch not avaialble on the rank");
+  if (idx == -1)
+    throw std::runtime_error("bunch not avaialble on the rank");
   return trains[train][idx];
 }
 
-std::vector<int>
-Bunch_simulator::get_bunch_ranks(size_t train, size_t bunch) const
-{
-  int rank_per_bunch = std::ceil( 1.0 * comm->size() /
-      (trains[0].get_num_bunches() + trains[1].get_num_bunches()) );
+std::vector<int> Bunch_simulator::get_bunch_ranks(size_t train,
+                                                  size_t bunch) const {
+  int rank_per_bunch =
+      std::ceil(1.0 * comm->size() /
+                (trains[0].get_num_bunches() + trains[1].get_num_bunches()));
 
   std::vector<int> ranks(rank_per_bunch);
-  std::iota(ranks.begin(), ranks.end(), bunch*rank_per_bunch);
+  std::iota(ranks.begin(), ranks.end(), bunch * rank_per_bunch);
 
   return ranks;
 }
 
-  void
-Bunch_simulator::diag_action_step_and_turn(int turn_num, int step_num)
-{
-  for (auto const& dt : diags_step_period)
-  {
-    if (dt.trigger(turn_num, step_num))
-    {
-      trains[dt.train][dt.bunch]
-        .diag_update_and_write(dt.diag_id);
+void Bunch_simulator::diag_action_step_and_turn(int turn_num, int step_num) {
+  for (auto const &dt : diags_step_period) {
+    if (dt.trigger(turn_num, step_num)) {
+      trains[dt.train][dt.bunch].diag_update_and_write(dt.diag_id);
     }
   }
 
-  for (auto const& dt : diags_turn_listed)
-  {
-    if (dt.trigger(turn_num, step_num))
-    {
-      trains[dt.train][dt.bunch]
-        .diag_update_and_write(dt.diag_id);
+  for (auto const &dt : diags_turn_listed) {
+    if (dt.trigger(turn_num, step_num)) {
+      trains[dt.train][dt.bunch].diag_update_and_write(dt.diag_id);
     }
   }
 }
 
-  void
-Bunch_simulator::diag_action_element(Lattice_element const& element)
-{
-  for (auto const& dt : diags_element)
-  {
-    if (dt.trigger(current_turn(), element))
-    {
-      trains[dt.train][dt.bunch]
-        .diag_update_and_write(dt.diag_id);
+void Bunch_simulator::diag_action_element(Lattice_element const &element) {
+  for (auto const &dt : diags_element) {
+    if (dt.trigger(current_turn(), element)) {
+      trains[dt.train][dt.bunch].diag_update_and_write(dt.diag_id);
     }
   }
 }
 
+void Bunch_simulator::diag_action_operator(Operator const &opr) {}
 
-  void
-Bunch_simulator::diag_action_operator(Operator const& opr)
-{
-}
+void Bunch_simulator::diag_action_operation(Independent_operation const &opn) {}
 
-  void
-Bunch_simulator::diag_action_operation(Independent_operation const& opn)
-{
-}
-
-  void
-Bunch_simulator::reg_prop_action_step_end(action_step_t fun)
-{
+void Bunch_simulator::reg_prop_action_step_end(action_step_t fun) {
   prop_actions_step_end.push_back(fun);
 }
 
-  void
-Bunch_simulator::reg_prop_action_turn_end(action_turn_t fun)
-{
+void Bunch_simulator::reg_prop_action_turn_end(action_turn_t fun) {
   prop_actions_turn_end.push_back(fun);
 }
 
-  void
-Bunch_simulator::reg_prop_action_step_end(action_data_step_t fun, void* data)
-{
+void Bunch_simulator::reg_prop_action_step_end(action_data_step_t fun,
+                                               void *data) {
   using namespace std::placeholders;
   auto fun2 = std::bind(fun, _1, _2, _3, _4, data);
   prop_actions_step_end.push_back(fun2);
 }
 
-  void
-Bunch_simulator::reg_prop_action_turn_end(action_data_turn_t fun, void* data)
-{
+void Bunch_simulator::reg_prop_action_turn_end(action_data_turn_t fun,
+                                               void *data) {
   using namespace std::placeholders;
   auto fun2 = std::bind(fun, _1, _2, _3, data);
   prop_actions_turn_end.push_back(fun2);
 }
 
-  void
-Bunch_simulator::prop_action_first(Lattice & lattice)
-{
+void Bunch_simulator::prop_action_first(Lattice &lattice) {
   if (prop_actions)
     prop_actions->first(*this, lattice);
 }
 
-  void
-Bunch_simulator::prop_action_step_end(Lattice & lattice, int turn, int step)
-{
+void Bunch_simulator::prop_action_step_end(Lattice &lattice, int turn,
+                                           int step) {
   if (prop_actions)
     prop_actions->step_end(*this, lattice, turn, step);
 
-  for (auto const& action : prop_actions_step_end)
+  for (auto const &action : prop_actions_step_end)
     action(*this, lattice, turn, step);
 }
 
-  void
-Bunch_simulator::prop_action_turn_end(Lattice & lattice, int turn)
-{
+void Bunch_simulator::prop_action_turn_end(Lattice &lattice, int turn) {
   if (prop_actions)
     prop_actions->turn_end(*this, lattice, turn);
 
-  for (auto const& action : prop_actions_turn_end)
+  for (auto const &action : prop_actions_turn_end)
     action(*this, lattice, turn);
 }
 
-  void
-Bunch_simulator::set_lattice_reference_particle(Reference_particle const& ref)
-{
-  for(auto & train : get_trains())
-  {
-    for(auto & bunch : train.get_bunches())
-    {
+void Bunch_simulator::set_lattice_reference_particle(
+    Reference_particle const &ref) {
+  for (auto &train : get_trains()) {
+    for (auto &bunch : train.get_bunches()) {
       bunch.set_design_reference_particle(ref);
     }
   }
 }
 
-namespace
-{
-  std::vector<Bunch const*>
-    get_bunch_ptrs(std::array<Bunch_train, 2> const& trains)
-    {
-      std::vector<Bunch const*> bunches;
+namespace {
+std::vector<Bunch const *>
+get_bunch_ptrs(std::array<Bunch_train, 2> const &trains) {
+  std::vector<Bunch const *> bunches;
 
-      for(auto const& t : trains)
-        for(auto const& b : t.get_bunches())
-          bunches.push_back(&b);
+  for (auto const &t : trains)
+    for (auto const &b : t.get_bunches())
+      bunches.push_back(&b);
 
-      return bunches;
-    }
-
-  std::vector<Bunch*>
-    get_bunch_ptrs(std::array<Bunch_train, 2>& trains)
-    {
-      std::vector<Bunch*> bunches;
-
-      for(auto & t : trains)
-        for(auto & b : t.get_bunches())
-          bunches.push_back(&b);
-
-      return bunches;
-    }
+  return bunches;
 }
 
-void
-Bunch_simulator::save_checkpoint_particles(std::string const& fname) const
-{
+std::vector<Bunch *> get_bunch_ptrs(std::array<Bunch_train, 2> &trains) {
+  std::vector<Bunch *> bunches;
+
+  for (auto &t : trains)
+    for (auto &b : t.get_bunches())
+      bunches.push_back(&b);
+
+  return bunches;
+}
+} // namespace
+
+void Bunch_simulator::save_checkpoint_particles(
+    std::string const &fname) const {
   Hdf5_file file(fname, Hdf5_file::Flag::truncate, *comm);
   auto bunches = get_bunch_ptrs(trains);
 
-  for (int i=0; i<bunches.size(); ++i)
+  for (int i = 0; i < bunches.size(); ++i)
     bunches[i]->save_checkpoint_particles(file, i);
 }
 
-  void
-Bunch_simulator::load_checkpoint_particles(std::string const& fname)
-{
+void Bunch_simulator::load_checkpoint_particles(std::string const &fname) {
   Hdf5_file file(fname, Hdf5_file::Flag::read_only, *comm);
   auto bunches = get_bunch_ptrs(trains);
 
-  for (int i=0; i<bunches.size(); ++i)
+  for (int i = 0; i < bunches.size(); ++i)
     bunches[i]->load_checkpoint_particles(file, i);
 }
 
-  void
-Bunch_simulator::populate_6d(
-    uint64_t seed,
-    const_karray1d means,
-    const_karray2d_row covariances)
-{
+void Bunch_simulator::populate_6d(uint64_t seed, const_karray1d means,
+                                  const_karray2d_row covariances) {
   karray1d limits("limits", 6);
-  for(int i=0; i<6; ++i) limits[i] = 0.0;
+  for (int i = 0; i < 6; ++i)
+    limits[i] = 0.0;
 
-  populate_6d_truncated(
-      seed, means, covariances, limits);
+  populate_6d_truncated(seed, means, covariances, limits);
 }
 
-  void
-Bunch_simulator::populate_6d_truncated(
-    uint64_t seed,
-    const_karray1d means,
-    const_karray2d_row covariances,
-    const_karray1d limits)
-{
+void Bunch_simulator::populate_6d_truncated(uint64_t seed, const_karray1d means,
+                                            const_karray2d_row covariances,
+                                            const_karray1d limits) {
   int train_idx = 0;
 
-  for(auto & train : get_trains())
-  {
-    for(auto & bunch : train.get_bunches())
-    {
+  for (auto &train : get_trains()) {
+    for (auto &bunch : train.get_bunches()) {
       // assign unique particle ids across
       // the bunch simulator,
       bunch.assign_particle_ids(train_idx);
 
       // coordinated populate depends on the
       // global particle id
-      populate_global_6d_truncated(seed,
-          bunch, means, covariances, limits);
+      populate_global_6d_truncated(seed, bunch, means, covariances, limits);
     }
 
     ++train_idx;
   }
 }
-

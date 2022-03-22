@@ -1,4 +1,5 @@
-
+#include "mx_tree.hpp"
+#include "mx_parse.hpp"
 
 #include <any>
 #include <cassert>
@@ -7,11 +8,8 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <minigia/foundation/physical_constants.hpp>
 #include <minigia/foundation/four_momentum.hpp>
-
-#include "mx_parse.hpp"
-#include "mx_tree.hpp"
+#include <minigia/foundation/physical_constants.hpp>
 
 using namespace synergia;
 using namespace std;
@@ -20,32 +18,32 @@ using boost::get;
 
 // helper
 namespace synergia {
-  namespace {
-    // deduct an expression and replace it with a number if all through
-    mx_expr simplify(mx_expr const &e, MadX const &mx) {
-      try {
-        double r = boost::apply_visitor(mx_calculator(mx), e);
-        return mx_expr(r);
-      } catch (...) {
-        return e;
-      }
-    }
+namespace {
+// deduct an expression and replace it with a number if all through
+mx_expr simplify(mx_expr const &e, MadX const &mx) {
+  try {
+    double r = boost::apply_visitor(mx_calculator(mx), e);
+    return mx_expr(r);
+  } catch (...) {
+    return e;
+  }
+}
 
-    template <typename T>
-      void insert_attr(T &t, mx_attr const &attr, MadX const &mx) {
-        if (attr.type() == MX_ATTR_STRING) {
-          t.insert_attribute(attr.name(), any_cast<string>(attr.value()));
-        } else if (attr.type() == MX_ATTR_PREDEFINED) {
-          t.insert_attribute(attr.name(), any_cast<mx_keyword>(attr.value()).name);
-        } else if (attr.type() == MX_ATTR_NUMBER) {
+template <typename T>
+void insert_attr(T &t, mx_attr const &attr, MadX const &mx) {
+  if (attr.type() == MX_ATTR_STRING) {
+    t.insert_attribute(attr.name(), any_cast<string>(attr.value()));
+  } else if (attr.type() == MX_ATTR_PREDEFINED) {
+    t.insert_attribute(attr.name(), any_cast<mx_keyword>(attr.value()).name);
+  } else if (attr.type() == MX_ATTR_NUMBER) {
 #if 0
           mx_expr e = simplify( any_cast<mx_expr>(attr.value()), mx );
           t.insert_attribute( attr.name(), e );
 #endif
-          t.insert_attribute(attr.name(), any_cast<mx_expr>(attr.value()));
-        } else if (attr.type() == MX_ATTR_LAZY_NUMBER) {
-          t.insert_attribute(attr.name(), any_cast<mx_expr>(attr.value()));
-        } else if (attr.type() == MX_ATTR_ARRAY) {
+    t.insert_attribute(attr.name(), any_cast<mx_expr>(attr.value()));
+  } else if (attr.type() == MX_ATTR_LAZY_NUMBER) {
+    t.insert_attribute(attr.name(), any_cast<mx_expr>(attr.value()));
+  } else if (attr.type() == MX_ATTR_ARRAY) {
 #if 0
           mx_exprs es = any_cast<mx_exprs>(attr.value());
           for( mx_exprs::iterator it = es.begin()
@@ -56,14 +54,14 @@ namespace synergia {
           }
           t.insert_attribute( attr.name(), es );
 #endif
-          mx_exprs es = any_cast<mx_exprs>(attr.value());
-          t.insert_attribute(attr.name(), es);
-        } else if (attr.type() == MX_ATTR_LAZY_ARRAY) {
-          mx_exprs es = any_cast<mx_exprs>(attr.value());
-          t.insert_attribute(attr.name(), es);
-        }
-      }
-  } // namespace
+    mx_exprs es = any_cast<mx_exprs>(attr.value());
+    t.insert_attribute(attr.name(), es);
+  } else if (attr.type() == MX_ATTR_LAZY_ARRAY) {
+    mx_exprs es = any_cast<mx_exprs>(attr.value());
+    t.insert_attribute(attr.name(), es);
+  }
+}
+} // namespace
 } // namespace synergia
 
 void mx_logic::set(mx_expr const &l, logic_op_t o, mx_expr const &r) {
@@ -99,8 +97,8 @@ void mx_attr::set_attr(std::string const &name, std::any const &val) {
   else if (val.type() == typeid(mx_exprs))
     type_ = MX_ATTR_ARRAY;
   else if (val.type() == typeid(mx_keyword) &&
-      (any_cast<mx_keyword>(val).tag == MX_KW_PARTICLE ||
-       any_cast<mx_keyword>(val).tag == MX_KW_MP_TYPE))
+           (any_cast<mx_keyword>(val).tag == MX_KW_PARTICLE ||
+            any_cast<mx_keyword>(val).tag == MX_KW_MP_TYPE))
     type_ = MX_ATTR_PREDEFINED;
   else
     throw std::runtime_error("Unknown attribute value type for " + name);
@@ -119,8 +117,8 @@ void mx_attr::set_lazy_attr(std::string const &name, std::any const &val) {
   else if (val.type() == typeid(mx_exprs))
     type_ = MX_ATTR_LAZY_ARRAY;
   else if (val.type() == typeid(mx_keyword) &&
-      (any_cast<mx_keyword>(val).tag == MX_KW_PARTICLE ||
-       any_cast<mx_keyword>(val).tag == MX_KW_MP_TYPE))
+           (any_cast<mx_keyword>(val).tag == MX_KW_PARTICLE ||
+            any_cast<mx_keyword>(val).tag == MX_KW_MP_TYPE))
     type_ = MX_ATTR_PREDEFINED; // all predefines are immediate
   else
     throw std::runtime_error("Unknown lazy attribute value type for " + name);
@@ -146,7 +144,7 @@ void mx_line_seq::interpret(MadX const &mx, MadX_line &line, int op) {
   {
     for (int z = 0; z < op; ++z) {
       for (mx_line_members::const_iterator it = members.begin();
-          it != members.end(); ++it) {
+           it != members.end(); ++it) {
         mx_line_member member = it->first;
         int op = it->second;
         member.interpret(mx, line, op);
@@ -159,7 +157,7 @@ void mx_line_seq::interpret(MadX const &mx, MadX_line &line, int op) {
   {
     for (int z = 0; z > op; --z) {
       for (mx_line_members::reverse_iterator it = members.rbegin();
-          it != members.rend(); ++it) {
+           it != members.rend(); ++it) {
         mx_line_member member = it->first;
         int op = it->second;
         member.interpret(mx, line, op);
@@ -172,65 +170,65 @@ void mx_line_seq::interpret(MadX const &mx, MadX_line &line, int op) {
 mx_line_member::mx_line_member() : member(), tag(MX_LINE_MEMBER_NAME) {}
 
 mx_line_member::mx_line_member(string_t const &name)
-  : member(name), tag(MX_LINE_MEMBER_NAME) {}
+    : member(name), tag(MX_LINE_MEMBER_NAME) {}
 
 mx_line_member::mx_line_member(mx_line_seq const &seq)
-  : member(seq), tag(MX_LINE_MEMBER_SEQ) {}
+    : member(seq), tag(MX_LINE_MEMBER_SEQ) {}
 
-  void mx_line_member::interpret(MadX const &mx, MadX_line &line, int op) {
-    if (op == 0)
-      return;
-
-    if (tag == MX_LINE_MEMBER_NAME) {
-      // member is a name/reference
-      string name = any_cast<string>(member);
-      MadX_entry_type type = mx.entry_type(name);
-
-      // does the name refer to a madx command?
-      if (type == ENTRY_COMMAND) {
-        // ok it is a command
-        if (mx.command(name, true).is_element()) {
-          // now it is a real element
-          if (op != 1)
-            throw runtime_error(
-                "Line op only applies to sublines, not to elements!");
-
-          // push to the line
-          line.insert_element(name);
-        } else {
-          throw runtime_error("Line member '" + name + "' is not an element");
-        }
-      }
-      // or the name referes to a pre-exisitng line
-      else if (type == ENTRY_LINE) {
-        MadX_line const &subline = mx.line(name);
-        size_t ne = subline.element_count();
-        int repeat = (op > 0) ? op : -op;
-
-        for (int z = 0; z < repeat; ++z) {
-          for (size_t i = 0; i < ne; ++i)
-            line.insert_element(
-                subline.element_name((op > 0) ? (i) : (ne - 1 - i)));
-        }
-      }
-      // TODO: for now, we accept the sequence name as a simple line member
-      // Needs more works!
-      else if (type == ENTRY_SEQUENCE) {
-        line.insert_element(name);
-      }
-      // something we dont support
-      else {
-        // TODO: for now, accept all names whether it is valid or not!!
-        // throw runtime_error("Line member '" + name + "' does not exist or not
-        // correct type");
-      }
-    } else {
-      // if it is not a name, it must be a seq
-      any_cast<mx_line_seq>(member).interpret(mx, line, op);
-    }
-
+void mx_line_member::interpret(MadX const &mx, MadX_line &line, int op) {
+  if (op == 0)
     return;
+
+  if (tag == MX_LINE_MEMBER_NAME) {
+    // member is a name/reference
+    string name = any_cast<string>(member);
+    MadX_entry_type type = mx.entry_type(name);
+
+    // does the name refer to a madx command?
+    if (type == ENTRY_COMMAND) {
+      // ok it is a command
+      if (mx.command(name, true).is_element()) {
+        // now it is a real element
+        if (op != 1)
+          throw runtime_error(
+              "Line op only applies to sublines, not to elements!");
+
+        // push to the line
+        line.insert_element(name);
+      } else {
+        throw runtime_error("Line member '" + name + "' is not an element");
+      }
+    }
+    // or the name referes to a pre-exisitng line
+    else if (type == ENTRY_LINE) {
+      MadX_line const &subline = mx.line(name);
+      size_t ne = subline.element_count();
+      int repeat = (op > 0) ? op : -op;
+
+      for (int z = 0; z < repeat; ++z) {
+        for (size_t i = 0; i < ne; ++i)
+          line.insert_element(
+              subline.element_name((op > 0) ? (i) : (ne - 1 - i)));
+      }
+    }
+    // TODO: for now, we accept the sequence name as a simple line member
+    // Needs more works!
+    else if (type == ENTRY_SEQUENCE) {
+      line.insert_element(name);
+    }
+    // something we dont support
+    else {
+      // TODO: for now, accept all names whether it is valid or not!!
+      // throw runtime_error("Line member '" + name + "' does not exist or not
+      // correct type");
+    }
+  } else {
+    // if it is not a name, it must be a seq
+    any_cast<mx_line_seq>(member).interpret(mx, line, op);
   }
+
+  return;
+}
 
 // command
 void mx_command::set_label(string const &label) {
@@ -244,8 +242,8 @@ void mx_command::set_keyword(mx_keyword const &keyword) {
     throw std::runtime_error("Invalid keyword type");
 
   mx_cmd_type t = (keyword.tag == MX_KW_ELEMENT)   ? MX_CMD_ELEMENT
-    : (keyword.tag == MX_KW_COMMAND) ? MX_CMD_EXECUTABLE
-    : MX_CMD_ELEMENT_REF;
+                  : (keyword.tag == MX_KW_COMMAND) ? MX_CMD_EXECUTABLE
+                                                   : MX_CMD_ELEMENT_REF;
 
   set_keyword(keyword.name, t);
 }
@@ -295,7 +293,7 @@ void mx_command::interpret(MadX &mx) {
     // unlabeled class? -- it is a warning and will be skipped
     if (!labeled_) {
       cout << "statment illegal in the context (declaring the element '"
-        << keyword_ << "' without a label), will be skipped\n";
+           << keyword_ << "' without a label), will be skipped\n";
       return;
     }
 
@@ -362,7 +360,7 @@ void mx_command::execute(MadX &mx) {
   if (keyword_ == "call") {
     // pull in the sub-file
     for (attrs_t::const_iterator it = attrs_.begin(); it != attrs_.end();
-        ++it) {
+         ++it) {
       if (it->name() == "file") {
         string fname = std::any_cast<string>(it->value());
         mx_tree subroutine;
@@ -399,11 +397,11 @@ void mx_command::execute(MadX &mx) {
             it->set_attr("refer", refer);
           } catch (...) {
             throw runtime_error("The 'refer' attribute of sequence '" + label_ +
-                "' is not a string");
+                                "' is not a string");
           }
         } else {
           throw runtime_error("The 'refer' attribute of sequence '" + label_ +
-              "' is not a string");
+                              "' is not a string");
         }
       }
 
@@ -420,11 +418,11 @@ void mx_command::execute(MadX &mx) {
             it->set_attr("refpos", refpos);
           } catch (...) {
             throw runtime_error("The 'refpos' attribute of sequence '" +
-                label_ + "' is not a string");
+                                label_ + "' is not a string");
           }
         } else {
           throw runtime_error("The 'refpos' attribute of sequence '" + label_ +
-              "' is not a string");
+                              "' is not a string");
         }
       }
 
@@ -434,7 +432,7 @@ void mx_command::execute(MadX &mx) {
           length = boost::apply_visitor(mx_calculator(mx), e);
         } catch (...) {
           throw runtime_error("The 'length' attribute of sequence '" + label_ +
-              "' is not a number");
+                              "' is not a number");
         }
       }
 
@@ -445,7 +443,7 @@ void mx_command::execute(MadX &mx) {
 
     if (length < 0.0)
       throw runtime_error("The 'length' attribute of sequence '" + label_ +
-          "' is not a valid number");
+                          "' is not a valid number");
 
     // tells madx object to start building sequence
     mx.start_sequence(label_, length, refer, refpos);
@@ -462,7 +460,7 @@ void mx_command::execute(MadX &mx) {
     double mass = 0, charge = 0, energy = 0, pc = 0, gamma = 0;
     bool have_charge = false;
     for (attrs_t::const_iterator it = attrs_.begin(); it != attrs_.end();
-        ++it) {
+         ++it) {
       if (it->name() == "particle") {
         string particle = any_cast<mx_keyword>(it->value()).name;
         if (particle == "proton") {
@@ -565,7 +563,7 @@ void mx_command::print() const {
 
   for (attrs_t::const_iterator it = attrs_.begin(); it != attrs_.end(); ++it) {
     cout << it->name() << " = "
-      << "xxx, ";
+         << "xxx, ";
   }
 
   cout << "\n";
@@ -605,7 +603,7 @@ void mx_if::interpret(MadX &mx) {
     if_.interpret_block(mx);
   } else if (!elseif_.empty()) {
     for (mx_if_block_v::iterator it = elseif_.begin(); it != elseif_.end();
-        ++it) {
+         ++it) {
       if (it->evaluate_logic(mx)) {
         it->interpret_block(mx);
       }
@@ -628,7 +626,7 @@ void mx_if::print() const {
   cout << "}\n";
 
   for (mx_if_block_v::const_iterator it = elseif_.begin(); it != elseif_.end();
-      ++it) {
+       ++it) {
     cout << "elseif (";
     it->print_logic();
     cout << ")\n{\n";
@@ -666,57 +664,57 @@ void mx_while::print() const {
 synergia::mx_statement::mx_statement() : value(), type(MX_NULL) {}
 
 synergia::mx_statement::mx_statement(mx_command const &st)
-  : value(st), type(MX_COMMAND) {}
+    : value(st), type(MX_COMMAND) {}
 
 synergia::mx_statement::mx_statement(mx_if const &st)
-  : value(st), type(MX_IF) {}
+    : value(st), type(MX_IF) {}
 
 synergia::mx_statement::mx_statement(mx_while const &st)
-  : value(st), type(MX_WHILE) {}
+    : value(st), type(MX_WHILE) {}
 
 synergia::mx_statement::mx_statement(mx_line const &st)
-  : value(st), type(MX_LINE) {}
+    : value(st), type(MX_LINE) {}
 
-  mx_statement_type synergia::mx_statement::get_type() const { return type; }
+mx_statement_type synergia::mx_statement::get_type() const { return type; }
 
-  void mx_statement::assign(mx_command const &st) {
-    value = std::any(st);
-    type = MX_COMMAND;
-  }
+void mx_statement::assign(mx_command const &st) {
+  value = std::any(st);
+  type = MX_COMMAND;
+}
 
 void mx_statement::assign(mx_if const &st) {
-  value = any(st);
+  value = std::any(st);
   type = MX_IF;
 }
 
 void mx_statement::assign(mx_while const &st) {
-  value = any(st);
+  value = std::any(st);
   type = MX_WHILE;
 }
 
 void mx_statement::assign(mx_line const &st) {
-  value = any(st);
+  value = std::any(st);
   type = MX_LINE;
 }
 
 void mx_statement::interpret(MadX &mx) {
   switch (type) {
-    case MX_COMMAND:
-      std::any_cast<mx_command>(value).interpret(mx);
-      break;
-    case MX_LINE:
-      std::any_cast<mx_line>(value).interpret(mx);
-      break;
-    case MX_IF:
-      std::any_cast<mx_if>(value).interpret(mx);
-      break;
-    case MX_WHILE:
-      std::any_cast<mx_while>(value).interpret(mx);
-      break;
-    case MX_NULL:
-      break;
-    default:
-      throw runtime_error("mx_statement::interpret()  Unknown statement type");
+  case MX_COMMAND:
+    std::any_cast<mx_command>(value).interpret(mx);
+    break;
+  case MX_LINE:
+    std::any_cast<mx_line>(value).interpret(mx);
+    break;
+  case MX_IF:
+    std::any_cast<mx_if>(value).interpret(mx);
+    break;
+  case MX_WHILE:
+    std::any_cast<mx_while>(value).interpret(mx);
+    break;
+  case MX_NULL:
+    break;
+  default:
+    throw runtime_error("mx_statement::interpret()  Unknown statement type");
   }
 }
 
@@ -734,7 +732,7 @@ void mx_statement::print() const {
 // tree
 void mx_tree::interpret(MadX &mx) {
   for (mx_statements_t::iterator it = statements.begin();
-      it != statements.end(); ++it) {
+       it != statements.end(); ++it) {
     auto type = it->get_type();
     if (type == MX_COMMAND || type == MX_IF || type == MX_WHILE) {
       it->interpret(mx);
@@ -742,7 +740,7 @@ void mx_tree::interpret(MadX &mx) {
   }
 
   for (mx_statements_t::iterator it = statements.begin();
-      it != statements.end(); ++it) {
+       it != statements.end(); ++it) {
     auto type = it->get_type();
     if (type != MX_COMMAND && type != MX_IF && type != MX_WHILE) {
       it->interpret(mx);
