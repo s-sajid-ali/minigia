@@ -5,6 +5,7 @@
 #include <minigia/bunch/core_diagnostics.hpp>
 #include <minigia/foundation/physical_constants.hpp>
 #include <minigia/utils/logger.hpp>
+#include <minigia/utils/simple_timer.hpp>
 #include <thread>
 
 int main(int argc, char *argv[]) {
@@ -25,32 +26,37 @@ int main(int argc, char *argv[]) {
     Bunch bunch;
     bunch.read_file(std::string("particles.h5"));
 
-    auto mean = Core_diagnostics::calculate_mean(bunch);
-    auto stddev = Core_diagnostics::calculate_std(bunch, mean);
+    {
+      scoped_simple_timer timer("old_method");
 
-    if (comm.get_rank() == 0) {
-      for (int i = 0; i < 3; i++) {
-        std::cout << "mean" << i * 2 << " : " << mean[i * 2] << "\n";
-        std::cout << "stddev" << i * 2 << " : " << stddev[i * 2] << "\n";
+      auto mean = Core_diagnostics::calculate_mean(bunch);
+      auto stddev = Core_diagnostics::calculate_std(bunch, mean);
+
+      if (comm.get_rank() == 0) {
+        for (int i = 0; i < 3; i++) {
+          std::cout << "mean" << i * 2 << " : " << mean[i * 2] << "\n";
+          std::cout << "stddev" << i * 2 << " : " << stddev[i * 2] << "\n";
+        }
       }
     }
-
     const auto particles = bunch.get_local_particles();
     const auto masks = bunch.get_local_particle_masks();
 
     const auto total_bunch_particles = bunch.get_total_num();
     const auto local_bunch_capacity = bunch.size();
 
-    // Kokkos::View<double[6], Kokkos::DefaultHostExecutionSpace>
-    // mean_and_stddev(
-    //     "mean_stddev");
-    std::array<double, 6> mean_and_stddev{0, 0, 0, 0, 0, 0};
+    Kokkos::View<double[6], Kokkos::DefaultHostExecutionSpace> mean_and_stddev(
+        "mean_stddev");
+    // std::array<double, 6> mean_and_stddev{0, 0, 0, 0, 0, 0};
     {
+      scoped_simple_timer timer("new_method");
+
       auto instances = Kokkos::Experimental::partition_space(
           Kokkos::DefaultExecutionSpace(), 1, 1, 1);
       for (int instance_id = 0; instance_id < 3; instance_id++) {
-        std::cout << "starting 1st set of instances with id : " << instance_id
-                  << " at " << MPI_Wtime() << "\n";
+        // std::cout << "starting 1st set of instances with id : " <<
+        // instance_id
+        //                   << " at " << MPI_Wtime() << "\n";
         int idx1 = 0 + instance_id;
         int idx2 = 3 + instance_id;
         int idx3 = 2 * instance_id;
@@ -76,8 +82,9 @@ int main(int argc, char *argv[]) {
             mean_and_stddev[idx2]);
       }
       for (int instance_id = 0; instance_id < 3; instance_id++) {
-        std::cout << "starting 2nd set of instances with id : " << instance_id
-                  << " at " << MPI_Wtime() << "\n";
+        // std::cout << "starting 2nd set of instances with id : " <<
+        // instance_id
+        //           << " at " << MPI_Wtime() << "\n";
         int idx1 = 0 + instance_id;
         int idx2 = 3 + instance_id;
         instances[instance_id].fence();
@@ -104,6 +111,7 @@ int main(int argc, char *argv[]) {
         std::cout << "stddev" << i << " : " << mean_and_stddev[i + 3] << "\n";
       }
     }
+    simple_timer_print(screen);
   }
 
   Kokkos::finalize();

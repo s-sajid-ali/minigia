@@ -6,7 +6,6 @@ std::map<std::string, simple_timer_counter::timing>
         std::map<std::string, simple_timer_counter::timing>();
 
 void simple_timer_print(Logger &logger) {
-#ifdef SIMPLE_TIMER
   using namespace std;
 
   logger(LoggerV::INFO)
@@ -22,5 +21,4 @@ void simple_timer_print(Logger &logger) {
   }
 
   logger << "\n";
-#endif
 }
