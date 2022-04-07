@@ -35,6 +35,8 @@ private:
   bool use_fixed_domain;
   bool allocated;
 
+  GlobalCtx gctx;
+  SubcommCtx sctx;
   LocalCtx lctx;
 
 private:
@@ -42,9 +44,9 @@ private:
 
   void apply_bunch(Bunch &bunch, double time_step, Logger &logger);
 
-  void allocate_sc3d_fd(Space_charge_3d_fd_options const &ops);
+  PetscErrorCode allocate_sc3d_fd(Space_charge_3d_fd_options const &ops);
 
-  void destroy_sc3d_fd();
+  PetscErrorCode destroy_sc3d_fd();
 
   void update_domain(Bunch const &bunch);
 

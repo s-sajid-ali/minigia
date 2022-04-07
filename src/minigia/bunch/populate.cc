@@ -235,8 +235,8 @@ void populate_transverse_gaussian(Distribution &dist, Bunch &bunch,
     particles(p, 5) = dist.get_unit_gaussian();
 
   // copy of original means and covariances
-  karray1d means_modified = means;
-  karray2d_row covariances_modified = covariances;
+  karray1d means_modified("means_modified");
+  karray2d_row covariances_modified("covariances_modified");
 
   Kokkos::deep_copy(means_modified, means);
   Kokkos::deep_copy(covariances_modified, covariances);

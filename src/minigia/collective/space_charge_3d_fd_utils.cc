@@ -1,4 +1,4 @@
-#include "space_charge_3d_fd_impl.hpp"
+#include "space_charge_3d_fd_utils.hpp"
 
 /* --------------------------------------------------------------------- */
 /*!
@@ -9,31 +9,37 @@
   */
 
 PetscErrorCode init_localvecs(LocalCtx &lctx, GlobalCtx &gctx) {
-
-  PetscErrorCode ierr;
   PetscFunctionBeginUser;
 
-  ierr = VecCreate(PETSC_COMM_SELF, &lctx.seqphi);
-  CHKERRQ(ierr);
-  ierr = VecSetType(lctx.seqphi, gctx.vectype.c_str());
-  CHKERRQ(ierr);
-  ierr = VecSetSizes(lctx.seqphi, PETSC_DECIDE, gctx.nsize);
-  CHKERRQ(ierr);
-  ierr = VecSetFromOptions(lctx.seqphi);
-  CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)(lctx.seqphi), "seqphi_on_lctx");
-  CHKERRQ(ierr);
+  PetscCall(VecCreate(PETSC_COMM_SELF, &lctx.seqphi));
+  PetscCall(VecSetType(lctx.seqphi, gctx.vectype.c_str()));
+  PetscCall(VecSetSizes(lctx.seqphi, PETSC_DECIDE, gctx.nsize));
+  PetscCall(VecSetFromOptions(lctx.seqphi));
+  PetscCall(PetscObjectSetName((PetscObject)(lctx.seqphi), "seqphi_on_lctx"));
 
-  ierr = VecCreate(PETSC_COMM_SELF, &lctx.seqrho);
-  CHKERRQ(ierr);
-  ierr = VecSetType(lctx.seqrho, gctx.vectype.c_str());
-  CHKERRQ(ierr);
-  ierr = VecSetSizes(lctx.seqrho, PETSC_DECIDE, gctx.nsize);
-  CHKERRQ(ierr);
-  ierr = VecSetFromOptions(lctx.seqrho);
-  CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)(lctx.seqrho), "seqrho_on_lctx");
-  CHKERRQ(ierr);
+  PetscCall(VecCreate(PETSC_COMM_SELF, &lctx.seqrho));
+  PetscCall(VecSetType(lctx.seqrho, gctx.vectype.c_str()));
+  PetscCall(VecSetSizes(lctx.seqrho, PETSC_DECIDE, gctx.nsize));
+  PetscCall(VecSetFromOptions(lctx.seqrho));
+  PetscCall(PetscObjectSetName((PetscObject)(lctx.seqrho), "seqrho_on_lctx"));
 
-  PetscFunctionReturn(ierr);
+  PetscFunctionReturn(0);
+}
+
+/* --------------------------------------------------------------------- */
+/*!
+  finalize by destroying data structures
+  \param   lctx - local context
+  \param   sctx - subcomm context
+  \param   gctx - global context
+  \return  ierr - PetscErrorCode
+*/
+PetscErrorCode finalize(LocalCtx &lctx, SubcommCtx &sctx, GlobalCtx &gctx) {
+  PetscFunctionBeginUser;
+
+  /* Destroy local vectors */
+  PetscCall(VecDestroy(&(lctx.seqphi)));
+  PetscCall(VecDestroy(&(lctx.seqrho)));
+
+  PetscFunctionReturn(0);
 }
