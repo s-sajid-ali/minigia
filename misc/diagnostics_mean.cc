@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
       }
     }
   }
+
   const auto particles = bunch.get_local_particles();
   const auto masks = bunch.get_local_particle_masks();
 

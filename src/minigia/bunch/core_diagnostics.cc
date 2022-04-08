@@ -8,8 +8,6 @@
 
 #include "core_diagnostics.hpp"
 
-// using namespace Eigen;
-
 #if 0
 // note: cannot get the template F to work with CUDA
 //
