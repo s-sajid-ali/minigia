@@ -10,8 +10,8 @@
 
 int main(int argc, char *argv[]) {
   MPI_Init(&argc, &argv);
-  Kokkos::initialize(argc, argv);
   Commxx comm;
+  Kokkos::ScopeGuard kokkos(argc, argv);
 
   const double mass = 100.0;
   const double total_energy = 125.0;
@@ -104,7 +104,6 @@ int main(int argc, char *argv[]) {
   }
   simple_timer_print(screen);
 
-  Kokkos::finalize();
   MPI_Finalize();
 
   return 0;
