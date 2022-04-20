@@ -7,7 +7,7 @@ set(minigia_parallel_utils_src
     )
 
 add_library(minigia_parallel_utils SHARED ${minigia_parallel_utils_src})
-target_link_libraries(minigia_parallel_utils MPI::MPI_C ${kokkos_libs})
+target_link_libraries(minigia_parallel_utils MPI::MPI_C ${kokkos_libs} cereal::cereal)
 
 target_include_directories(minigia_parallel_utils INTERFACE
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>

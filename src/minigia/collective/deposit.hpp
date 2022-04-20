@@ -1,7 +1,6 @@
 #ifndef DEPOSIT_H_
 #define DEPOSIT_H_
 
-#include "rectangular_grid_domain.hpp"
 #include <minigia/bunch/bunch.hpp>
 
 void deposit_charge_rectangular_3d_kokkos_scatter_view(

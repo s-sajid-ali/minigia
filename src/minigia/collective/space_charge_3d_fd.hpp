@@ -1,6 +1,7 @@
 #ifndef SPACE_CHARGE_3D_FD_H_
 #define SPACE_CHARGE_3D_FD_H_
 
+#include <minigia/bunch/core_diagnostics.hpp>
 #include <minigia/simulation/collective_operator_options.hpp>
 #include <minigia/simulation/operator.hpp>
 
@@ -12,14 +13,17 @@ struct Space_charge_3d_fd_options
     : public CO_base_options<Space_charge_3d_fd_options, Space_charge_3d_fd> {
   std::array<int, 3> shape;
   bool domain_fixed;
+  double n_sigma;
   int comm_group_size;
 
   Space_charge_3d_fd_options(int gridx = 32, int gridy = 32, int gridz = 64)
-      : shape{gridx, gridy, gridz}, domain_fixed(false), comm_group_size(1) {}
+      : shape{gridx, gridy, gridz}, domain_fixed(false), n_sigma(8.0),
+        comm_group_size(1) {}
 
   template <class Archive> void serialize(Archive &ar) {
     ar(cereal::base_class<CO_base_options>(this));
     ar(shape);
+    ar(n_sigma);
     ar(comm_group_size);
   }
 };
@@ -54,4 +58,5 @@ public:
   Space_charge_3d_fd(Space_charge_3d_fd_options const &ops);
   ~Space_charge_3d_fd();
 };
+
 #endif /* SPACE_CHARGE_3D_FD_H_ */

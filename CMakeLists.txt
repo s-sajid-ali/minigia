@@ -32,6 +32,9 @@ if(${MPI_VERSION} MATCHES "OpenRTE.*")
     set(MPIEXEC_PREFLAGS ${MPIEXEC_PREFLAGS} "--oversubscribe")
 endif()
 
+# Boost
+find_package(boost)
+
 # Kokkos
 # Follow official kokkos guidelines
 # https://github.com/kokkos/kokkos/wiki/Compiling#42-using-general-cmake-build-system

@@ -12,12 +12,9 @@ struct Core_diagnostics {
 
   static double calculate_z_std(Bunch const &bunch, double const &mean);
 
-  static karray1d calculate_spatial_mean(Bunch const &bunch);
-
   static karray1d calculate_std(Bunch const &bunch, karray1d const &mean);
 
-  static karray1d calculate_spatial_std(Bunch const &bunch,
-                                        karray1d const &mean);
+  static karray1d calculate_spatial_mean_std(Bunch const &bunch);
 
   static karray2d_row calculate_sum2(Bunch const &bunch, karray1d const &mean);
 

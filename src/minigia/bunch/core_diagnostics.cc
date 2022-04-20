@@ -5,6 +5,7 @@
 #include <minigia/foundation/math_constants.hpp>
 #include <minigia/foundation/physical_constants.hpp>
 #include <minigia/utils/logger.hpp>
+#include <minigia/utils/simple_timer.hpp>
 
 #include "core_diagnostics.hpp"
 
@@ -305,47 +306,69 @@ double Core_diagnostics::calculate_z_std(Bunch const &bunch,
   return 0.0;
 }
 
-karray1d Core_diagnostics::calculate_spatial_mean(Bunch const &bunch) {
-  karray1d mean("mean", 3);
-#if 0
-  double sum[3] = { 0, 0, 0 };
-  Const_MArray2d_ref particles(bunch.get_local_particles());
-  int npart = bunch.get_local_num();
+karray1d Core_diagnostics::calculate_spatial_mean_std(Bunch const &bunch) {
 
-#pragma omp parallel shared(npart, particles)
+  const auto particles = bunch.get_local_particles();
+  const auto masks = bunch.get_local_particle_masks();
+
+  const auto total_bunch_particles = bunch.get_total_num();
+  const auto local_bunch_capacity = bunch.size();
+
+  karray1d mean_and_stddev("mean_stddev", 6);
+
   {
-    int nt = omp_get_num_threads();
-    int it = omp_get_thread_num();
+    scoped_simple_timer timer("core_diagnostics::spatial_mean_std");
 
-    int l = npart / nt;
-    int s = it * l;
-    int e = (it==nt-1) ? npart : (it+1)*l;
-
-    double lsum0 = 0, lsum1 = 0, lsum2 = 0;
-
-    for (int part = s; part < e; ++part)
-    {
-      lsum0 += particles[part][0];
-      lsum1 += particles[part][2];
-      lsum2 += particles[part][4];
+    auto instances = Kokkos::Experimental::partition_space(
+        Kokkos::DefaultExecutionSpace(), 1, 1, 1);
+    for (int instance_id = 0; instance_id < 3; instance_id++) {
+      int idx1 = 0 + instance_id;
+      int idx2 = 3 + instance_id;
+      int idx3 = 2 * instance_id;
+      Kokkos::parallel_reduce(
+          "position_sum",
+          Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(
+              instances[instance_id], 0, local_bunch_capacity),
+          KOKKOS_LAMBDA(const int &i, double &sum_pos) {
+            if (masks(i)) {
+              sum_pos += particles(i, idx3);
+            }
+          },
+          mean_and_stddev[idx1]);
+      Kokkos::parallel_reduce(
+          "position_sumsquares",
+          Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(
+              instances[instance_id], 0, local_bunch_capacity),
+          KOKKOS_LAMBDA(const int &i, double &sum_squarepos) {
+            if (masks(i)) {
+              sum_squarepos += particles(i, idx3) * particles(i, idx3);
+            }
+          },
+          mean_and_stddev[idx2]);
     }
-
-#pragma omp critical
-    {
-      sum[0] += lsum0;
-      sum[1] += lsum1;
-      sum[2] += lsum2;
+    for (int instance_id = 0; instance_id < 3; instance_id++) {
+      int idx1 = 0 + instance_id;
+      int idx2 = 3 + instance_id;
+      instances[instance_id].fence();
     }
   }
-
-  MPI_Allreduce(sum, mean.origin(), 3, MPI_DOUBLE, MPI_SUM,
-      bunch.get_comm().get());
-
-  for (int i = 0; i < 3; ++i) {
-    mean[i] /= bunch.get_total_num();
+  int status;
+  status = MPI_Allreduce(MPI_IN_PLACE, mean_and_stddev.data(), 6, MPI_DOUBLE,
+                         MPI_SUM, bunch.get_comm());
+  if (status != MPI_SUCCESS) {
+    std::cout << status << "\n";
+    std::runtime_error("MPI_Allreduce error");
   }
-#endif
-  return mean;
+
+  /* mean_and_stddev has sum_and_sumsquares on each MPI rank */
+  for (int j = 0; j < 3; j++) {
+    mean_and_stddev[j] = mean_and_stddev[j] / total_bunch_particles;
+    mean_and_stddev[j + 3] =
+        std::sqrt((mean_and_stddev[j + 3]) / total_bunch_particles -
+                  std::pow(mean_and_stddev[j], 2));
+  }
+
+  return mean_and_stddev;
 }
 
 karray1d Core_diagnostics::calculate_std(Bunch const &bunch,
@@ -368,50 +391,6 @@ karray1d Core_diagnostics::calculate_std(Bunch const &bunch,
   for (int i = 0; i < 6; ++i)
     std(i) = std::sqrt(std(i) / bunch.get_total_num());
 
-  return std;
-}
-
-karray1d Core_diagnostics::calculate_spatial_std(Bunch const &bunch,
-                                                 karray1d const &mean) {
-  karray1d std("std", 3);
-#if 0
-  double sum[3] = { 0, 0, 0 };
-  Const_MArray2d_ref particles(bunch.get_local_particles());
-  int npart = bunch.get_local_num();
-
-#pragma omp parallel shared(npart, particles)
-  {
-    int nt = omp_get_num_threads();
-    int it = omp_get_thread_num();
-
-    int l = npart / nt;
-    int s = it * l;
-    int e = (it==nt-1) ? npart : (it+1)*l;
-
-    double lsum[3] = { 0, 0, 0 };
-    double diff;
-
-    for(int part = s; part < e; ++part)
-    {
-      diff = particles[part][0] - mean[0]; lsum[0] += diff * diff;
-      diff = particles[part][2] - mean[1]; lsum[1] += diff * diff;
-      diff = particles[part][4] - mean[2]; lsum[2] += diff * diff;
-    }
-
-#pragma omp critical
-    {
-      sum[0] += lsum[0];
-      sum[1] += lsum[1];
-      sum[2] += lsum[2];
-    } // end of omp critical
-  }
-
-  MPI_Allreduce(sum, std.origin(), 3, MPI_DOUBLE, MPI_SUM,
-      bunch.get_comm().get());
-  for (int i = 0; i < 3; ++i) {
-    std[i] = std::sqrt(std[i] / bunch.get_total_num());
-  }
-#endif
   return std;
 }
 

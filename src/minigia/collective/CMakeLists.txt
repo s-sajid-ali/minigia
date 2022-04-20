@@ -1,5 +1,6 @@
 add_library(minigia_collective SHARED
     space_charge_3d_fd.cc
+    deposit.cc
     )
 
 target_link_libraries(minigia_collective 
