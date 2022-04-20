@@ -32,8 +32,8 @@ if(${MPI_VERSION} MATCHES "OpenRTE.*")
     set(MPIEXEC_PREFLAGS ${MPIEXEC_PREFLAGS} "--oversubscribe")
 endif()
 
-# Boost
-find_package(boost)
+# Boost, temporarily remove vendored version
+find_package(Boost)
 
 # Kokkos
 # Follow official kokkos guidelines
