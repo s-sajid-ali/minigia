@@ -29,11 +29,7 @@ template <typename T> KOKKOS_INLINE_FUNCTION T invsqrt(T const &x) {
 
 KOKKOS_INLINE_FUNCTION
 constexpr double quiet_nan() {
-#ifdef KOKKOS_ENABLE_CUDA
-  return nan("");
-#else
   return std::numeric_limits<double>::quiet_NaN();
-#endif
 }
 
 // exact solution for drift spaces
