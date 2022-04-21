@@ -30,7 +30,7 @@ target_link_libraries(test_foils
     minigia_simulation 
     minigia_lattice
     minigia_test_main
-    ${kokkos_libs})
+    ${testing_libs})
 add_mpi_test(test_foils 1)
 
 add_subdirectory(lattices)
