@@ -3,8 +3,9 @@ add_library(minigia_collective SHARED
     deposit.cc
     )
 
-target_link_libraries(minigia_collective 
+target_link_libraries(minigia_collective
     minigia_bunch
+    minigia_lattice
     minigia_parallel_utils
     PkgConfig::PETSC
     )
