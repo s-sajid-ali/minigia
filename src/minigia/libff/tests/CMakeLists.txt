@@ -26,6 +26,7 @@ add_mpi_test(test_madx_elements 1)
 
 add_executable(test_foils test_foils.cc ${test_main})
 target_link_libraries(test_foils
+    PRIVATE
     minigia_simulation 
     minigia_lattice
     minigia_test_main
