@@ -92,23 +92,28 @@ template <class T> struct GSVec : public VecExpr<GSVec<T>, T> {
 #endif
 };
 
-template <class T> bool operator==(GSVec<T> const &lhs, double rhs) {
+template <class T>
+KOKKOS_INLINE_FUNCTION bool operator==(GSVec<T> const &lhs, double rhs) {
   return lhs.data == rhs;
 }
 
-template <class T> bool operator<(GSVec<T> const &lhs, double rhs) {
+template <class T>
+KOKKOS_INLINE_FUNCTION bool operator<(GSVec<T> const &lhs, double rhs) {
   return lhs.data < rhs;
 }
 
-template <class T> bool operator>(GSVec<T> const &lhs, double rhs) {
+template <class T>
+KOKKOS_INLINE_FUNCTION bool operator>(GSVec<T> const &lhs, double rhs) {
   return lhs.data > rhs;
 }
 
-template <class T> bool operator<=(GSVec<T> const &lhs, double rhs) {
+template <class T>
+KOKKOS_INLINE_FUNCTION bool operator<=(GSVec<T> const &lhs, double rhs) {
   return lhs.data <= rhs;
 }
 
-template <class T> bool operator>=(GSVec<T> const &lhs, double rhs) {
+template <class T>
+KOKKOS_INLINE_FUNCTION bool operator>=(GSVec<T> const &lhs, double rhs) {
   return lhs.data >= rhs;
 }
 
