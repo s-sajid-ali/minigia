@@ -22,8 +22,8 @@ int main(int argc, char *argv[]) {
   bunch.read_file(std::string("particles.h5"));
 
   {
-    scoped_simple_timer timer("old_method");
-    for (int run = 0; run < 1000; run++) {
+    scoped_simple_timer timer("100its of old_method");
+    for (int run = 0; run < 100; run++) {
       auto mean = Core_diagnostics::calculate_mean(bunch);
       auto stddev = Core_diagnostics::calculate_std(bunch, mean);
     }
@@ -38,11 +38,11 @@ int main(int argc, char *argv[]) {
   Kokkos::View<double[6], Kokkos::DefaultHostExecutionSpace> mean_and_stddev(
       "mean_stddev");
   {
-    scoped_simple_timer timer("new_method");
+    scoped_simple_timer timer("100its of new_method");
 
     auto instances = Kokkos::Experimental::partition_space(
         Kokkos::DefaultExecutionSpace(), 1, 1, 1);
-    for (int run = 0; run < 1000; run++) {
+    for (int run = 0; run < 100; run++) {
 
       for (int instance_id = 0; instance_id < 3; instance_id++) {
         int dst_idx1 = 0 + instance_id;
@@ -70,8 +70,6 @@ int main(int argc, char *argv[]) {
             mean_and_stddev[dst_idx2]);
       }
       for (int instance_id = 0; instance_id < 3; instance_id++) {
-        int dst_idx1 = 0 + instance_id;
-        int dst_idx2 = 3 + instance_id;
         instances[instance_id].fence();
       }
 
