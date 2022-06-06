@@ -2,21 +2,19 @@
 #define UTILS_CEREAL_FILES_H_
 
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <stdexcept>
 #include <string>
-//#include <typeinfo>
-//#include <cerrno>
-//#include <cstring>
-#include <iomanip>
 #include <unistd.h>
 
 #include <cereal/archives/binary.hpp>
 #include <cereal/archives/json.hpp>
 #include <cereal/archives/xml.hpp>
 
-// copy_file_overwrite_if_exists provides portability across
-// Boost Filesystem versions 2 and 3
+// copy_file_overwrite_if_exists provided portability across old versions of
+// Boost. This is trivial in C++ because the desired behavior is mandated for
+// std::filesystem::rename.
 void copy_file_overwrite_if_exists(std::string const &source,
                                    std::string const &dest);
 

@@ -1,12 +1,9 @@
-#include <Kokkos_ScatterView.hpp>
-#include <chrono>
 #include <iostream>
 #include <minigia/bunch/bunch.hpp>
 #include <minigia/bunch/core_diagnostics.hpp>
 #include <minigia/foundation/physical_constants.hpp>
 #include <minigia/utils/logger.hpp>
 #include <minigia/utils/simple_timer.hpp>
-#include <thread>
 
 int main(int argc, char *argv[]) {
   MPI_Init(&argc, &argv);
@@ -27,7 +24,7 @@ int main(int argc, char *argv[]) {
 
   {
     scoped_simple_timer timer("old_method");
-    for (int run = 0; run < 100; run++) {
+    for (int run = 0; run < 1000; run++) {
       auto mean = Core_diagnostics::calculate_mean(bunch);
       auto stddev = Core_diagnostics::calculate_std(bunch, mean);
     }
@@ -47,42 +44,42 @@ int main(int argc, char *argv[]) {
 
     auto instances = Kokkos::Experimental::partition_space(
         Kokkos::DefaultExecutionSpace(), 1, 1, 1);
-    for (int run = 0; run < 100; run++) {
+    for (int run = 0; run < 1000; run++) {
 
       for (int instance_id = 0; instance_id < 3; instance_id++) {
         // std::cout << "starting 1st set of instances with id : " <<
         // instance_id
         //                   << " at " << MPI_Wtime() << "\n";
-        int idx1 = 0 + instance_id;
-        int idx2 = 3 + instance_id;
-        int idx3 = 2 * instance_id;
+        int dst_idx1 = 0 + instance_id;
+        int dst_idx2 = 3 + instance_id;
+        int src_idx = 2 * instance_id;
         Kokkos::parallel_reduce(
             "position_sum",
             Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(
                 instances[instance_id], 0, local_bunch_capacity),
             KOKKOS_LAMBDA(const int &i, double &sum_pos) {
               if (masks(i)) {
-                sum_pos += particles(i, idx3);
+                sum_pos += particles(i, src_idx);
               }
             },
-            mean_and_stddev[idx1]);
+            mean_and_stddev[dst_idx1]);
         Kokkos::parallel_reduce(
             "position_sumsquares",
             Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(
                 instances[instance_id], 0, local_bunch_capacity),
             KOKKOS_LAMBDA(const int &i, double &sum_squarepos) {
               if (masks(i)) {
-                sum_squarepos += particles(i, idx3) * particles(i, idx3);
+                sum_squarepos += particles(i, src_idx) * particles(i, src_idx);
               }
             },
-            mean_and_stddev[idx2]);
+            mean_and_stddev[dst_idx2]);
       }
       for (int instance_id = 0; instance_id < 3; instance_id++) {
         // std::cout << "starting 2nd set of instances with id : " <<
         // instance_id
         //           << " at " << MPI_Wtime() << "\n";
-        int idx1 = 0 + instance_id;
-        int idx2 = 3 + instance_id;
+        int dst_idx1 = 0 + instance_id;
+        int dst_idx2 = 3 + instance_id;
         instances[instance_id].fence();
       }
 

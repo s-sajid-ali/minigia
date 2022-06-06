@@ -1,16 +1,10 @@
-
 #include "cereal_files.hpp"
 #include "commxx.hpp"
 #include "digits.hpp"
 
-#pragma message "TODO: replace boost::filesystem here"
+#include <filesystem>
 
-#if 0
-// avoid bad interaction between Boost Filesystem and clang
-#define BOOST_NO_CXX11_SCOPED_ENUMS
-#include <boost/filesystem.hpp>
-using namespace boost::filesystem;
-#endif
+namespace fs = std::filesystem;
 
 const std::string serialization_directory("serialization");
 
@@ -19,12 +13,14 @@ private:
   bool parallel;
 
 public:
-  Parallel_helper(bool parallel) : parallel(parallel) {}
+  explicit Parallel_helper(bool parallel) : parallel(parallel) {}
+
   void barrier() {
     if (parallel) {
       MPI_Barrier(Commxx());
     }
   }
+
   bool operate_locally() {
     if (parallel) {
       return Commxx().get_rank() == 0;
@@ -36,97 +32,74 @@ public:
 
 void copy_file_overwrite_if_exists(std::string const &source,
                                    std::string const &dest) {
-#if 0
-    if (exists(dest)) {
-        remove(dest);
-    }
-    copy_file(source, dest);
-#endif
+  fs::path const src{source};
+  fs::path const dst{dest};
+  fs::rename(src, dst);
 }
 
 std::string get_serialization_directory() { return serialization_directory; }
 
 void remove_directory(std::string const &name, bool parallel) {
-#if 0
-    Parallel_helper parallel_helper(parallel);
-    parallel_helper.barrier();
-    if (parallel_helper.operate_locally()) {
-        if (exists(name)) {
-            remove_all(name);
-        }
-    }
-    parallel_helper.barrier();
-#endif
+  Parallel_helper parallel_helper(parallel);
+  parallel_helper.barrier();
+  if (parallel_helper.operate_locally()) {
+    fs::remove_all(name);
+  }
+  parallel_helper.barrier();
 }
 
 void remove_serialization_directory(bool parallel) {
-#if 0
-    Parallel_helper parallel_helper(parallel);
-    parallel_helper.barrier();
-    if (parallel_helper.operate_locally()) {
-        if (is_symlink(get_serialization_directory())) {
-            remove(get_serialization_directory());
-        } else {
-            if (exists(get_serialization_directory())) {
-                remove_all(get_serialization_directory());
-            }
-        }
-    }
-    parallel_helper.barrier();
-#endif
+  Parallel_helper parallel_helper(parallel);
+  parallel_helper.barrier();
+  if (parallel_helper.operate_locally()) {
+    fs::path const path_to_delete{get_serialization_directory()};
+    fs::remove_all(path_to_delete);
+  }
+  parallel_helper.barrier();
 }
 
 void ensure_serialization_directory_exists(bool parallel) {
-#if 0
-    Parallel_helper parallel_helper(parallel);
-    parallel_helper.barrier();
-    if (parallel_helper.operate_locally()) {
-        if (!is_directory(get_serialization_directory())) {
-            create_directories(get_serialization_directory());
-        }
-    }
-    parallel_helper.barrier();
-#endif
+  Parallel_helper parallel_helper(parallel);
+  parallel_helper.barrier();
+  if (parallel_helper.operate_locally()) {
+    fs::path const path_to_create{get_serialization_directory()};
+    fs::create_directories(path_to_create);
+  }
+  parallel_helper.barrier();
 }
 
 void rename_serialization_directory(std::string const &new_name,
                                     bool parallel) {
-#if 0
-    Parallel_helper parallel_helper(parallel);
-    parallel_helper.barrier();
-    if (parallel_helper.operate_locally()) {
-        if (exists(new_name)) {
-            remove_all(new_name);
-        }
-        rename(get_serialization_directory(), new_name);
-    }
-    parallel_helper.barrier();
-#endif
+  Parallel_helper parallel_helper(parallel);
+  parallel_helper.barrier();
+  if (parallel_helper.operate_locally()) {
+    fs::path const serialization_path{get_serialization_directory()};
+    fs::path const new_path{new_name};
+    fs::rename(serialization_path, new_path);
+  }
+  parallel_helper.barrier();
 }
 
 void symlink_serialization_directory(std::string const &existing_dir,
                                      bool parallel) {
-#if 0
-    Parallel_helper parallel_helper(parallel);
-    parallel_helper.barrier();
-    if (parallel_helper.operate_locally()) {
-        create_symlink(existing_dir, get_serialization_directory());
-    }
-    parallel_helper.barrier();
-#endif
+  Parallel_helper parallel_helper(parallel);
+  parallel_helper.barrier();
+  if (parallel_helper.operate_locally()) {
+    fs::path const serialization_path{get_serialization_directory()};
+    fs::path const existing_path{existing_dir};
+    fs::create_directory_symlink(existing_path, serialization_path);
+  }
+  parallel_helper.barrier();
 }
 
 void unlink_serialization_directory(bool parallel) {
-#if 0
-    Parallel_helper parallel_helper(parallel);
-    parallel_helper.barrier();
-    if (parallel_helper.operate_locally()) {
-        if (exists(get_serialization_directory())) {
-            remove(get_serialization_directory());
-        }
-    }
-    parallel_helper.barrier();
-#endif
+  Parallel_helper parallel_helper(parallel);
+  parallel_helper.barrier();
+  if (parallel_helper.operate_locally()) {
+    fs::path const serialization_path{get_serialization_directory()};
+    fs::remove(serialization_path);
+  }
+  parallel_helper.barrier();
 }
 
 std::string get_combined_path(std::string const &directory,
@@ -151,10 +124,10 @@ std::string get_serialization_path(std::string const &base_name,
 #if 0
 #if (defined BOOST_FILESYSTEM_VERSION) && (BOOST_FILESYSTEM_VERSION > 2)
     return get_combined_path(serialization_directory,
-            path(base_name).filename().string(), parallel);
+                             path(base_name).filename().string(), parallel);
 #else
     return get_combined_path(serialization_directory,
-            path(base_name).filename(), parallel);
+                             path(base_name).filename(), parallel);
 #endif
 #endif
 }
