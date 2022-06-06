@@ -1,4 +1,3 @@
-#include <iostream>
 #include <minigia/bunch/bunch.hpp>
 #include <minigia/bunch/core_diagnostics.hpp>
 #include <minigia/foundation/physical_constants.hpp>
@@ -38,7 +37,6 @@ int main(int argc, char *argv[]) {
 
   Kokkos::View<double[6], Kokkos::DefaultHostExecutionSpace> mean_and_stddev(
       "mean_stddev");
-  // std::array<double, 6> mean_and_stddev{0, 0, 0, 0, 0, 0};
   {
     scoped_simple_timer timer("new_method");
 
@@ -47,9 +45,6 @@ int main(int argc, char *argv[]) {
     for (int run = 0; run < 1000; run++) {
 
       for (int instance_id = 0; instance_id < 3; instance_id++) {
-        // std::cout << "starting 1st set of instances with id : " <<
-        // instance_id
-        //                   << " at " << MPI_Wtime() << "\n";
         int dst_idx1 = 0 + instance_id;
         int dst_idx2 = 3 + instance_id;
         int src_idx = 2 * instance_id;
@@ -75,9 +70,6 @@ int main(int argc, char *argv[]) {
             mean_and_stddev[dst_idx2]);
       }
       for (int instance_id = 0; instance_id < 3; instance_id++) {
-        // std::cout << "starting 2nd set of instances with id : " <<
-        // instance_id
-        //           << " at " << MPI_Wtime() << "\n";
         int dst_idx1 = 0 + instance_id;
         int dst_idx2 = 3 + instance_id;
         instances[instance_id].fence();
