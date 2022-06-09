@@ -34,42 +34,29 @@ int main(int argc, char *argv[]) {
   const auto total_bunch_particles = bunch.get_total_num();
   const auto local_bunch_capacity = bunch.size();
 
-  Kokkos::View<double[6], Kokkos::DefaultHostExecutionSpace> mean("cal_mean");
-
+  auto instances = Kokkos::Experimental::partition_space(
+      Kokkos::DefaultExecutionSpace(), 1, 1, 1, 1, 1, 1);
+  Kokkos::View<double[6], Kokkos::DefaultHostExecutionSpace::memory_space> mean(
+      "cal_mean");
   {
     scoped_simple_timer timer("100its of new_method");
-
-    auto instances = Kokkos::Experimental::partition_space(
-        Kokkos::DefaultExecutionSpace(), 1, 1, 1);
 
     /* spatial mean and stddev! */
     for (int run = 0; run < 100; run++) {
 
       for (int instance_id = 0; instance_id < 3; instance_id++) {
-        int dst_idx1 = 0 + instance_id;
-        int dst_idx2 = 3 + instance_id;
-        int src_idx1 = 0 + instance_id;
-        int src_idx2 = 3 + instance_id;
+        int dst_idx = instance_id;
+        int src_idx = instance_id;
         Kokkos::parallel_reduce(
-            "position_sum",
+            "cal_mean",
             Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(
                 instances[instance_id], 0, local_bunch_capacity),
             KOKKOS_LAMBDA(const int &i, double &sum_pos) {
               if (masks(i)) {
-                sum_pos += particles(i, src_idx1);
+                sum_pos += particles(i, src_idx);
               }
             },
-            mean[dst_idx1]);
-        Kokkos::parallel_reduce(
-            "momenta_sum",
-            Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(
-                instances[instance_id], 0, local_bunch_capacity),
-            KOKKOS_LAMBDA(const int &i, double &sum_momenta) {
-              if (masks(i)) {
-                sum_momenta += particles(i, src_idx2);
-              }
-            },
-            mean[dst_idx2]);
+            mean[dst_idx]);
       }
       for (int instance_id = 0; instance_id < 3; instance_id++) {
         instances[instance_id].fence();
