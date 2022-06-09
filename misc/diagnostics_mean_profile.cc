@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
         std::cout << status << "\n";
       }
 
-      for (int j = 0; j < 3; j++) {
+      for (int j = 0; j < 6; j++) {
         mean[j] = mean[j] / total_bunch_particles;
       }
     }
