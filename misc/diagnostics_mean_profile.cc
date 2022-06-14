@@ -4,6 +4,9 @@
 #include <minigia/utils/logger.hpp>
 #include <minigia/utils/simple_timer.hpp>
 
+#include <array>
+#include <execution>
+
 int main(int argc, char *argv[]) {
   MPI_Init(&argc, &argv);
   Commxx comm;
@@ -44,7 +47,9 @@ int main(int argc, char *argv[]) {
     /* spatial mean and stddev! */
     for (int run = 0; run < 100; run++) {
 
-      for (int instance_id = 0; instance_id < 3; instance_id++) {
+      std::array<int, 6> arr = {0, 1, 2, 3, 4, 5};
+
+      for (int instance_id = 0; instance_id < 6; instance_id++) {
         int dst_idx = instance_id;
         int src_idx = instance_id;
         Kokkos::parallel_reduce(
@@ -58,7 +63,7 @@ int main(int argc, char *argv[]) {
             },
             mean[dst_idx]);
       }
-      for (int instance_id = 0; instance_id < 3; instance_id++) {
+      for (int instance_id = 0; instance_id < 6; instance_id++) {
         instances[instance_id].fence();
       }
 
