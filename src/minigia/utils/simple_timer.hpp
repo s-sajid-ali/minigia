@@ -1,10 +1,9 @@
 #ifndef SIMPLE_TIMER_H
 #define SIMPLE_TIMER_H
 
-#include <Kokkos_Core.hpp>
-
-#include <iomanip>
 #include <map>
+
+#include <Kokkos_Core.hpp>
 
 #include "logger.hpp"
 

@@ -35,8 +35,8 @@ int main(int argc, char *argv[]) {
                                                         bunch);
     }
   }
+  simple_timer_print(screen);
 
   MPI_Finalize();
-
   return 0;
 }
