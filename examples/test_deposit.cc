@@ -20,12 +20,12 @@ int main(int argc, char *argv[]) {
   Bunch bunch(ref, 1, 1, Commxx());
   bunch.checkout_particles();
   auto bunch_parts = bunch.get_host_particles();
-  bunch_parts.access(0, 0) = 1.1;
-  bunch_parts.access(0, 2) = 1.1;
-  bunch_parts.access(0, 4) = 1.1;
+  bunch_parts.access(0, 0) = 1.55;
+  bunch_parts.access(0, 2) = 1.5;
+  bunch_parts.access(0, 4) = 1.5;
   bunch.checkin_particles();
 
-  Rectangular_grid_domain domain({4, 4, 4}, {4, 4, 4}, {1, 1, 1}, false);
+  Rectangular_grid_domain domain({4, 4, 4}, {4, 4, 4}, {2, 2, 2}, false);
 
   const std::array<int, 3> dims{4, 4, 4};
   karray1d_dev rho_dev("rho_dev", 4 * 4 * 4);

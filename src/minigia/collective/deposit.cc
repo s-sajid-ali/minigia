@@ -10,11 +10,20 @@ using scatter_t =
     Kokkos::Experimental::ScatterView<double *, Kokkos::LayoutLeft>;
 
 KOKKOS_INLINE_FUNCTION
+int fast_int_floor_kokkos(const double x) {
+  int ix = static_cast<int>(x);
+  return x > 0.0 ? ix : ((x - ix == 0) ? ix : ix - 1);
+}
+
+KOKKOS_INLINE_FUNCTION
 void get_leftmost_indices_offset(double pos, double left, double inv_cell_size,
                                  int &idx, double &off) {
   double scaled_location = (pos - left) * inv_cell_size - 0.5;
-  idx = Kokkos::Experimental::trunc(scaled_location);
+  idx = fast_int_floor_kokkos(scaled_location);
   off = scaled_location - idx;
+  std::cout << "particle with pos : " << pos << ", left : " << left
+            << ", inv_cell_size : " << inv_cell_size << ", idx : " << idx
+            << ", off : " << off << "\n\n";
 }
 
 KOKKOS_INLINE_FUNCTION
@@ -79,31 +88,35 @@ struct sv_zyx_rho_reducer_non_periodic {
       int base = iz * dx * dy;
 
       std::cout << "particle is at ix : " << ix << ", iy : " << iy
-                << ", iz : " << iz << "\n";
-      std::cout << "particle with weights aox : " << aox << ", aoy : " << aoy
-                << ", aoz : " << aoz << "\n";
+                << ", iz : " << iz << ", with weights aox : " << aox
+                << ", aoy : " << aoy << ", aoz : " << aoz << "\n\n";
 
       if (ingrid(ix, iy, iz, gx, gy, gz)) {
         std::cout << "particle is in at ix, iy, iz!"
-                  << "\n";
+                  << "with weights aox : " << aox << ", aoy : " << aoy
+                  << ", aoz : " << aoz << "\n";
+
         access(base + iy * dx + ix) += w0 * aox * aoy * aoz;
       }
 
       if (ingrid(ix + 1, iy, iz, gx, gy, gz)) {
         std::cout << "particle is in at ix+1, iy, iz!"
-                  << "\n";
+                  << "with weights ox : " << ox << ", aoy : " << aoy
+                  << ", aoz : " << aoz << "\n";
         access(base + iy * dx + ix + 1) += w0 * ox * aoy * aoz;
       }
 
       if (ingrid(ix, iy + 1, iz, gx, gy, gz)) {
         std::cout << "particle is in at ix, iy+1, iz!"
-                  << "\n";
+                  << "with weights aox : " << aox << ", oy : " << oy
+                  << ", aoz : " << aoz << "\n";
         access(base + (iy + 1) * dx + ix) += w0 * aox * oy * aoz;
       }
 
       if (ingrid(ix + 1, iy + 1, iz, gx, gy, gz)) {
         std::cout << "particle is in at ix+1, iy+1, iz!"
-                  << "\n";
+                  << "with weights ox : " << ox << ", oy : " << oy
+                  << ", aoz : " << aoz << "\n";
         access(base + (iy + 1) * dx + ix + 1) += w0 * ox * oy * aoz;
       }
 
@@ -111,25 +124,29 @@ struct sv_zyx_rho_reducer_non_periodic {
 
       if (ingrid(ix, iy, iz + 1, gx, gy, gz)) {
         std::cout << "particle is in at ix, iy, iz+1!"
-                  << "\n";
+                  << "with weights aox : " << aox << ", aoy : " << aoy
+                  << ", oz : " << oz << "\n";
         access(base + iy * dx + ix) += w0 * aox * aoy * oz;
       }
 
       if (ingrid(ix + 1, iy, iz + 1, gx, gy, gz)) {
         std::cout << "particle is in at ix+1, iy, iz!"
-                  << "\n";
+                  << "with weights ox : " << ox << ", aoy : " << aoy
+                  << ", oz : " << oz << "\n";
         access(base + iy * dx + ix + 1) += w0 * ox * aoy * oz;
       }
 
       if (ingrid(ix, iy + 1, iz + 1, gx, gy, gz)) {
         std::cout << "particle is in at ix, iy+1, iz+1!"
-                  << "\n";
+                  << "with weights aox : " << aox << ", oy : " << oy
+                  << ", oz : " << oz << "\n";
         access(base + (iy + 1) * dx + ix) += w0 * aox * oy * oz;
       }
 
       if (ingrid(ix + 1, iy + 1, iz + 1, gx, gy, gz)) {
         std::cout << "particle is in at ix+1, iy+1, iz+1!"
-                  << "\n";
+                  << "with weights ox : " << ox << ", oy : " << oy
+                  << ", oz : " << oz << "\n";
         access(base + (iy + 1) * dx + ix + 1) += w0 * ox * oy * oz;
       }
     }
