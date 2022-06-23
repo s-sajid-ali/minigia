@@ -25,10 +25,32 @@ int main(int argc, char *argv[]) {
   bunch_parts.access(0, 4) = 1.5;
   bunch.checkin_particles();
 
-  Rectangular_grid_domain domain({4, 4, 4}, {4, 4, 4}, {2, 2, 2}, false);
+  Rectangular_grid_domain domain({6, 6, 6}, {6, 6, 6}, {2, 2, 2}, false);
 
-  const std::array<int, 3> dims{4, 4, 4};
-  karray1d_dev rho_dev("rho_dev", 4 * 4 * 4);
+  auto h = domain.get_cell_size();
+
+  double weight0 = (bunch.get_real_num() / bunch.get_total_num()) *
+                   bunch.get_particle_charge() * pconstants::e /
+                   (h[0] * h[1] * h[2]);
+  std::cout << "\n weight0 is " << weight0 << "\n\n";
+
+  std::cout << "Domain "
+            << "\n"
+            << "grid shape "
+            << " x : " << domain.get_grid_shape()[0]
+            << " y : " << domain.get_grid_shape()[1]
+            << " z : " << domain.get_grid_shape()[2] << "\n"
+            << "left       "
+            << " x : " << domain.get_left()[0]
+            << " y : " << domain.get_left()[1]
+            << " z : " << domain.get_left()[2] << "\n"
+            << "cell size  "
+            << " x : " << domain.get_cell_size()[0]
+            << " y : " << domain.get_cell_size()[1]
+            << " z : " << domain.get_cell_size()[2] << "\n";
+
+  const std::array<int, 3> dims{6, 6, 6};
+  karray1d_dev rho_dev("rho_dev", 6 * 6 * 6);
 
   deposit_charge_rectangular_3d_kokkos_scatter_view(rho_dev, domain, dims,
                                                     bunch);
@@ -37,10 +59,17 @@ int main(int argc, char *argv[]) {
   Kokkos::deep_copy(rho_dev_hst, rho_dev);
   Kokkos::fence();
 
-  for (int idx = 0; idx < 64; idx++) {
+  auto sums = 0.0;
 
-    std::cout << "rho_dev_hst[" << idx << "] : " << rho_dev_hst(idx) << "\n";
+  for (int idx = 0; idx < 6 * 6 * 6; idx++) {
+
+    std::cout << "rho_dev_hst[" << idx << "] : " << rho_dev_hst(idx) / weight0
+              << "\n";
+
+    sums += rho_dev_hst(idx) / weight0;
   }
+
+  std::cout << "\nsums of all deposit fractions :" << sums << "\n";
 
   MPI_Finalize();
   return 0;
