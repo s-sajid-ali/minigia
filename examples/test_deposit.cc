@@ -21,11 +21,11 @@ int main(int argc, char *argv[]) {
   bunch.checkout_particles();
   auto bunch_parts = bunch.get_host_particles();
   bunch_parts.access(0, 0) = 1.55;
-  bunch_parts.access(0, 2) = 1.5;
-  bunch_parts.access(0, 4) = 1.5;
+  bunch_parts.access(0, 2) = 1.55;
+  bunch_parts.access(0, 4) = 1.55;
   bunch.checkin_particles();
 
-  Rectangular_grid_domain domain({6, 6, 6}, {6, 6, 6}, {2, 2, 2}, false);
+  Rectangular_grid_domain domain({6, 6, 6}, {6, 6, 6}, {3, 3, 3}, false);
 
   auto h = domain.get_cell_size();
 
