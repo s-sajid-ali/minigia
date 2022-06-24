@@ -15,7 +15,7 @@ add_library(minigia_lattice SHARED
 target_link_libraries(minigia_lattice 
     minigia_foundation 
     minigia_bunch
-    Boost::boost
+    minigia_parallel_utils
     )
 
 target_include_directories(minigia_lattice INTERFACE
