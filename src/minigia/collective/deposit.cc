@@ -5,6 +5,8 @@
 
 #include <Kokkos_ScatterView.hpp>
 
+#define VERBOSE = 0
+
 namespace deposit_impl {
 using scatter_t =
     Kokkos::Experimental::ScatterView<double *, Kokkos::LayoutLeft>;
@@ -21,9 +23,12 @@ void get_leftmost_indices_offset(double pos, double left, double inv_cell_size,
   double scaled_location = (pos - left) * inv_cell_size - 0.5;
   idx = fast_int_floor_kokkos(scaled_location);
   off = scaled_location - idx;
+
+#if DVERBOSE == 1
   std::cout << "particle with pos : " << pos << ", left : " << left
             << ", inv_cell_size : " << inv_cell_size << ", idx : " << idx
             << ", off : " << off << "\n";
+#endif
 }
 
 KOKKOS_INLINE_FUNCTION
@@ -87,58 +92,75 @@ struct sv_zyx_rho_reducer_non_periodic {
 
       int base = iz * dx * dy;
 
+#if DVERBOSE == 1
       std::cout << "particle is at ix : " << ix << ", iy : " << iy
                 << ", iz : " << iz << ", with weights aox : " << aox
                 << ", aoy : " << aoy << ", aoz : " << aoz << "\n\n";
+#endif
 
       if (ingrid(ix, iy, iz, gx, gy, gz)) {
+#if DVERBOSE == 1
         std::cout << "particle is in at ix, iy, iz! with weights aox : " << aox
                   << ", aoy : " << aoy << ", aoz : " << aoz << "\n";
-
+#endif
         access(base + iy * dx + ix) += w0 * aox * aoy * aoz;
       }
 
       if (ingrid(ix + 1, iy, iz, gx, gy, gz)) {
+#if DVERBOSE == 1
         std::cout << "particle is in at ix+1, iy, iz! with weights ox : " << ox
                   << ", aoy : " << aoy << ", aoz : " << aoz << "\n";
+#endif
         access(base + iy * dx + ix + 1) += w0 * ox * aoy * aoz;
       }
 
       if (ingrid(ix, iy + 1, iz, gx, gy, gz)) {
+#if DVERBOSE == 1
         std::cout << "particle is in at ix, iy+1, iz! with weights aox : "
                   << aox << ", oy : " << oy << ", aoz : " << aoz << "\n";
+#endif
         access(base + (iy + 1) * dx + ix) += w0 * aox * oy * aoz;
       }
 
       if (ingrid(ix + 1, iy + 1, iz, gx, gy, gz)) {
+#if DVERBOSE == 1
         std::cout << "particle is in at ix+1, iy+1, iz! with weights ox : "
                   << ox << ", oy : " << oy << ", aoz : " << aoz << "\n";
+#endif
         access(base + (iy + 1) * dx + ix + 1) += w0 * ox * oy * aoz;
       }
 
       base = (iz + 1) * dx * dy;
 
       if (ingrid(ix, iy, iz + 1, gx, gy, gz)) {
+#if DVERBOSE == 1
         std::cout << "particle is in at ix, iy, iz+1! with weights aox : "
                   << aox << ", aoy : " << aoy << ", oz : " << oz << "\n";
+#endif
         access(base + iy * dx + ix) += w0 * aox * aoy * oz;
       }
 
       if (ingrid(ix + 1, iy, iz + 1, gx, gy, gz)) {
+#if DVERBOSE == 1
         std::cout << "particle is in at ix+1, iy, iz! with weights ox : " << ox
                   << ", aoy : " << aoy << ", oz : " << oz << "\n";
+#endif
         access(base + iy * dx + ix + 1) += w0 * ox * aoy * oz;
       }
 
       if (ingrid(ix, iy + 1, iz + 1, gx, gy, gz)) {
+#if DVERBOSE == 1
         std::cout << "particle is in at ix, iy+1, iz+1! with weights aox : "
                   << aox << ", oy : " << oy << ", oz : " << oz << "\n";
+#endif
         access(base + (iy + 1) * dx + ix) += w0 * aox * oy * oz;
       }
 
       if (ingrid(ix + 1, iy + 1, iz + 1, gx, gy, gz)) {
+#if DVERBOSE == 1
         std::cout << "particle is in at ix+1, iy+1, iz+1! with weights ox : "
                   << ox << ", oy : " << oy << ", oz : " << oz << "\n";
+#endif
         access(base + (iy + 1) * dx + ix + 1) += w0 * ox * oy * oz;
       }
       std::cout << "\n";
