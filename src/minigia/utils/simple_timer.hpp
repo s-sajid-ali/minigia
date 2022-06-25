@@ -1,6 +1,7 @@
 #ifndef SIMPLE_TIMER_H
 #define SIMPLE_TIMER_H
 
+#include <iomanip>
 #include <map>
 
 #include <Kokkos_Core.hpp>
