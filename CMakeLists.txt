@@ -33,7 +33,7 @@ if(${MPI_VERSION} MATCHES "OpenRTE.*")
 endif()
 
 # Boost, temporarily remove vendored version
-#find_package(Boost)
+find_package(Boost)
 
 # Kokkos
 # Follow official kokkos guidelines
