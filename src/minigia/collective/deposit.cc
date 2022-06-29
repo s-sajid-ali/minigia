@@ -163,7 +163,6 @@ struct sv_zyx_rho_reducer_non_periodic {
 #endif
         access(base + (iy + 1) * dx + ix + 1) += w0 * ox * oy * oz;
       }
-      std::cout << "\n";
     }
   }
 };

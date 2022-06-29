@@ -100,6 +100,19 @@ typedef Kokkos::View<const double ***, Kokkos::LayoutRight,
                      Kokkos::DefaultHostExecutionSpace>
     const_karray3d_row;
 
+// non-const int arrays
+typedef Kokkos::View<int *, Kokkos::DefaultExecutionSpace::memory_space>
+    karray1i_dev;
+
+typedef karray1i_dev::HostMirror karray1i_hst;
+
+// non-const long arrays
+typedef Kokkos::View<unsigned long *,
+                     Kokkos::DefaultExecutionSpace::memory_space>
+    karray1ul_dev;
+
+typedef karray1ul_dev::HostMirror karray1ul_hst;
+
 // row major, non-const int arrays
 typedef Kokkos::View<int *, Kokkos::LayoutRight, Kokkos::DefaultExecutionSpace>
     karray1i_row_dev;

@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
       true);
 
   const std::array<int, 3> dims{32, 32, 128};
-  karray1d_dev rho_dev("rho2_dev", dims[0]*dims[1]*dims[2]);
+  karray1d_dev rho_dev("rho2_dev", dims[0] * dims[1] * dims[2]);
 
   {
     scoped_simple_timer timer("100its of old_method");
