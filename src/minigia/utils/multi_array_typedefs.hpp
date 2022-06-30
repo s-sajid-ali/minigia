@@ -106,6 +106,12 @@ typedef Kokkos::View<int *, Kokkos::DefaultExecutionSpace::memory_space>
 
 typedef karray1i_dev::HostMirror karray1i_hst;
 
+// non-const uint32 arrays
+typedef Kokkos::View<uint32_t *, Kokkos::DefaultExecutionSpace::memory_space>
+    karray1ui32_dev;
+
+typedef karray1ui32_dev::HostMirror karray1ui32_hst;
+
 // non-const long arrays
 typedef Kokkos::View<unsigned long *,
                      Kokkos::DefaultExecutionSpace::memory_space>

@@ -42,10 +42,10 @@ void bunch_get_idx(Bunch &bunch, Rectangular_grid_domain &domain,
               iz < dz - 1) {
             idx(i) = iz * dx * dy + iy * dx + ix;
           } else {
-            idx(i) = std::numeric_limits<int>::max();
+            idx(i) = 1e8;
           }
         } else {
-          idx(i) = std::numeric_limits<int>::max();
+          idx(i) = 5e8;
         }
       });
 }
