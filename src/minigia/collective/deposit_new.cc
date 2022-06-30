@@ -42,10 +42,10 @@ void bunch_get_idx(Bunch &bunch, Rectangular_grid_domain &domain,
               iz < dz - 1) {
             idx(i) = iz * dx * dy + iy * dx + ix;
           } else {
-            idx(i) = 1e8;
+            idx(i) = dx * dy * dz * 10;
           }
         } else {
-          idx(i) = 5e8;
+          idx(i) = dx * dy * dz * 100;
         }
       });
 }

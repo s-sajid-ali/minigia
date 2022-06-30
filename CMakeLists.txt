@@ -106,4 +106,4 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 add_subdirectory(src)
 add_subdirectory(profiling)
 add_subdirectory(examples)
-add_subdirectory(misc)
+
