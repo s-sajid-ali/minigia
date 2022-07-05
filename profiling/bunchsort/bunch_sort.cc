@@ -38,8 +38,8 @@ int main(int argc, char *argv[]) {
                        (dims[0] + 1) * (dims[1] + 1) * (dims[2] + 1));
 
   {
-    scoped_simple_timer timer("100its of bunch-read-and-sort");
-    for (int run = 0; run < 100; run++) {
+    scoped_simple_timer timer("10its of bunch-read-and-sort");
+    for (int run = 0; run < 10; run++) {
 
       bunch.read_file(std::string("particles.h5"));
 
