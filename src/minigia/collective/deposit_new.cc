@@ -116,6 +116,8 @@ void deposit_charge_rectangular_3d_sorted_v1(
             size_t first_particle_loc =
                 KE::distance(KE::cbegin(permute_idx), particles_start_it);
 
+	    /* TODO */
+
           } else {
             rho_dev(deposit_loc) = 0.0;
           }
