@@ -1,5 +1,8 @@
 #include "space_charge_3d_fd.hpp"
+#include "space_charge_3d_fd_alias.hpp"
 #include "space_charge_3d_fd_utils.hpp"
+
+#include <minigia/utils/simple_timer.hpp>
 
 namespace {
 double get_smallest_non_tiny(double val, double other1, double other2,
@@ -23,11 +26,8 @@ double get_smallest_non_tiny(double val, double other1, double other2,
 // Constructor
 Space_charge_3d_fd::Space_charge_3d_fd(Space_charge_3d_fd_options const &ops)
     : Collective_operator("sc_3d_fd", 1.0), options(ops), bunch_sim_id(),
-      allocated(false), use_fixed_domain(false) {
-
-  allocate_sc3d_fd(ops);
-  allocated = true;
-}
+      domain(ops.shape, {1.0, 1.0, 1.0}), use_fixed_domain(false),
+      allocated(false) {}
 
 // Destructor
 Space_charge_3d_fd::~Space_charge_3d_fd() {
@@ -37,42 +37,74 @@ Space_charge_3d_fd::~Space_charge_3d_fd() {
   }
 }
 
+void Space_charge_3d_fd::apply_impl(Bunch_simulator &sim, double time_step,
+                                    Logger &logger) {
+  logger << "    Space charge 3d open hockney\n";
+
+  scoped_simple_timer timer("sc3d_total");
+
+  // construct the workspace for a new bunch simulator
+  if (bunch_sim_id != sim.id()) {
+    bunch_sim_id = sim.id();
+    allocate_sc3d_fd();
+    allocated = true;
+  }
+
+  // apply to bunches
+  for (size_t t = 0; t < 2; ++t) {
+    for (size_t b = 0; b < sim[t].get_bunch_array_size(); ++b) {
+      apply_bunch(sim[t][b], time_step, logger);
+    }
+  }
+}
+
+void Space_charge_3d_fd::apply_bunch(Bunch &bunch, double time_step,
+                                     Logger &logger) {}
+
 // update_domain
 void Space_charge_3d_fd::update_domain(Bunch const &bunch) {
 
-  auto mean_stddev = Core_diagnostics::calculate_spatial_mean_std(bunch);
+  auto spatial_mean_stddev =
+      Core_diagnostics::calculate_spatial_mean_std(bunch);
+  auto mean_x = spatial_mean_stddev(0);
+  auto mean_y = spatial_mean_stddev(1);
+  auto mean_z = spatial_mean_stddev(2);
+  auto stddev_x = spatial_mean_stddev(3);
+  auto stddev_y = spatial_mean_stddev(4);
+  auto stddev_z = spatial_mean_stddev(5);
 
   const double tiny = 1.0e-10;
 
-  const auto ix = Bunch::x;
-  const auto iy = Bunch::y;
-  const auto iz = Bunch::z;
-
-  if ((mean_stddev[3] < tiny) && (mean_stddev[4] < tiny) &&
-      (mean_stddev[5] < tiny)) {
-    throw std::runtime_error("space_charge_3d_fd::update_domain: all three "
-                             "spatial dimensions have neglible extent");
+  if ((stddev_x < tiny) && (stddev_y < tiny) && (stddev_z < tiny)) {
+    throw std::runtime_error(
+        "Space_charge_3d_open_hockney_eigen::update_domain: "
+        "all three spatial dimensions have neglible extent");
   }
 
-  std::array<double, 3> size{
-      get_smallest_non_tiny(mean_stddev[3], mean_stddev[4], mean_stddev[5],
-                            tiny) *
-          options.n_sigma,
-      get_smallest_non_tiny(mean_stddev[4], mean_stddev[3], mean_stddev[5],
-                            tiny) *
-          options.n_sigma,
-      get_smallest_non_tiny(mean_stddev[5], mean_stddev[3], mean_stddev[4],
-                            tiny) *
-          options.n_sigma};
+  std::array<double, 3> offset{mean_x, mean_y, mean_z};
 
-  std::array<double, 3> offset{mean_stddev[0], mean_stddev[1], mean_stddev[2]};
+  std::array<double, 3> size{
+      options.n_sigma *
+          get_smallest_non_tiny(stddev_x, stddev_y, stddev_z, tiny),
+      options.n_sigma *
+          get_smallest_non_tiny(stddev_y, stddev_x, stddev_z, tiny),
+      options.n_sigma *
+          get_smallest_non_tiny(stddev_z, stddev_x, stddev_y, tiny)};
+
+  domain = Rectangular_grid_domain(options.shape, size, offset, false);
 }
 
-PetscErrorCode
-Space_charge_3d_fd::allocate_sc3d_fd(Space_charge_3d_fd_options const &ops) {
+PetscErrorCode Space_charge_3d_fd::allocate_sc3d_fd() {
   PetscFunctionBeginUser;
 
+  /* size of seqphi/seqrho vectors/views is size of domain! */
+  gctx.nsize = options.shape[0] * options.shape[1] * options.shape[2];
+
+  PetscCall(determine_veccreatewitharray_func(gctx));
+
   PetscCall(init_localvecs(lctx, gctx));
+
+  PetscCall(init_solversubcomms(sctx, gctx));
 
   PetscFunctionReturn(0);
 }

@@ -8,12 +8,17 @@
 #include <petscdmda.h>
 #include <petscvec.h>
 
+#include <minigia/utils/multi_array_typedefs.hpp>
+
 /* Local (per MPI rank) context */
 struct LocalCtx {
 
   Vec seqphi;  /*! local seq vector */
   Vec seqrho;  /*! local seq vector */
   DM da3d_seq; /*! sequential DMDA to manage grid and vecs */
+
+  karray1d_dev seqphi_view; /*! kokkos view for seqphi */
+  karray1d_dev seqrho_view; /*! kokkos view for seqrho */
 };
 
 /* Subcomm context */

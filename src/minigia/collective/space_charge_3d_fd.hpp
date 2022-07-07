@@ -5,6 +5,8 @@
 #include <minigia/simulation/collective_operator_options.hpp>
 #include <minigia/simulation/operator.hpp>
 
+#include "rectangular_grid_domain.hpp"
+
 #include "space_charge_3d_fd_impl.hpp"
 
 class Space_charge_3d_fd;
@@ -36,6 +38,7 @@ class Space_charge_3d_fd : public Collective_operator {
 private:
   const Space_charge_3d_fd_options options;
   std::string bunch_sim_id;
+  Rectangular_grid_domain domain;
   bool use_fixed_domain;
   bool allocated;
 
@@ -48,7 +51,7 @@ private:
 
   void apply_bunch(Bunch &bunch, double time_step, Logger &logger);
 
-  PetscErrorCode allocate_sc3d_fd(Space_charge_3d_fd_options const &ops);
+  PetscErrorCode allocate_sc3d_fd();
 
   PetscErrorCode destroy_sc3d_fd();
 

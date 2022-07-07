@@ -9,57 +9,6 @@
 
 #include "core_diagnostics.hpp"
 
-#if 0
-// note: cannot get the template F to work with CUDA
-//
-template<typename F, size_t... I>
-struct particle_reducer
-{
-  typedef double value_type[];
-  typedef Particles::size_type size_type;
-
-  constexpr size_type value_count;
-  F f;
-  ConstParticles p;
-
-  particle_reducer(F f, ConstParticles const & parts)
-    : value_count(sizeof...(I)), f(f), p(parts)
-  { }
-
-  KOKKOS_INLINE_FUNCTION void
-    operator() (const size_type i, value_type sum) const
-    {
-      //sum[0] += f(p, i, 0);
-      //sum[2] += f(p, i, 2);
-      //sum[4] += f(p, i, 4);
-
-      // it works, pros? cons?
-      //(void)(std::initializer_list<double>{ (sum[I] += f(p, i, I))... } );
-
-      // only with c++17
-      //((sum[I] += f(p, i, I)),...);
-
-      constexpr std::array<size_t, sizeof...(I)> indices{{I...}};
-      for (size_type j=0; j<value_count; ++j) sum[j] += f(p, i, indices[j]);
-    }
-
-  KOKKOS_INLINE_FUNCTION void
-    join(volatile value_type dst, const volatile value_type src) const
-    {
-      for (size_type j=0; j<value_count; ++j) dst[j] += src[j];
-    }
-
-  KOKKOS_INLINE_FUNCTION void
-    init(value_type sum) const
-    {
-      for (size_type j=0; j<value_count; ++j) sum[j] = 0.0;
-    }
-};
-
-using p_fun_t = double(ConstParticles const &, int, int);
-using fun_t = std::function<double(ConstParticles const &, int, int)>;
-#endif
-
 namespace core_diagnostics_impl {
 struct mean_tag {
   constexpr static int size = 6;
@@ -352,11 +301,9 @@ karray1d Core_diagnostics::calculate_spatial_mean_std(Bunch const &bunch) {
       instances[instance_id].fence();
     }
   }
-  int status;
-  status = MPI_Allreduce(MPI_IN_PLACE, mean_and_stddev.data(), 6, MPI_DOUBLE,
-                         MPI_SUM, bunch.get_comm());
-  if (status != MPI_SUCCESS) {
-    std::cout << status << "\n";
+
+  if (MPI_Allreduce(MPI_IN_PLACE, mean_and_stddev.data(), 6, MPI_DOUBLE,
+                    MPI_SUM, bunch.get_comm()) != MPI_SUCCESS) {
     std::runtime_error("MPI_Allreduce error");
   }
 

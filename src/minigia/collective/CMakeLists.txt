@@ -1,7 +1,8 @@
-add_library(minigia_collective SHARED
-	#space_charge_3d_fd.cc
+add_library(minigia_collective SHARED 
+    space_charge_3d_fd.cc
+    space_charge_3d_utils.cc
+    space_charge_3d_alias.cc 
     deposit.cc
-    deposit_new.cc
     )
 
 target_link_libraries(minigia_collective
@@ -19,7 +20,6 @@ target_include_directories(minigia_foundation INTERFACE
 install(TARGETS minigia_collective DESTINATION lib)
 install(FILES
     deposit.hpp
-    deposit_new.hpp
     rectangular_grid_domain.hpp
     rectangular_grid.hpp
     DESTINATION ${INCLUDE_INSTALL_DIR}/minigia/collective)
