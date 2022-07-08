@@ -4,7 +4,7 @@
 #include <mpi.h>
 #include <petscsys.h>
 
-static std::string help = "Appends to an ASCII file.\n\n";
+static std::string help = "This is a minigia test program!\n\n";
 
 int main(int argc, char *argv[]) {
   MPI_Init(&argc, &argv);

@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 enable_testing()
 
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 # generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # and place it in the source directory
