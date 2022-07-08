@@ -3,8 +3,6 @@
 
 #include "space_charge_3d_fd_impl.hpp"
 
-PetscErrorCode determine_veccreatewitharray_func(GlobalCtx &gctx);
-
 PetscErrorCode init_global_local_aliases(LocalCtx &lctx, GlobalCtx &gctx);
 
 PetscErrorCode init_global_subcomm_aliases(SubcommCtx &sctx, GlobalCtx &gctx);

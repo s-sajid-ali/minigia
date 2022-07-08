@@ -97,7 +97,7 @@ else()
 	)
     FetchContent_MakeAvailable(Catch2)
 endif()
-set(testing_libs "Catch2::Catch2;${kokkos_libs};MPI::MPI_C")
+set(testing_libs "Catch2::Catch2;${kokkos_libs};MPI::MPI_C;PkgConfig::PETSC")
 set(test_main "${CMAKE_SOURCE_DIR}/src/minigia/utils/catch_test_main.cc")
 enable_testing()
 

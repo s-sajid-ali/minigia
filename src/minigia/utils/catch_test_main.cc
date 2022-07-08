@@ -2,13 +2,19 @@
 
 #include <Kokkos_Core.hpp>
 #include <mpi.h>
+#include <petscsys.h>
+
+static std::string help = "Appends to an ASCII file.\n\n";
 
 int main(int argc, char *argv[]) {
   MPI_Init(&argc, &argv);
   Kokkos::initialize(argc, argv);
+  PetscErrorCode ierr;
+  ierr = PetscInitialize(&argc, &argv, (char *)0, help.c_str());
 
   int result = Catch::Session().run(argc, argv);
 
+  ierr = PetscFinalize();
   Kokkos::finalize();
   MPI_Finalize();
   return result;

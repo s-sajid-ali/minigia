@@ -100,8 +100,6 @@ PetscErrorCode Space_charge_3d_fd::allocate_sc3d_fd() {
   /* size of seqphi/seqrho vectors/views is size of domain! */
   gctx.nsize = options.shape[0] * options.shape[1] * options.shape[2];
 
-  PetscCall(determine_veccreatewitharray_func(gctx));
-
   PetscCall(init_localvecs(lctx, gctx));
 
   PetscCall(init_solversubcomms(sctx, gctx));

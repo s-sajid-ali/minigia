@@ -15,7 +15,7 @@ target_include_directories(minigia_parallel_utils INTERFACE
 )
 
 add_library(minigia_test_main STATIC catch_test_main.cc)
-target_link_libraries(minigia_test_main PRIVATE Catch2::Catch2 ${kokkos_libs} MPI::MPI_C)
+target_link_libraries(minigia_test_main PRIVATE Catch2::Catch2 ${kokkos_libs} MPI::MPI_C PkgConfig::PETSC)
 
 add_library(minigia_serialization SHARED cereal_files.cc)
 target_link_libraries(minigia_serialization minigia_parallel_utils)

@@ -5,29 +5,6 @@
   Initialize global aliases of local vectors
   \param   lctx - local context
   \param   gctx - global context
-  \return  void - nothing
-  */
-PetscErrorCode determine_veccreatewitharray_func(GlobalCtx &gctx) {
-
-  PetscFunctionBeginUser;
-
-  if (gctx.VecCreate_type_WithArray == nullptr) {
-
-#if defined KOKKOS_ENABLE_CUDA
-    gctx.VecCreate_type_WithArray = VecCreateMPICUDAWithArray;
-#elif defined KOKKOS_ENABLE_OPENMP
-    gctx.VecCreate_type_WithArray = VecCreateMPIWithArray;
-#endif
-  }
-
-  PetscFunctionReturn(0);
-}
-
-/* --------------------------------------------------------------------- */
-/*!
-  Initialize global aliases of local vectors
-  \param   lctx - local context
-  \param   gctx - global context
   \return  ierr - PetscErrorCode
   */
 PetscErrorCode init_global_local_aliases(LocalCtx &lctx, GlobalCtx &gctx) {

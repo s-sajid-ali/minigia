@@ -80,10 +80,15 @@ struct GlobalCtx {
   std::vector<PetscMPIInt>
       sids; /*! holds the solversubcommmid's from each solver */
 
+  /*! function pointer to hold the appropriate function for creating vectors
+      with array */
   std::function<PetscErrorCode(MPI_Comm, PetscInt, PetscInt, PetscInt,
                                const PetscScalar *, Vec *)>
-      VecCreate_type_WithArray; /*! function pointer to hold the appropriate
-                                  function for creating vectors with array */
+#if defined KOKKOS_ENABLE_CUDA
+      VecCreate_type_WithArray = VecCreateMPICUDAWithArray;
+#elif defined KOKKOS_ENABLE_OPENMP
+      VecCreate_type_WithArray = VecCreateMPIWithArray;
+#endif
 };
 
 #endif

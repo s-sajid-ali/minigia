@@ -17,12 +17,6 @@ struct comm_free {
   }
 };
 
-size_t hash(const char *s) {
-  size_t h = 37062913;
-  while (*s)
-    h = h * 101 + (unsigned char)*s++;
-  return h;
-}
 } // namespace
 
 const Commxx Commxx::World(comm_type::world);

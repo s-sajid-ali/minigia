@@ -25,3 +25,5 @@ install(FILES
     rectangular_grid_domain.hpp
     rectangular_grid.hpp
     DESTINATION ${INCLUDE_INSTALL_DIR}/minigia/collective)
+
+add_subdirectory(tests)
