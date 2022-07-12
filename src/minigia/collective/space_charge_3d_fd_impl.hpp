@@ -52,7 +52,7 @@ struct SubcommCtx {
 /* Global (over all MPI ranks) context */
 struct GlobalCtx {
 
-  PetscInt nsubcomms = 2; /*! total number of subcomms */
+  PetscInt nsubcomms = 1; /*! total number of subcomms */
   PetscInt nsize = 12; /*! the size of the problem, which is size of vectors on
                          each MPI rank */
   PetscBool debug = PETSC_FALSE; /*! enable verbose outputs */

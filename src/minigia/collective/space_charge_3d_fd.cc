@@ -100,9 +100,29 @@ PetscErrorCode Space_charge_3d_fd::allocate_sc3d_fd() {
   /* size of seqphi/seqrho vectors/views is size of domain! */
   gctx.nsize = options.shape[0] * options.shape[1] * options.shape[2];
 
+  /* Initialize task subcomms, display task-subcomm details */
+  PetscCall(init_solversubcomms(sctx, gctx));
+
+  /* Local rho and phi vectors on each MPI rank */
   PetscCall(init_localvecs(lctx, gctx));
 
-  PetscCall(init_solversubcomms(sctx, gctx));
+  /* rho and phi vectors on each subcomm */
+  PetscCall(init_subcommvecs(sctx, gctx));
+
+  /* create global aliases of local vectors */
+  PetscCall(init_global_local_aliases(lctx, gctx));
+
+  /* create global aliases of subcomm vectors */
+  PetscCall(init_global_subcomm_aliases(sctx, gctx));
+
+  /* create subcomm aliases of local vectors */
+  PetscCall(init_subcomm_local_aliases(lctx, sctx, gctx));
+
+  /* Initialize global (alias of local) to subcomm scatters */
+  PetscCall(init_global_subcomm_scatters(sctx, gctx));
+
+  /* Initialize subcomm (alias of local) to local scatters */
+  PetscCall(init_subcomm_local_scatters(lctx, sctx, gctx));
 
   PetscFunctionReturn(0);
 }
