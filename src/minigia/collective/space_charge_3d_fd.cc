@@ -1,4 +1,5 @@
 #include "space_charge_3d_fd.hpp"
+#include "deposit.hpp"
 #include "space_charge_3d_fd_alias.hpp"
 #include "space_charge_3d_fd_utils.hpp"
 
@@ -17,10 +18,8 @@ double get_smallest_non_tiny(double val, double other1, double other2,
       retval = std::max(other1, other2);
     }
   }
-
   return retval;
 }
-
 } // namespace
 
 // Constructor
@@ -37,16 +36,47 @@ Space_charge_3d_fd::~Space_charge_3d_fd() {
   }
 }
 
+void Space_charge_3d_fd::get_local_charge_density(Bunch const &bunch) {
+  scoped_simple_timer timer("sc3d_fd_local_rho");
+  deposit_charge_rectangular_3d_kokkos_scatter_view(
+      lctx.seqrho_view, domain, domain.get_grid_shape(), bunch);
+}
+
 void Space_charge_3d_fd::apply_impl(Bunch_simulator &sim, double time_step,
                                     Logger &logger) {
   logger << "    Space charge 3d open hockney\n";
 
   scoped_simple_timer timer("sc3d_total");
 
+  // count number of bunches
+  int num_bunches_in_bunch_sim = 0;
+  int num_bunches_in_train_0 = 0;
+  for (size_t t = 0; t < 2; ++t) {
+    for (size_t b = 0; b < sim[t].get_bunch_array_size(); ++b) {
+      num_bunches_in_bunch_sim += 1;
+      if (t == 0)
+        num_bunches_in_train_0 += 1;
+    }
+  }
+  if (num_bunches_in_bunch_sim != num_bunches_in_train_0) {
+    throw std::runtime_error(
+        "sc3d-fd only works on a single bunch train, work is ongoing \
+		    to make it work on multiple bunche trains!");
+  }
+
   // construct the workspace for a new bunch simulator
   if (bunch_sim_id != sim.id()) {
     bunch_sim_id = sim.id();
-    allocate_sc3d_fd();
+    // Assumption: When an MPI rank has more than 1 bunch (within the same
+    // train), all the bunches on the rank have the same communicator and the
+    // same distribution. Reason: when constructing a bunch train, one can have
+    // one the two scenarios:
+    // [1] number of bunches > number of MPI ranks, each rank always has only 1
+    // bunch [2] number of bunches < number of MPI ranks, we require number of
+    // bunches to be divisible by number of  MPI ranks and each bunch has a MPI
+    // communicator of size 1. Update this bit when enabling bunch sim with two
+    // bunch trains!
+    allocate_sc3d_fd(sim[0][0]);
     allocated = true;
   }
 
@@ -59,7 +89,10 @@ void Space_charge_3d_fd::apply_impl(Bunch_simulator &sim, double time_step,
 }
 
 void Space_charge_3d_fd::apply_bunch(Bunch &bunch, double time_step,
-                                     Logger &logger) {}
+                                     Logger &logger) {
+  // charge density
+  get_local_charge_density(bunch); // [C/m^3]
+}
 
 // update_domain
 void Space_charge_3d_fd::update_domain(Bunch const &bunch) {
@@ -94,11 +127,17 @@ void Space_charge_3d_fd::update_domain(Bunch const &bunch) {
   domain = Rectangular_grid_domain(options.shape, size, offset, false);
 }
 
-PetscErrorCode Space_charge_3d_fd::allocate_sc3d_fd() {
+PetscErrorCode Space_charge_3d_fd::allocate_sc3d_fd(const Bunch &bunch) {
   PetscFunctionBeginUser;
 
   /* size of seqphi/seqrho vectors/views is size of domain! */
   gctx.nsize = options.shape[0] * options.shape[1] * options.shape[2];
+
+  /* store MPI communicator of bunch in gctx */
+  PetscCall(
+      PetscCommDuplicate(MPI_Comm(bunch.get_comm()), &gctx.bunch_comm, NULL););
+  PetscCallMPI(MPI_Comm_rank(gctx.bunch_comm, &gctx.global_rank));
+  PetscCallMPI(MPI_Comm_size(gctx.bunch_comm, &gctx.global_size));
 
   /* Initialize task subcomms, display task-subcomm details */
   PetscCall(init_solversubcomms(sctx, gctx));

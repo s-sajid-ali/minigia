@@ -49,12 +49,14 @@ struct SubcommCtx {
   PetscMPIInt solver_size;     /*! solver subcomm MPI communicator size */
 };
 
-/* Global (over all MPI ranks) context */
+/* Global (over all MPI ranks encompassing the bunch) context */
 struct GlobalCtx {
 
   PetscInt nsubcomms = 1; /*! total number of subcomms */
   PetscInt nsize = 12; /*! the size of the problem, which is size of vectors on
                          each MPI rank */
+  MPI_Comm
+      bunch_comm; /*! MPI communicator over which the bunch has been defined */
   PetscBool debug = PETSC_FALSE; /*! enable verbose outputs */
   PetscMPIInt global_rank;       /*! global MPI communicator rank */
   PetscMPIInt global_size;       /*! global MPI communicator size */

@@ -51,7 +51,9 @@ private:
 
   void apply_bunch(Bunch &bunch, double time_step, Logger &logger);
 
-  PetscErrorCode allocate_sc3d_fd();
+  void get_local_charge_density(const Bunch &bunch);
+
+  PetscErrorCode allocate_sc3d_fd(const Bunch &bunch);
 
   PetscErrorCode destroy_sc3d_fd();
 
