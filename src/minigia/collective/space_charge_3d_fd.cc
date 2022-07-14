@@ -44,6 +44,8 @@ void Space_charge_3d_fd::get_local_charge_density(Bunch const &bunch) {
 
 void Space_charge_3d_fd::apply_impl(Bunch_simulator &sim, double time_step,
                                     Logger &logger) {
+
+  PetscErrorCode ierr;
   logger << "    Space charge 3d open hockney\n";
 
   scoped_simple_timer timer("sc3d_total");
@@ -83,15 +85,41 @@ void Space_charge_3d_fd::apply_impl(Bunch_simulator &sim, double time_step,
   // apply to bunches
   for (size_t t = 0; t < 2; ++t) {
     for (size_t b = 0; b < sim[t].get_bunch_array_size(); ++b) {
-      apply_bunch(sim[t][b], time_step, logger);
+      // Using PetscCallAbort instead of PetscCall as this fucntion cannot
+      // return a PetscErrorCode. Since we can't do much if the following fails,
+      // we just abort instead of try/catch/recover.
+      PetscCallAbort(gctx.bunch_comm,
+                     apply_bunch(sim[t][b], time_step, logger));
     }
   }
 }
 
-void Space_charge_3d_fd::apply_bunch(Bunch &bunch, double time_step,
-                                     Logger &logger) {
+PetscErrorCode Space_charge_3d_fd::apply_bunch(Bunch &bunch, double time_step,
+                                               Logger &logger) {
+  PetscFunctionBeginUser;
   // charge density
   get_local_charge_density(bunch); // [C/m^3]
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     global to subcomm scatters
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+  /* Begin global (alias of local) to subcomm scatters! */
+  for (PetscInt i = 0; i < gctx.nsubcomms; i++) {
+    PetscCall(VecScatterBegin(gctx.scat_glocal_to_subcomms[i],
+                              gctx.rho_global_local, gctx.rho_global_subcomm[i],
+                              ADD_VALUES, SCATTER_FORWARD));
+  }
+
+  /* Hopefully there is some unrelated work that can occur here! */
+
+  /* End global (alias of local) to subcomm scatters! */
+  for (PetscInt i = 0; i < gctx.nsubcomms; i++) {
+    PetscCall(VecScatterEnd(gctx.scat_glocal_to_subcomms[i],
+                            gctx.rho_global_local, gctx.rho_global_subcomm[i],
+                            ADD_VALUES, SCATTER_FORWARD));
+  }
+
+  PetscFunctionReturn(0);
 }
 
 // update_domain

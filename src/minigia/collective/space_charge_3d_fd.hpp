@@ -49,9 +49,9 @@ private:
 private:
   void apply_impl(Bunch_simulator &simulator, double time_step, Logger &logger);
 
-  void apply_bunch(Bunch &bunch, double time_step, Logger &logger);
-
   void get_local_charge_density(const Bunch &bunch);
+
+  PetscErrorCode apply_bunch(Bunch &bunch, double time_step, Logger &logger);
 
   PetscErrorCode allocate_sc3d_fd(const Bunch &bunch);
 
