@@ -111,7 +111,7 @@ PetscErrorCode Space_charge_3d_fd::apply_bunch(Bunch &bunch, double time_step,
     PetscViewer hdf5_viewer;
     PetscCall(
         PetscPrintf(gctx.bunch_comm, "Dumping rho vector on all ranks!\n"));
-    std::string filename = "rho_local";
+    std::string filename = "rho_on_rank";
     filename.append(std::to_string(gctx.global_rank));
     filename.append(".h5");
     PetscCall(PetscViewerHDF5Open(PETSC_COMM_WORLD, filename.c_str(),
@@ -171,6 +171,32 @@ PetscErrorCode Space_charge_3d_fd::apply_bunch(Bunch &bunch, double time_step,
     PetscCall(PetscViewerHDF5Open(PETSC_COMM_WORLD, filename.c_str(),
                                   FILE_MODE_WRITE, &hdf5_viewer));
     PetscCall(VecView(sctx.phi_subcomm, hdf5_viewer));
+    PetscCall(PetscViewerDestroy(&hdf5_viewer));
+  }
+
+  /* Begin subcomm (alias of local) to local scatters! */
+  PetscCall(VecScatterBegin(sctx.scat_subcomm_to_local, sctx.phi_subcomm,
+                            sctx.phi_subcomm_local, INSERT_VALUES,
+                            SCATTER_REVERSE));
+
+  /* Hopefully there is some unrelated work that can occur here! */
+
+  /* End subcomm (alias of local) to local scatters! */
+  PetscCall(VecScatterEnd(sctx.scat_subcomm_to_local, sctx.phi_subcomm,
+                          sctx.phi_subcomm_local, INSERT_VALUES,
+                          SCATTER_REVERSE));
+
+  // DEBUGGING!
+  if (gctx.dumps) {
+    PetscViewer hdf5_viewer;
+    PetscCall(
+        PetscPrintf(gctx.bunch_comm, "Dumping phi vector on all ranks!\n"));
+    std::string filename = "phi_on_rank";
+    filename.append(std::to_string(gctx.global_rank));
+    filename.append(".h5");
+    PetscCall(PetscViewerHDF5Open(PETSC_COMM_WORLD, filename.c_str(),
+                                  FILE_MODE_WRITE, &hdf5_viewer));
+    PetscCall(VecView(lctx.seqphi, hdf5_viewer));
     PetscCall(PetscViewerDestroy(&hdf5_viewer));
   }
 
