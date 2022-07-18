@@ -12,6 +12,8 @@ PetscErrorCode init_subcomm_mat(SubcommCtx &sctx, GlobalCtx &gctx);
 
 PetscErrorCode compute_mat(SubcommCtx &sctx, GlobalCtx &gctx);
 
+PetscErrorCode solve(SubcommCtx &sctx, GlobalCtx &gctx);
+
 PetscErrorCode init_global_subcomm_scatters(SubcommCtx &sctx, GlobalCtx &gctx);
 PetscErrorCode init_subcomm_local_scatters(LocalCtx &lctx, SubcommCtx &sctx,
                                            GlobalCtx &gctx);

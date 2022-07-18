@@ -6,7 +6,7 @@
 #include <vector>
 
 #include <petscdmda.h>
-#include <petscvec.h>
+#include <petscksp.h>
 #include <petscviewerhdf5.h>
 
 #include <minigia/utils/multi_array_typedefs.hpp>
@@ -32,8 +32,9 @@ struct SubcommCtx {
   Vec phi_subcomm;       /*! vector on the subcomm */
   Vec rho_subcomm;       /*! vector on the subcomm */
 
-  DM da; /* DMDA to manage grid and vecs */
-  Mat A; /* discretization matrix */
+  DM da;   /* DMDA to manage grid and vecs */
+  Mat A;   /* discretization matrix */
+  KSP ksp; /* krylov solver */
 
   VecScatter scat_subcomm_to_local; /*! VecScatter from subcomm vector to
                                       constituent local vectors */

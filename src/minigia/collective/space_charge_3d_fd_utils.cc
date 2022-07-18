@@ -134,7 +134,8 @@ PetscErrorCode init_subcomm_mat(SubcommCtx &sctx, GlobalCtx &gctx) {
 
 /* --------------------------------------------------------------------- */
 /*!
-  Compute the RHS matrix to solve the (scaled) Poisson's Eq
+  Compute the RHS matrix to solve the (scaled) Poisson's Eq, setup the
+  krylov solver associated with the RHS matrix
   \param   sctx - subcomm context
   \param   gctx - global context
   \return  ierr - PetscErrorCode
@@ -218,6 +219,50 @@ PetscErrorCode compute_mat(SubcommCtx &sctx, GlobalCtx &gctx) {
 
   PetscCall(MatAssemblyBegin(sctx.A, MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(sctx.A, MAT_FINAL_ASSEMBLY));
+
+  /* create krylov solver */
+  PetscCall(KSPCreate(sctx.solversubcomm, &sctx.ksp));
+  PetscCall(KSPSetOperators(sctx.ksp, sctx.A, sctx.A));
+  PetscCall(KSPSetFromOptions(sctx.ksp));
+  PetscCall(KSPSetUp(sctx.ksp));
+  PetscCall(KSPSetDM(sctx.ksp, sctx.da));
+
+  PetscFunctionReturn(0);
+}
+/* --------------------------------------------------------------------- */
+/*!
+  Solve the scaled Poisson Eq!
+  \param   sctx - subcomm context
+  \param   gctx - global context
+  \return  ierr - PetscErrorCode
+  */
+PetscErrorCode solve(SubcommCtx &sctx, GlobalCtx &gctx) {
+
+  DMDALocalInfo info; /* For storing DMDA info */
+  PetscScalar hx, hy, hz;
+  PetscScalar coordsmin[3], coordsmax[3];
+
+  PetscFunctionBeginUser;
+  PetscCall(DMDAGetLocalInfo(sctx.da, &info));
+  PetscCall(DMGetBoundingBox(sctx.da, coordsmin, coordsmax));
+
+  hx = (coordsmax[0] - coordsmin[0]) / (PetscReal)(info.mx);
+  hy = (coordsmax[1] - coordsmin[1]) / (PetscReal)(info.my);
+  hz = (coordsmax[2] - coordsmin[2]) / (PetscReal)(info.mz);
+
+  /* SI units for Poisson eq. */
+  PetscCall(VecScale(sctx.rho_subcomm, (1 / gctx.eps0)));
+
+  /* Scaling factor of hx*hy*hz */
+  PetscCall(VecScale(sctx.rho_subcomm, 1 / (gctx.Lx * gctx.Ly * gctx.Lz)));
+
+  /* Solve for phi! */
+  PetscCall(KSPSolve(sctx.ksp, sctx.rho_subcomm, sctx.phi_subcomm));
+
+  /* Scaling factor of hx*hy*hz */
+  PetscCall(VecScale(sctx.phi_subcomm, (gctx.Lx * gctx.Ly * gctx.Lz)));
+  // Might not be needed after validation!
+  PetscCall(VecScale(sctx.rho_subcomm, (gctx.Lx * gctx.Ly * gctx.Lz)));
 
   PetscFunctionReturn(0);
 }
@@ -355,6 +400,7 @@ PetscErrorCode finalize(LocalCtx &lctx, SubcommCtx &sctx, GlobalCtx &gctx) {
   PetscCall(VecDestroy(&sctx.rho_subcomm_local));
 
   /* Destroy DMDA and matrix on subcomm */
+  PetscCall(KSPDestroy(&sctx.ksp));
   PetscCall(MatDestroy(&sctx.A));
   PetscCall(DMDestroy(&sctx.da));
 

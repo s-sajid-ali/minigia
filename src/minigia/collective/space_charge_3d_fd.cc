@@ -157,6 +157,23 @@ PetscErrorCode Space_charge_3d_fd::apply_bunch(Bunch &bunch, double time_step,
     PetscCall(PetscViewerDestroy(&hdf5_viewer));
   }
 
+  /* Solve for phi on each subcomm! */
+  PetscCall(solve(sctx, gctx));
+
+  // DEBUGGING!
+  if (gctx.dumps) {
+    PetscViewer hdf5_viewer;
+    PetscCall(
+        PetscPrintf(gctx.bunch_comm, "Dumping phi vector on all subcomms!\n"));
+    std::string filename = "phi_on_subcomm";
+    filename.append(std::to_string(sctx.solversubcommid));
+    filename.append(".h5");
+    PetscCall(PetscViewerHDF5Open(PETSC_COMM_WORLD, filename.c_str(),
+                                  FILE_MODE_WRITE, &hdf5_viewer));
+    PetscCall(VecView(sctx.phi_subcomm, hdf5_viewer));
+    PetscCall(PetscViewerDestroy(&hdf5_viewer));
+  }
+
   PetscFunctionReturn(0);
 }
 
