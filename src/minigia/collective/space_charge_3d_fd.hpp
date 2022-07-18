@@ -36,7 +36,7 @@ CEREAL_REGISTER_TYPE(Space_charge_3d_fd_options);
 /// grid shape expects [x][y][z] order.
 class Space_charge_3d_fd : public Collective_operator {
 private:
-  const Space_charge_3d_fd_options options;
+  const Space_charge_3d_fd_options options; /* Options to initialize sc-3d-fd */
   std::string bunch_sim_id;
   Rectangular_grid_domain domain;
   bool use_fixed_domain;
@@ -57,7 +57,7 @@ private:
 
   PetscErrorCode destroy_sc3d_fd();
 
-  void update_domain(Bunch const &bunch);
+  PetscErrorCode update_domain(Bunch const &bunch);
 
 public:
   Space_charge_3d_fd(Space_charge_3d_fd_options const &ops);

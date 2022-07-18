@@ -6,6 +6,8 @@ add_library(minigia_collective SHARED
     deposit_new.cc
     )
 
+##target_compile_definitions(minigia_collective PRIVATE VERBOSE=1)
+
 target_link_libraries(minigia_collective
     minigia_bunch
     minigia_lattice

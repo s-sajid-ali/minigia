@@ -38,6 +38,7 @@ Space_charge_3d_fd::~Space_charge_3d_fd() {
 
 void Space_charge_3d_fd::get_local_charge_density(Bunch const &bunch) {
   scoped_simple_timer timer("sc3d_fd_local_rho");
+
   deposit_charge_rectangular_3d_kokkos_scatter_view(
       lctx.seqrho_view, domain, domain.get_grid_shape(), bunch);
 }
@@ -97,8 +98,27 @@ void Space_charge_3d_fd::apply_impl(Bunch_simulator &sim, double time_step,
 PetscErrorCode Space_charge_3d_fd::apply_bunch(Bunch &bunch, double time_step,
                                                Logger &logger) {
   PetscFunctionBeginUser;
+
+  // update domain only when not using fixed
+  if (!use_fixed_domain)
+    update_domain(bunch);
+
   // charge density
   get_local_charge_density(bunch); // [C/m^3]
+
+  // DEBUGGING!
+  if (gctx.dumps) {
+    PetscViewer hdf5_viewer;
+    PetscCall(
+        PetscPrintf(gctx.bunch_comm, "Dumping rho vector on all ranks!\n"));
+    std::string filename = "rho_local";
+    filename.append(std::to_string(gctx.global_rank));
+    filename.append(".h5");
+    PetscCall(PetscViewerHDF5Open(PETSC_COMM_WORLD, filename.c_str(),
+                                  FILE_MODE_WRITE, &hdf5_viewer));
+    PetscCall(VecView(lctx.seqrho, hdf5_viewer));
+    PetscCall(PetscViewerDestroy(&hdf5_viewer));
+  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      global to subcomm scatters
@@ -119,11 +139,31 @@ PetscErrorCode Space_charge_3d_fd::apply_bunch(Bunch &bunch, double time_step,
                             ADD_VALUES, SCATTER_FORWARD));
   }
 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+       concurrent operations on each solver subcommunicator
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  // DEBUGGING!
+  if (gctx.dumps) {
+    PetscViewer hdf5_viewer;
+    PetscCall(
+        PetscPrintf(gctx.bunch_comm, "Dumping rho vector on all subcomms!\n"));
+    std::string filename = "rho_on_subcomm";
+    filename.append(std::to_string(sctx.solversubcommid));
+    filename.append(".h5");
+    PetscCall(PetscViewerHDF5Open(PETSC_COMM_WORLD, filename.c_str(),
+                                  FILE_MODE_WRITE, &hdf5_viewer));
+    PetscCall(VecView(sctx.rho_subcomm, hdf5_viewer));
+    PetscCall(PetscViewerDestroy(&hdf5_viewer));
+  }
+
   PetscFunctionReturn(0);
 }
 
 // update_domain
-void Space_charge_3d_fd::update_domain(Bunch const &bunch) {
+PetscErrorCode Space_charge_3d_fd::update_domain(Bunch const &bunch) {
+
+  PetscFunctionBeginUser;
 
   auto spatial_mean_stddev =
       Core_diagnostics::calculate_spatial_mean_std(bunch);
@@ -153,6 +193,17 @@ void Space_charge_3d_fd::update_domain(Bunch const &bunch) {
           get_smallest_non_tiny(stddev_z, stddev_x, stddev_y, tiny)};
 
   domain = Rectangular_grid_domain(options.shape, size, offset, false);
+
+  gctx.Lx = static_cast<PetscReal>(domain.get_physical_size()[0]);
+  gctx.Ly = static_cast<PetscReal>(domain.get_physical_size()[1]);
+  gctx.Lz = static_cast<PetscReal>(domain.get_physical_size()[2]);
+
+  PetscCall(DMDASetUniformCoordinates(sctx.da, -gctx.Lx, gctx.Lx, -gctx.Ly,
+                                      gctx.Ly, -gctx.Lz, gctx.Lz));
+
+  PetscCall(compute_mat(sctx, gctx));
+
+  PetscFunctionReturn(0);
 }
 
 PetscErrorCode Space_charge_3d_fd::allocate_sc3d_fd(const Bunch &bunch) {
@@ -160,6 +211,9 @@ PetscErrorCode Space_charge_3d_fd::allocate_sc3d_fd(const Bunch &bunch) {
 
   /* size of seqphi/seqrho vectors/views is size of domain! */
   gctx.nsize = options.shape[0] * options.shape[1] * options.shape[2];
+  gctx.nsize_x = options.shape[0];
+  gctx.nsize_y = options.shape[1];
+  gctx.nsize_z = options.shape[2];
 
   /* store MPI communicator of bunch in gctx */
   PetscCall(
@@ -168,13 +222,13 @@ PetscErrorCode Space_charge_3d_fd::allocate_sc3d_fd(const Bunch &bunch) {
   PetscCallMPI(MPI_Comm_size(gctx.bunch_comm, &gctx.global_size));
 
   /* Initialize task subcomms, display task-subcomm details */
-  PetscCall(init_solversubcomms(sctx, gctx));
+  PetscCall(init_solver_subcomms(sctx, gctx));
 
   /* Local rho and phi vectors on each MPI rank */
-  PetscCall(init_localvecs(lctx, gctx));
+  PetscCall(init_local_vecs(lctx, gctx));
 
   /* rho and phi vectors on each subcomm */
-  PetscCall(init_subcommvecs(sctx, gctx));
+  PetscCall(init_subcomm_vecs(sctx, gctx));
 
   /* create global aliases of local vectors */
   PetscCall(init_global_local_aliases(lctx, gctx));
@@ -184,6 +238,9 @@ PetscErrorCode Space_charge_3d_fd::allocate_sc3d_fd(const Bunch &bunch) {
 
   /* create subcomm aliases of local vectors */
   PetscCall(init_subcomm_local_aliases(lctx, sctx, gctx));
+
+  /* create DM and Matrix on subcomms */
+  PetscCall(init_subcomm_mat(sctx, gctx));
 
   /* Initialize global (alias of local) to subcomm scatters */
   PetscCall(init_global_subcomm_scatters(sctx, gctx));

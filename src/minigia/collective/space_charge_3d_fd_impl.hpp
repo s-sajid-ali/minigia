@@ -7,6 +7,7 @@
 
 #include <petscdmda.h>
 #include <petscvec.h>
+#include <petscviewerhdf5.h>
 
 #include <minigia/utils/multi_array_typedefs.hpp>
 
@@ -31,6 +32,9 @@ struct SubcommCtx {
   Vec phi_subcomm;       /*! vector on the subcomm */
   Vec rho_subcomm;       /*! vector on the subcomm */
 
+  DM da; /* DMDA to manage grid and vecs */
+  Mat A; /* discretization matrix */
+
   VecScatter scat_subcomm_to_local; /*! VecScatter from subcomm vector to
                                       constituent local vectors */
   IS ix_scat_subcomms_to_local; /*! IndexSet for scatter from subcomm vector to
@@ -53,14 +57,24 @@ struct SubcommCtx {
 struct GlobalCtx {
 
   PetscInt nsubcomms = 1; /*! total number of subcomms */
-  PetscInt nsize = 12; /*! the size of the problem, which is size of vectors on
-                         each MPI rank */
+  PetscInt nsize;   /*! the size of the problem, which is size of vectors on
+                           each MPI rank */
+  PetscInt nsize_x; /*! the size of the grid along x axis */
+  PetscInt nsize_y; /*! the size of the grid along y axis */
+  PetscInt nsize_z; /*! the size of the grid along z axis */
+
   MPI_Comm
       bunch_comm; /*! MPI communicator over which the bunch has been defined */
   PetscBool debug = PETSC_FALSE; /*! enable verbose outputs */
+  PetscBool dumps = PETSC_TRUE;  /*! enable dumping states to HDF5 files */
   PetscMPIInt global_rank;       /*! global MPI communicator rank */
   PetscMPIInt global_size;       /*! global MPI communicator size */
-  PetscLogStage logstages[5];    /*! stages for logging performance */
+
+  PetscReal Lx; /* length along x */
+  PetscReal Ly; /* length along x */
+  PetscReal Lz; /* length along x */
+  PetscScalar eps0 =
+      8.85418781281e-12; /* permittivity of free space, SI units! */
 
   Vec phi_global_local; /*! global alias of the local vector on each MPI rank */
   Vec rho_global_local; /*! global alias of the local vector on each MPI rank */

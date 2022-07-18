@@ -8,7 +8,7 @@
   \return  ierr - PetscErrorCode
   */
 
-PetscErrorCode init_localvecs(LocalCtx &lctx, GlobalCtx &gctx) {
+PetscErrorCode init_local_vecs(LocalCtx &lctx, GlobalCtx &gctx) {
   PetscFunctionBeginUser;
 
   lctx.seqphi_view = karray1d_dev("seqphi", gctx.nsize);
@@ -34,7 +34,7 @@ PetscErrorCode init_localvecs(LocalCtx &lctx, GlobalCtx &gctx) {
   \param   gctx - global context
   \return  ierr - PetscErrorCode
 */
-PetscErrorCode init_solversubcomms(SubcommCtx &sctx, GlobalCtx &gctx) {
+PetscErrorCode init_solver_subcomms(SubcommCtx &sctx, GlobalCtx &gctx) {
 
   PetscFunctionBeginUser;
 
@@ -78,7 +78,7 @@ PetscErrorCode init_solversubcomms(SubcommCtx &sctx, GlobalCtx &gctx) {
   \param   gctx - global context
   \return  ierr - PetscErrorCode
   */
-PetscErrorCode init_subcommvecs(SubcommCtx &sctx, GlobalCtx &gctx) {
+PetscErrorCode init_subcomm_vecs(SubcommCtx &sctx, GlobalCtx &gctx) {
   PetscInt size;
 
   PetscFunctionBeginUser;
@@ -105,6 +105,119 @@ PetscErrorCode init_subcommvecs(SubcommCtx &sctx, GlobalCtx &gctx) {
                     sctx.solversubcommid, size));
     PetscCall(PetscPrintf(PETSC_COMM_WORLD, "\n"));
   }
+
+  PetscFunctionReturn(0);
+}
+
+/* --------------------------------------------------------------------- */
+/*!
+  Initialize DMDA and Matrix to solve Poisson Eq on each solver-subcommunicator
+  \param   sctx - subcomm context
+  \param   gctx - global context
+  \return  ierr - PetscErrorCode
+  */
+PetscErrorCode init_subcomm_mat(SubcommCtx &sctx, GlobalCtx &gctx) {
+  PetscFunctionBeginUser;
+
+  PetscCall(DMDACreate3d(gctx.bunch_comm, DM_BOUNDARY_NONE, DM_BOUNDARY_NONE,
+                         DM_BOUNDARY_NONE, DMDA_STENCIL_STAR, gctx.nsize_x,
+                         gctx.nsize_y, gctx.nsize_z, PETSC_DECIDE, PETSC_DECIDE,
+                         PETSC_DECIDE, 1, 1, NULL, NULL, NULL, &sctx.da));
+  PetscCall(DMSetFromOptions(sctx.da));
+  PetscCall(DMSetUp(sctx.da));
+
+  /* create discretization matrix */
+  PetscCall(DMCreateMatrix(sctx.da, &(sctx.A)));
+
+  PetscFunctionReturn(0);
+}
+
+/* --------------------------------------------------------------------- */
+/*!
+  Compute the RHS matrix to solve the (scaled) Poisson's Eq
+  \param   sctx - subcomm context
+  \param   gctx - global context
+  \return  ierr - PetscErrorCode
+  */
+PetscErrorCode compute_mat(SubcommCtx &sctx, GlobalCtx &gctx) {
+  PetscFunctionBeginUser;
+
+  DMDALocalInfo info; /* For storing DMDA info */
+  PetscInt i, j, k;
+  PetscScalar v[7];
+  PetscScalar hx, hy, hz;
+  PetscScalar hxhydhz, hxdhyhz, dhxhyhz;
+  PetscScalar coordsmin[3], coordsmax[3];
+  MatStencil row, col[7];
+
+  PetscFunctionBeginUser;
+  PetscCall(DMDAGetLocalInfo(sctx.da, &info));
+  PetscCall(DMGetBoundingBox(sctx.da, coordsmin, coordsmax));
+
+  hx = (coordsmax[0] - coordsmin[0]) / (PetscReal)(info.mx);
+  hy = (coordsmax[1] - coordsmin[1]) / (PetscReal)(info.my);
+  hz = (coordsmax[2] - coordsmin[2]) / (PetscReal)(info.mz);
+
+  hxhydhz = (hx * hy) / hz;
+  hxdhyhz = (hx * hz) / hy;
+  dhxhyhz = (hy * hz) / hx;
+
+  for (k = info.zs; k < info.zs + info.zm; k++) {
+    for (j = info.ys; j < info.ys + info.ym; j++) {
+      for (i = info.xs; i < info.xs + info.xm; i++) {
+        row.i = i;
+        row.j = j;
+        row.k = k;
+        if (i == 0 || j == 0 || k == 0 || i == info.mx - 1 ||
+            j == info.my - 1 || k == info.mz - 1) {
+          v[0] = 1.0; // on boundary: trivial equation
+          PetscCall(
+              MatSetValuesStencil(sctx.A, 1, &row, 1, &row, v, INSERT_VALUES));
+        } else {
+          v[0] = -hxhydhz;
+          col[0].i = i;
+          col[0].j = j;
+          col[0].k = k - 1;
+
+          v[1] = -hxdhyhz;
+          col[1].i = i;
+          col[1].j = j - 1;
+          col[1].k = k;
+
+          v[2] = -dhxhyhz;
+          col[2].i = i - 1;
+          col[2].j = j;
+          col[2].k = k;
+
+          v[3] = 2 * (hxhydhz + hxdhyhz + dhxhyhz);
+          col[3].i = row.i;
+          col[3].j = row.j;
+          col[3].k = row.k;
+
+          v[4] = -dhxhyhz;
+          col[4].i = i + 1;
+          col[4].j = j;
+          col[4].k = k;
+
+          v[5] = -hxdhyhz;
+          col[5].i = i;
+          col[5].j = j + 1;
+          col[5].k = k;
+
+          v[6] = -hxhydhz;
+          col[6].i = i;
+          col[6].j = j;
+          col[6].k = k + 1;
+
+          PetscCall(
+              MatSetValuesStencil(sctx.A, 1, &row, 7, col, v, INSERT_VALUES));
+        }
+      }
+    }
+  }
+
+  PetscCall(MatAssemblyBegin(sctx.A, MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(sctx.A, MAT_FINAL_ASSEMBLY));
 
   PetscFunctionReturn(0);
 }
@@ -240,6 +353,10 @@ PetscErrorCode finalize(LocalCtx &lctx, SubcommCtx &sctx, GlobalCtx &gctx) {
   /* Destroy subcomm aliases of local vectors */
   PetscCall(VecDestroy(&sctx.phi_subcomm_local));
   PetscCall(VecDestroy(&sctx.rho_subcomm_local));
+
+  /* Destroy DMDA and matrix on subcomm */
+  PetscCall(MatDestroy(&sctx.A));
+  PetscCall(DMDestroy(&sctx.da));
 
   /* Destroy subcomm vectors */
   PetscCall(VecDestroy(&(lctx.seqphi)));
