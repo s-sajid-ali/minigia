@@ -53,6 +53,8 @@ private:
 
   PetscErrorCode apply_bunch(Bunch &bunch, double time_step, Logger &logger);
 
+  PetscErrorCode get_force();
+
   PetscErrorCode allocate_sc3d_fd(const Bunch &bunch);
 
   PetscErrorCode destroy_sc3d_fd();

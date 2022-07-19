@@ -24,6 +24,10 @@ PetscErrorCode init_local_vecs(LocalCtx &lctx, GlobalCtx &gctx) {
                                           &lctx.seqrho));
   PetscCall(PetscObjectSetName((PetscObject)(lctx.seqrho), "seqrho_on_lctx"));
 
+  lctx.enx = karray1d_dev("enx", gctx.nsize);
+  lctx.eny = karray1d_dev("eny", gctx.nsize);
+  lctx.enz = karray1d_dev("enz", gctx.nsize);
+
   PetscFunctionReturn(0);
 }
 

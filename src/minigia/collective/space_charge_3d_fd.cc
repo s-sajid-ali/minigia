@@ -1,8 +1,12 @@
-#include "space_charge_3d_fd.hpp"
 #include "deposit.hpp"
+
+#include "space_charge_3d_fd.hpp"
 #include "space_charge_3d_fd_alias.hpp"
+#include "space_charge_3d_fd_impl.hpp"
+#include "space_charge_3d_fd_kernels.hpp"
 #include "space_charge_3d_fd_utils.hpp"
 
+#include <minigia/utils/hdf5_file.hpp>
 #include <minigia/utils/simple_timer.hpp>
 
 namespace {
@@ -199,6 +203,55 @@ PetscErrorCode Space_charge_3d_fd::apply_bunch(Bunch &bunch, double time_step,
     PetscCall(VecView(lctx.seqphi, hdf5_viewer));
     PetscCall(PetscViewerDestroy(&hdf5_viewer));
   }
+
+  get_force();
+
+  // DEBUGGING!
+  if (gctx.dumps) {
+    std::string filename;
+
+    filename = "enx_on_rank";
+    filename.append(std::to_string(gctx.global_rank));
+    filename.append(".h5");
+    Hdf5_file file_x(filename, Hdf5_file::Flag::truncate, Commxx());
+    file_x.write("enx", lctx.enx.data(), lctx.enx.size(), true);
+
+    filename = "eny_on_rank";
+    filename.append(std::to_string(gctx.global_rank));
+    filename.append(".h5");
+    Hdf5_file file_y(filename, Hdf5_file::Flag::truncate, Commxx());
+    file_y.write("eny", lctx.eny.data(), lctx.eny.size(), true);
+
+    filename = "enz_on_rank";
+    filename.append(std::to_string(gctx.global_rank));
+    filename.append(".h5");
+    Hdf5_file file_z(filename, Hdf5_file::Flag::truncate, Commxx());
+    file_z.write("enz", lctx.enz.data(), lctx.enz.size(), true);
+  }
+
+  PetscFunctionReturn(0);
+}
+
+// get force
+PetscErrorCode Space_charge_3d_fd::get_force() {
+
+  PetscScalar coordsmin[3], coordsmax[3];
+  DMDALocalInfo info;
+
+  PetscFunctionBeginUser;
+  PetscCall(DMDAGetLocalInfo(sctx.da, &info));
+  PetscCall(DMGetBoundingBox(sctx.da, coordsmin, coordsmax));
+
+  auto hx = (coordsmax[0] - coordsmin[0]) / (PetscReal)(info.mx);
+  auto hy = (coordsmax[1] - coordsmin[1]) / (PetscReal)(info.my);
+  auto hz = (coordsmax[2] - coordsmin[2]) / (PetscReal)(info.mz);
+
+  alg_force_extractor alg(
+      lctx.seqphi_view, lctx.enx, lctx.eny, lctx.enz,
+      std::array<int, 3>{gctx.nsize_x, gctx.nsize_y, gctx.nsize_z},
+      std::array<double, 3>{hx, hy, hz});
+  Kokkos::parallel_for(gctx.nsize, alg);
+  Kokkos::fence();
 
   PetscFunctionReturn(0);
 }

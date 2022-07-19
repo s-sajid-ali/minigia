@@ -20,6 +20,10 @@ struct LocalCtx {
 
   karray1d_dev seqphi_view; /*! kokkos view for seqphi */
   karray1d_dev seqrho_view; /*! kokkos view for seqrho */
+
+  karray1d_dev enx; /*! kokkos view for electric field along x */
+  karray1d_dev eny; /*! kokkos view for electric field along y */
+  karray1d_dev enz; /*! kokkos view for electric field along z */
 };
 
 /* Subcomm context */
