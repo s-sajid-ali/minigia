@@ -78,8 +78,9 @@ struct GlobalCtx {
   PetscReal Lx; /* length along x */
   PetscReal Ly; /* length along x */
   PetscReal Lz; /* length along x */
-  PetscScalar eps0 =
-      8.85418781281e-12; /* permittivity of free space, SI units! */
+  PetscScalar eps0 = 1;
+  //      4 * 3.14 * 8.85418781281e-12; /* permittivity of free space, SI units!
+  //      */
 
   Vec phi_global_local; /*! global alias of the local vector on each MPI rank */
   Vec rho_global_local; /*! global alias of the local vector on each MPI rank */

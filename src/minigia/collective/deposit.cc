@@ -2,6 +2,7 @@
 #include <minigia/foundation/physical_constants.hpp>
 
 #include "deposit.hpp"
+#include "utils.hpp"
 
 #include <Kokkos_ScatterView.hpp>
 
@@ -10,26 +11,6 @@
 namespace deposit_impl {
 using scatter_t =
     Kokkos::Experimental::ScatterView<double *, Kokkos::LayoutLeft>;
-
-KOKKOS_INLINE_FUNCTION
-int fast_int_floor_kokkos(const double x) {
-  int ix = static_cast<int>(x);
-  return x > 0.0 ? ix : ((x - ix == 0) ? ix : ix - 1);
-}
-
-KOKKOS_INLINE_FUNCTION
-void get_leftmost_indices_offset(double pos, double left, double inv_cell_size,
-                                 int &idx, double &off) {
-  double scaled_location = (pos - left) * inv_cell_size - 0.5;
-  idx = fast_int_floor_kokkos(scaled_location);
-  off = scaled_location - idx;
-
-#if VERBOSE == 1
-  std::cout << "particle with pos : " << pos << ", left : " << left
-            << ", inv_cell_size : " << inv_cell_size << ", idx : " << idx
-            << ", off : " << off << std::endl;
-#endif
-}
 
 KOKKOS_INLINE_FUNCTION
 bool ingrid(int i, int g) { return i >= 0 && i < g; }
