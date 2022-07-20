@@ -229,6 +229,8 @@ PetscErrorCode Space_charge_3d_fd::apply_bunch(Bunch &bunch, double time_step,
     file_z.write("enz", lctx.enz.data(), lctx.enz.size(), true);
   }
 
+  apply_kick(bunch, time_step);
+
   PetscFunctionReturn(0);
 }
 
@@ -254,6 +256,36 @@ PetscErrorCode Space_charge_3d_fd::get_force() {
   Kokkos::fence();
 
   PetscFunctionReturn(0);
+}
+
+// apply kick
+void Space_charge_3d_fd::apply_kick(Bunch &bunch, double time_step) {
+  auto ref = bunch.get_reference_particle();
+
+  double q = bunch.get_particle_charge() * pconstants::e;
+  double m = bunch.get_mass();
+
+  double gamma = ref.get_gamma();
+  double beta = ref.get_beta();
+  double pref = ref.get_momentum();
+  double fn_norm = 1.0 / (4.0 * mconstants::pi * pconstants::epsilon0);
+
+  double unit_conversion = pconstants::c / (1e9 * pconstants::e);
+  double factor = options.kick_scale * unit_conversion * q * time_step *
+                  fn_norm / (pref * gamma * gamma * beta);
+
+  auto parts = bunch.get_local_particles();
+  auto masks = bunch.get_local_particle_masks();
+
+  auto g = domain.get_grid_shape();
+  auto h = domain.get_cell_size();
+  auto l = domain.get_left();
+
+  alg_kicker kicker(parts, masks, lctx.enx, lctx.eny, lctx.enz, g, h, l, factor,
+                    pref, m);
+
+  Kokkos::parallel_for(bunch.size(), kicker);
+  Kokkos::fence();
 }
 
 // update_domain

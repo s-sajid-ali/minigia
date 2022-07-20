@@ -16,11 +16,12 @@ struct Space_charge_3d_fd_options
   std::array<int, 3> shape;
   bool domain_fixed;
   double n_sigma;
+  double kick_scale;
   int comm_group_size;
 
   Space_charge_3d_fd_options(int gridx = 32, int gridy = 32, int gridz = 64)
       : shape{gridx, gridy, gridz}, domain_fixed(false), n_sigma(8.0),
-        comm_group_size(1) {}
+        kick_scale(1.0), comm_group_size(1) {}
 
   template <class Archive> void serialize(Archive &ar) {
     ar(cereal::base_class<CO_base_options>(this));
@@ -54,6 +55,8 @@ private:
   PetscErrorCode apply_bunch(Bunch &bunch, double time_step, Logger &logger);
 
   PetscErrorCode get_force();
+
+  void apply_kick(Bunch &bunch, double time_step);
 
   PetscErrorCode allocate_sc3d_fd(const Bunch &bunch);
 
