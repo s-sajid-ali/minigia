@@ -51,6 +51,17 @@ void Space_charge_3d_fd::set_fixed_domain(std::array<double, 3> offset,
   domain = Rectangular_grid_domain(options.shape, size, offset, false);
 
   use_fixed_domain = true;
+
+  gctx.Lx = static_cast<PetscReal>(domain.get_physical_size()[0]);
+  gctx.Ly = static_cast<PetscReal>(domain.get_physical_size()[1]);
+  gctx.Lz = static_cast<PetscReal>(domain.get_physical_size()[2]);
+
+  /* Public API that cannot return PetscErrorCode, abort on failure */
+  PetscCallAbort(gctx.bunch_comm,
+                 DMDASetUniformCoordinates(sctx.da, -gctx.Lx, gctx.Lx, -gctx.Ly,
+                                           gctx.Ly, -gctx.Lz, gctx.Lz));
+
+  PetscCallAbort(gctx.bunch_comm, compute_mat(sctx, gctx));
 }
 
 void Space_charge_3d_fd::get_local_charge_density(Bunch const &bunch) {
