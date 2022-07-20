@@ -1,9 +1,10 @@
+#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
+using Catch::Approx;
+
 #include <minigia/collective/space_charge_3d_fd.hpp>
 
 #include "rod_bunch.h"
-
-#include <petsc.h>
 
 TEST_CASE("real_apply_full_lowgamma", "[Rod_bunch]") {
   PetscErrorCode ierr;
@@ -71,4 +72,49 @@ TEST_CASE("real_apply_full_lowgamma", "[Rod_bunch]") {
   // print
   logger << "after sc::apply : bunch.local_particles(0, 0): " << parts(0, 0)
          << '\n';
+
+  // Rod of charge Q over length L
+  // E field at radius r $$ E = \frac{1}{2 \pi \epsilon_0} \frac{Q}{L}
+  // \frac{1}{r} $$ B field at radius r $$ E = \frac{\mu_0}{2 \pi } \frac{Q
+  // v}{L} \frac{1}{r} $$ Net EM force on electric+magnetic on probe of charge q
+  // from E-B cancellation
+  // $$ F = \frac{1}{2 \pi \epsilon_0 \gamma^2} \frac{qQ}{L} \frac{1}{r}
+  // travel over distance D at velocity v
+  // \frac{\Delta p}{p} = \frac{1}{2 \pi \epsilon_0 \gamma^2} \frac{qQ}{L}
+  // \frac{D}{m v^2} \frac{1}{r} convert to usual units \frac{\Delta p}{p} =
+  // \frac{2 N r_p}{L \beta^2 \gamma^3} \frac{D}{r}
+
+  double L = bunchlen;
+  double N = bunch.get_real_num();
+
+  logger << "L: " << L << '\n';
+  logger << "N: " << N << '\n';
+  logger << "step_length: " << step_length << '\n';
+  logger << "beta: " << beta << '\n';
+  logger << "gamma: " << gamma << '\n';
+  logger << "betagamma: " << betagamma << '\n';
+  logger << "x: " << parts(0, Bunch::x) << '\n';
+
+  double computed_dpop =
+      ((2.0 * N * pconstants::rp) / (L * betagamma * betagamma * gamma)) *
+      (step_length / parts(0, Bunch::x));
+
+  logger << "computed dpop: " << computed_dpop << '\n';
+  logger << "particle dpop: " << parts(0, 1) << '\n';
+
+  CHECK(parts(0, Bunch::xp) == Approx(computed_dpop).margin(.01));
+
+  int nkicks = 0;
+  for (int k = 0; k < bunch.get_local_num(); ++k) {
+    if ((parts(k, 1) != 0.0) || (parts(k, 3) != 0.0)) {
+      ++nkicks;
+
+      if (nkicks < 10) {
+        logger << "kick: " << nkicks << ", particle " << k << ": "
+               << parts(k, 0) << ", " << parts(k, 1) << ", " << parts(k, 2)
+               << ", " << parts(k, 3) << ", " << parts(k, 4) << ", "
+               << parts(k, 5) << '\n';
+      }
+    }
+  }
 }
