@@ -66,6 +66,10 @@ private:
 
 public:
   Space_charge_3d_fd(Space_charge_3d_fd_options const &ops);
+
+  void set_fixed_domain(std::array<double, 3> offset,
+                        std::array<double, 3> size);
+
   ~Space_charge_3d_fd();
 };
 

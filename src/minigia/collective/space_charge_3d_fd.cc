@@ -37,7 +37,20 @@ Space_charge_3d_fd::~Space_charge_3d_fd() {
 
   if (allocated) {
     destroy_sc3d_fd();
+    allocated = false;
   }
+}
+
+void Space_charge_3d_fd::set_fixed_domain(std::array<double, 3> offset,
+                                          std::array<double, 3> size) {
+
+  /* todo check for physics here! */
+  std::array<double, 3> doubled_size{size[0] * 2.0, size[1] * 2.0,
+                                     size[2] * 2.0};
+
+  domain = Rectangular_grid_domain(options.shape, size, offset, false);
+
+  use_fixed_domain = true;
 }
 
 void Space_charge_3d_fd::get_local_charge_density(Bunch const &bunch) {

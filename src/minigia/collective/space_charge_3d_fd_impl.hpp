@@ -71,7 +71,7 @@ struct GlobalCtx {
   MPI_Comm
       bunch_comm; /*! MPI communicator over which the bunch has been defined */
   PetscBool debug = PETSC_FALSE; /*! enable verbose outputs */
-  PetscBool dumps = PETSC_TRUE;  /*! enable dumping states to HDF5 files */
+  PetscBool dumps = PETSC_FALSE; /*! enable dumping states to HDF5 files */
   PetscMPIInt global_rank;       /*! global MPI communicator rank */
   PetscMPIInt global_size;       /*! global MPI communicator size */
 
