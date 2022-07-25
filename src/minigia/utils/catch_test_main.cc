@@ -7,15 +7,15 @@
 static std::string help = "This is a minigia test program!\n\n";
 
 int main(int argc, char *argv[]) {
-  MPI_Init(&argc, &argv);
-  Kokkos::initialize(argc, argv);
   PetscErrorCode ierr;
   ierr = PetscInitialize(&argc, &argv, (char *)0, help.c_str());
 
-  int result = Catch::Session().run(argc, argv);
+  auto initargs = Kokkos::InitArguments{}; /* use default constructor */
+  Kokkos::initialize(initargs);
 
-  ierr = PetscFinalize();
+  int result = Catch::Session().run();
+
   Kokkos::finalize();
-  MPI_Finalize();
+  ierr = PetscFinalize();
   return result;
 }

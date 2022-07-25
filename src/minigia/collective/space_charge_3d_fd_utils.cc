@@ -260,6 +260,11 @@ PetscErrorCode solve(SubcommCtx &sctx, GlobalCtx &gctx) {
   /* Scaling factor of hx*hy*hz */
   PetscCall(VecScale(sctx.rho_subcomm, 1 / (gctx.Lx * gctx.Ly * gctx.Lz)));
 
+  /* Enable KSP logging if option is set */
+  if (gctx.ksplog) {
+    PetscCall(KSPView(sctx.ksp, PETSC_VIEWER_STDOUT_WORLD));
+  }
+
   /* Solve for phi! */
   PetscCall(KSPSolve(sctx.ksp, sctx.rho_subcomm, sctx.phi_subcomm));
 

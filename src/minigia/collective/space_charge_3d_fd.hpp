@@ -54,7 +54,7 @@ private:
 
   PetscErrorCode apply_bunch(Bunch &bunch, double time_step, Logger &logger);
 
-  PetscErrorCode get_force();
+  void get_force();
 
   void apply_kick(Bunch &bunch, double time_step);
 

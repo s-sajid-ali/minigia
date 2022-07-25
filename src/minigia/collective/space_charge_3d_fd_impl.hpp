@@ -62,16 +62,18 @@ struct SubcommCtx {
 struct GlobalCtx {
 
   PetscInt nsubcomms = 1; /*! total number of subcomms */
-  PetscInt nsize;   /*! the size of the problem, which is size of vectors on
-                           each MPI rank */
+  PetscInt nsize;         /*! the size of the proble */
+  PetscInt nsize_local;   /*! which is size of vectors on this MPI rank */
+
   PetscInt nsize_x; /*! the size of the grid along x axis */
   PetscInt nsize_y; /*! the size of the grid along y axis */
   PetscInt nsize_z; /*! the size of the grid along z axis */
 
   MPI_Comm
       bunch_comm; /*! MPI communicator over which the bunch has been defined */
+  PetscBool ksplog = PETSC_TRUE; /*! enable KSPView to stdout */
   PetscBool debug = PETSC_FALSE; /*! enable verbose outputs */
-  PetscBool dumps = PETSC_FALSE; /*! enable dumping states to HDF5 files */
+  PetscBool dumps = PETSC_TRUE;  /*! enable dumping states to HDF5 files */
   PetscMPIInt global_rank;       /*! global MPI communicator rank */
   PetscMPIInt global_size;       /*! global MPI communicator size */
 

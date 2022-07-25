@@ -45,9 +45,6 @@ void Space_charge_3d_fd::set_fixed_domain(std::array<double, 3> offset,
                                           std::array<double, 3> size) {
 
   /* todo check for physics here! */
-  std::array<double, 3> doubled_size{size[0] * 2.0, size[1] * 2.0,
-                                     size[2] * 2.0};
-
   domain = Rectangular_grid_domain(options.shape, size, offset, false);
 
   use_fixed_domain = true;
@@ -235,6 +232,9 @@ PetscErrorCode Space_charge_3d_fd::apply_bunch(Bunch &bunch, double time_step,
 
   // DEBUGGING!
   if (gctx.dumps) {
+    PetscCall(PetscPrintf(gctx.bunch_comm,
+                          "Dumping enx/eny/enz vector on all ranks!\n"));
+
     std::string filename;
 
     filename = "enx_on_rank";
@@ -262,18 +262,13 @@ PetscErrorCode Space_charge_3d_fd::apply_bunch(Bunch &bunch, double time_step,
 }
 
 // get force
-PetscErrorCode Space_charge_3d_fd::get_force() {
+void Space_charge_3d_fd::get_force() {
 
-  PetscScalar coordsmin[3], coordsmax[3];
-  DMDALocalInfo info;
+  auto h = domain.get_cell_size();
 
-  PetscFunctionBeginUser;
-  PetscCall(DMDAGetLocalInfo(sctx.da, &info));
-  PetscCall(DMGetBoundingBox(sctx.da, coordsmin, coordsmax));
-
-  auto hx = (coordsmax[0] - coordsmin[0]) / (PetscReal)(info.mx);
-  auto hy = (coordsmax[1] - coordsmin[1]) / (PetscReal)(info.my);
-  auto hz = (coordsmax[2] - coordsmin[2]) / (PetscReal)(info.mz);
+  auto hx = h[0];
+  auto hy = h[1];
+  auto hz = h[2];
 
   alg_force_extractor alg(
       lctx.seqphi_view, lctx.enx, lctx.eny, lctx.enz,
@@ -281,8 +276,6 @@ PetscErrorCode Space_charge_3d_fd::get_force() {
       std::array<double, 3>{hx, hy, hz});
   Kokkos::parallel_for(gctx.nsize, alg);
   Kokkos::fence();
-
-  PetscFunctionReturn(0);
 }
 
 // apply kick
@@ -295,7 +288,14 @@ void Space_charge_3d_fd::apply_kick(Bunch &bunch, double time_step) {
   double gamma = ref.get_gamma();
   double beta = ref.get_beta();
   double pref = ref.get_momentum();
-  double fn_norm = 1.0 / (4.0 * mconstants::pi * pconstants::epsilon0);
+
+  auto g = domain.get_grid_shape();
+  auto h = domain.get_cell_size();
+  auto l = domain.get_left();
+
+  double fn_norm = h[0] * h[1] * h[1] *
+                   (1.0 / (4.0 * mconstants::pi * pconstants::epsilon0));
+  //              * (g[0] * g[1] * g[2]);
 
   double unit_conversion = pconstants::c / (1e9 * pconstants::e);
   double factor = options.kick_scale * unit_conversion * q * time_step *
@@ -303,10 +303,6 @@ void Space_charge_3d_fd::apply_kick(Bunch &bunch, double time_step) {
 
   auto parts = bunch.get_local_particles();
   auto masks = bunch.get_local_particle_masks();
-
-  auto g = domain.get_grid_shape();
-  auto h = domain.get_cell_size();
-  auto l = domain.get_left();
 
   alg_kicker kicker(parts, masks, lctx.enx, lctx.eny, lctx.enz, g, h, l, factor,
                     pref, m);
@@ -375,6 +371,10 @@ PetscErrorCode Space_charge_3d_fd::allocate_sc3d_fd(const Bunch &bunch) {
       PetscCommDuplicate(MPI_Comm(bunch.get_comm()), &gctx.bunch_comm, NULL););
   PetscCallMPI(MPI_Comm_rank(gctx.bunch_comm, &gctx.global_rank));
   PetscCallMPI(MPI_Comm_size(gctx.bunch_comm, &gctx.global_size));
+
+  gctx.nsize_local = PETSC_DECIDE;
+  PetscCall(
+      PetscSplitOwnership(gctx.bunch_comm, &gctx.nsize_local, &gctx.nsize));
 
   /* Initialize task subcomms, display task-subcomm details */
   PetscCall(init_solver_subcomms(sctx, gctx));

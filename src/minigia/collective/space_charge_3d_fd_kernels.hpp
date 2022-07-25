@@ -61,6 +61,8 @@ struct alg_force_extractor {
 
     idx_r = izr * gx * gy + iy * gx + ix;
     idx_l = izl * gx * gy + iy * gx + ix;
+    auto val_right = phi2(idx_r) * 1.0;
+    auto val_left = phi2(idx_l) * 1.0;
     enz(i) = -(phi2(idx_r) - phi2(idx_l)) * idz;
   }
 };
