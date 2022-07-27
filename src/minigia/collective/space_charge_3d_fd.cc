@@ -103,6 +103,7 @@ void Space_charge_3d_fd::apply_impl(Bunch_simulator &sim, double time_step,
     /* Functionality that is present in update_domain that must be called
       where a static domain is used ! */
     if (use_fixed_domain) {
+
       auto left_x = static_cast<PetscReal>(domain.get_left()[0]);
       auto left_y = static_cast<PetscReal>(domain.get_left()[1]);
       auto left_z = static_cast<PetscReal>(domain.get_left()[2]);
@@ -269,16 +270,8 @@ PetscErrorCode Space_charge_3d_fd::apply_bunch(Bunch &bunch, double time_step,
 // get force
 void Space_charge_3d_fd::get_force() {
 
-  auto h = domain.get_cell_size();
-
-  auto hx = h[0];
-  auto hy = h[1];
-  auto hz = h[2];
-
-  alg_force_extractor alg(
-      lctx.seqphi_view, lctx.enx, lctx.eny, lctx.enz,
-      std::array<int, 3>{gctx.nsize_x, gctx.nsize_y, gctx.nsize_z},
-      std::array<double, 3>{hx, hy, hz});
+  alg_force_extractor alg(lctx.seqphi_view, lctx.enx, lctx.eny, lctx.enz,
+                          domain.get_grid_shape(), domain.get_cell_size());
   Kokkos::parallel_for(gctx.nsize, alg);
   Kokkos::fence();
 }

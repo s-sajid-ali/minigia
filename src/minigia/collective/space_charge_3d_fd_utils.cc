@@ -272,11 +272,6 @@ PetscErrorCode solve(SubcommCtx &sctx, GlobalCtx &gctx) {
   /* Solve for phi! */
   PetscCall(KSPSolve(sctx.ksp, sctx.rho_subcomm, sctx.phi_subcomm));
 
-  /* Scaling factor of hx*hy*hz */
-  // PetscCall(VecScale(sctx.phi_subcomm, (gctx.Lx * gctx.Ly * gctx.Lz)));
-  //  Might not be needed after validation!
-  // PetscCall(VecScale(sctx.rho_subcomm, (gctx.Lx * gctx.Ly * gctx.Lz)));
-
   PetscFunctionReturn(0);
 }
 

@@ -159,9 +159,6 @@ void deposit_charge_rectangular_3d_kokkos_scatter_view(
   auto h = domain.get_cell_size();
   auto l = domain.get_left();
 
-  // g[0] (nx) needs to be padded to (2*(g[0]/2+1))
-  // int padded_gx = Distributed_fft3d::get_padded_shape_real(g[0]);
-
   auto parts = bunch.get_local_particles();
   auto masks = bunch.get_local_particle_masks();
   int nparts = bunch.size();
