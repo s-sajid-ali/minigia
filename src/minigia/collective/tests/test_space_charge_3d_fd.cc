@@ -11,9 +11,9 @@ TEST_CASE("real_apply_full_lowgamma", "[Rod_bunch]") {
   auto logger = Logger(0, LoggerV::DEBUG);
   auto simlogger = Logger(0, LoggerV::INFO_STEP);
 
-  const int gridx = 64;
-  const int gridy = 64;
-  const int gridz = 64;
+  const int gridx = 32;
+  const int gridy = 32;
+  const int gridz = 32;
 
   const double time_fraction = 1.0;
   const double step_length = 0.1;
@@ -130,9 +130,9 @@ TEST_CASE("real_apply_full_highgamma", "[Rod_bunch]") {
   auto logger = Logger(0, LoggerV::DEBUG);
   auto simlogger = Logger(0, LoggerV::INFO_STEP);
 
-  const int gridx = 64;
-  const int gridy = 64;
-  const int gridz = 64;
+  const int gridx = 32;
+  const int gridy = 32;
+  const int gridz = 32;
 
   const double time_fraction = 1.0;
   const double step_length = 0.1;

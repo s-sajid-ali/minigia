@@ -298,7 +298,7 @@ void Space_charge_3d_fd::apply_kick(Bunch &bunch, double time_step) {
   auto h = domain.get_cell_size();
   auto l = domain.get_left();
 
-  double fn_norm = (1.0 / (4.0 * mconstants::pi * pconstants::epsilon0));
+  double fn_norm = 1.0 / (4.0 * mconstants::pi * pconstants::epsilon0);
 
   double unit_conversion = pconstants::c / (1e9 * pconstants::e);
   double factor = options.kick_scale * unit_conversion * q * time_step *
@@ -379,10 +379,6 @@ PetscErrorCode Space_charge_3d_fd::allocate_sc3d_fd(const Bunch &bunch) {
       PetscCommDuplicate(MPI_Comm(bunch.get_comm()), &gctx.bunch_comm, NULL););
   PetscCallMPI(MPI_Comm_rank(gctx.bunch_comm, &gctx.global_rank));
   PetscCallMPI(MPI_Comm_size(gctx.bunch_comm, &gctx.global_size));
-
-  gctx.nsize_local = PETSC_DECIDE;
-  PetscCall(
-      PetscSplitOwnership(gctx.bunch_comm, &gctx.nsize_local, &gctx.nsize));
 
   /* Initialize task subcomms, display task-subcomm details */
   PetscCall(init_solver_subcomms(sctx, gctx));

@@ -63,7 +63,6 @@ struct GlobalCtx {
 
   PetscInt nsubcomms = 1; /*! total number of subcomms */
   PetscInt nsize;         /*! the size of the proble */
-  PetscInt nsize_local;   /*! which is size of vectors on this MPI rank */
 
   PetscInt nsize_x; /*! the size of the grid along x axis */
   PetscInt nsize_y; /*! the size of the grid along y axis */
