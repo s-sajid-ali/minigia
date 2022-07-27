@@ -103,10 +103,15 @@ void Space_charge_3d_fd::apply_impl(Bunch_simulator &sim, double time_step,
     /* Functionality that is present in update_domain that must be called
       where a static domain is used ! */
     if (use_fixed_domain) {
+      auto left_x = static_cast<PetscReal>(domain.get_left()[0]);
+      auto left_y = static_cast<PetscReal>(domain.get_left()[1]);
+      auto left_z = static_cast<PetscReal>(domain.get_left()[2]);
+
       /* Public API that cannot return PetscErrorCode, abort on failure */
-      PetscCallAbort(gctx.bunch_comm, DMDASetUniformCoordinates(
-                                          sctx.da, -gctx.Lx, gctx.Lx, -gctx.Ly,
-                                          gctx.Ly, -gctx.Lz, gctx.Lz));
+      PetscCallAbort(gctx.bunch_comm,
+                     DMDASetUniformCoordinates(
+                         sctx.da, left_x, left_x + gctx.Lx, left_y,
+                         left_y + gctx.Ly, left_z, left_z + gctx.Lz));
       PetscCallAbort(gctx.bunch_comm, compute_mat(sctx, gctx));
     }
   }
@@ -293,9 +298,6 @@ void Space_charge_3d_fd::apply_kick(Bunch &bunch, double time_step) {
   auto h = domain.get_cell_size();
   auto l = domain.get_left();
 
-  // double fn_norm = h[0] * h[1] * h[2] *
-  //                  (1.0 / (4.0 * mconstants::pi * pconstants::epsilon0));
-
   double fn_norm = (1.0 / (4.0 * mconstants::pi * pconstants::epsilon0));
 
   double unit_conversion = pconstants::c / (1e9 * pconstants::e);
@@ -350,8 +352,13 @@ PetscErrorCode Space_charge_3d_fd::update_domain(Bunch const &bunch) {
   gctx.Ly = static_cast<PetscReal>(domain.get_physical_size()[1]);
   gctx.Lz = static_cast<PetscReal>(domain.get_physical_size()[2]);
 
-  PetscCall(DMDASetUniformCoordinates(sctx.da, -gctx.Lx, gctx.Lx, -gctx.Ly,
-                                      gctx.Ly, -gctx.Lz, gctx.Lz));
+  auto left_x = static_cast<PetscReal>(domain.get_left()[0]);
+  auto left_y = static_cast<PetscReal>(domain.get_left()[1]);
+  auto left_z = static_cast<PetscReal>(domain.get_left()[2]);
+
+  PetscCall(DMDASetUniformCoordinates(sctx.da, left_x, left_x + gctx.Lx, left_y,
+                                      left_y + gctx.Ly, left_z,
+                                      left_z + gctx.Lz));
 
   PetscCall(compute_mat(sctx, gctx));
 

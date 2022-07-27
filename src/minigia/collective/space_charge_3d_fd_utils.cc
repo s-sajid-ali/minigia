@@ -256,6 +256,10 @@ PetscErrorCode solve(SubcommCtx &sctx, GlobalCtx &gctx) {
 
   /* SI units for Poisson eq. */
   // PetscCall(VecScale(sctx.rho_subcomm, (1 / gctx.eps0)));
+  //
+  std::cout << "hx is " << hx << "\n";
+  std::cout << "hy is " << hy << "\n";
+  std::cout << "hz is " << hz << "\n";
 
   /* Scaling factor of hx*hy*hz */
   PetscCall(VecScale(sctx.rho_subcomm, hx * hy * hz));
