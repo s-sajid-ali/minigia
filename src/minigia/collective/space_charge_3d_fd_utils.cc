@@ -255,10 +255,10 @@ PetscErrorCode solve(SubcommCtx &sctx, GlobalCtx &gctx) {
   hz = (coordsmax[2] - coordsmin[2]) / (PetscReal)(info.mz);
 
   /* SI units for Poisson eq. */
-  PetscCall(VecScale(sctx.rho_subcomm, (1 / gctx.eps0)));
+  // PetscCall(VecScale(sctx.rho_subcomm, (1 / gctx.eps0)));
 
   /* Scaling factor of hx*hy*hz */
-  PetscCall(VecScale(sctx.rho_subcomm, 1 / (gctx.Lx * gctx.Ly * gctx.Lz)));
+  PetscCall(VecScale(sctx.rho_subcomm, hx * hy * hz));
 
   /* Enable KSP logging if option is set */
   if (gctx.ksplog) {
@@ -269,9 +269,9 @@ PetscErrorCode solve(SubcommCtx &sctx, GlobalCtx &gctx) {
   PetscCall(KSPSolve(sctx.ksp, sctx.rho_subcomm, sctx.phi_subcomm));
 
   /* Scaling factor of hx*hy*hz */
-  PetscCall(VecScale(sctx.phi_subcomm, (gctx.Lx * gctx.Ly * gctx.Lz)));
-  // Might not be needed after validation!
-  PetscCall(VecScale(sctx.rho_subcomm, (gctx.Lx * gctx.Ly * gctx.Lz)));
+  // PetscCall(VecScale(sctx.phi_subcomm, (gctx.Lx * gctx.Ly * gctx.Lz)));
+  //  Might not be needed after validation!
+  // PetscCall(VecScale(sctx.rho_subcomm, (gctx.Lx * gctx.Ly * gctx.Lz)));
 
   PetscFunctionReturn(0);
 }

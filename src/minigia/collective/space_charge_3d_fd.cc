@@ -293,8 +293,10 @@ void Space_charge_3d_fd::apply_kick(Bunch &bunch, double time_step) {
   auto h = domain.get_cell_size();
   auto l = domain.get_left();
 
-  double fn_norm = h[0] * h[1] * h[2] *
-                   (1.0 / (4.0 * mconstants::pi * pconstants::epsilon0));
+  // double fn_norm = h[0] * h[1] * h[2] *
+  //                  (1.0 / (4.0 * mconstants::pi * pconstants::epsilon0));
+
+  double fn_norm = (1.0 / (4.0 * mconstants::pi * pconstants::epsilon0));
 
   double unit_conversion = pconstants::c / (1e9 * pconstants::e);
   double factor = options.kick_scale * unit_conversion * q * time_step *
