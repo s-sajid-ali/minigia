@@ -124,7 +124,6 @@ TEST_CASE("real_apply_full_lowgamma", "[Rod_bunch]") {
   fixture.bsim.get_bunch().write_file(std::string("particles_after_kick.h5"));
 }
 
-/*
 TEST_CASE("real_apply_full_highgamma", "[Rod_bunch]") {
   PetscErrorCode ierr;
   auto logger = Logger(0, LoggerV::DEBUG);
@@ -242,4 +241,3 @@ TEST_CASE("real_apply_full_highgamma", "[Rod_bunch]") {
 
   fixture.bsim.get_bunch().write_file(std::string("particles_after_kick.h5"));
 }
-*/
