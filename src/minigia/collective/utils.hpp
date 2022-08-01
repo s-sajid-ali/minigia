@@ -2,6 +2,8 @@
 #include <Kokkos_MathematicalFunctions.hpp>
 #include <cfenv>
 
+#define IDXPRINT 0
+
 KOKKOS_INLINE_FUNCTION
 void get_leftmost_indices_offset(double pos, double left, double inv_cell_size,
                                  int &idx, double &off) {
@@ -10,7 +12,7 @@ void get_leftmost_indices_offset(double pos, double left, double inv_cell_size,
   idx = Kokkos::Experimental::nearbyint(scaled_location);
   off = scaled_location - idx;
 
-#if VERBOSE == 1
+#if IDXPRINT == 1
   std::cout << "particle with pos : " << pos << ", left : " << left
             << ", inv_cell_size : " << inv_cell_size << ", idx : " << idx
             << ", off : " << off << std::endl;

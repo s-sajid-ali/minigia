@@ -30,9 +30,9 @@ int main(int argc, char *argv[]) {
     {
       bunch.checkout_particles();
       auto bunch_parts = bunch.get_host_particles();
-      bunch_parts.access(0, 0) = 2;
-      bunch_parts.access(0, 2) = 2;
-      bunch_parts.access(0, 4) = 2;
+      bunch_parts.access(0, 0) = 2.125;
+      bunch_parts.access(0, 2) = 2.125;
+      bunch_parts.access(0, 4) = 2.125;
       // print intital coordinates
       logger << "before kick, particle at (x y z):" << '\n';
       for (int k = 0; k < 1; ++k) {

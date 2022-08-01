@@ -6,7 +6,7 @@
 
 #include <Kokkos_ScatterView.hpp>
 
-#define VERBOSE 0
+#define VERBOSE 1
 
 namespace deposit_impl {
 using scatter_t =
@@ -75,8 +75,13 @@ struct sv_zyx_rho_reducer_non_periodic {
 
 #if VERBOSE == 1
       std::cout << "particle is at ix : " << ix << ", iy : " << iy
-                << ", iz : " << iz << ", with weights aox : " << aox
-                << ", aoy : " << aoy << ", aoz : " << aoz << std::endl;
+                << ", iz : " << iz << ", with weights ox : " << ox
+                << ", oy : " << oy << ", oz : " << oz << std::endl;
+      std::cout << "coords are x: " << p(i, 0) << ", y : " << p(i, 2)
+                << ", z : " << p(i, 4) << ", with left lx : " << lx
+                << ", ly : " << ly << ", lz : " << lz << ", with ihx : " << ihx
+                << ", ihy : " << ihy << ", ihz : " << ihz << std::endl;
+
 #endif
 
       if (ingrid(ix, iy, iz, gx, gy, gz)) {
