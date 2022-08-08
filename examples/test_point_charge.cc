@@ -30,9 +30,9 @@ int main(int argc, char *argv[]) {
     {
       bunch.checkout_particles();
       auto bunch_parts = bunch.get_host_particles();
-      bunch_parts.access(0, 0) = 2.125;
-      bunch_parts.access(0, 2) = 2.125;
-      bunch_parts.access(0, 4) = 2.125;
+      bunch_parts.access(0, 0) = 0;
+      bunch_parts.access(0, 2) = 0;
+      bunch_parts.access(0, 4) = 0;
       // print intital coordinates
       logger << "before kick, particle at (x y z):" << '\n';
       for (int k = 0; k < 1; ++k) {
@@ -43,14 +43,14 @@ int main(int argc, char *argv[]) {
     }
 
     // space charge operator
-    auto sc_ops = Space_charge_3d_fd_options(16, 16, 16);
+    auto sc_ops = Space_charge_3d_fd_options(17, 17, 17);
 
     sc_ops.comm_group_size = 1;
 
     auto sc = Space_charge_3d_fd(sc_ops);
 
     // set domain
-    std::array<double, 3> offset = {2, 2, 2};
+    std::array<double, 3> offset = {0, 0, 0};
     std::array<double, 3> size = {4, 4, 4};
     sc.set_fixed_domain(offset, size);
 
